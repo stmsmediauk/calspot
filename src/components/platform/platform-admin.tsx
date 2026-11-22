@@ -28,13 +28,17 @@ type CoachRow = {
 };
 
 type Filter = "all" | "never" | "suspended" | "busy" | "inactive";
-const filters: { id: Filter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "never", label: "Never published" },
-  { id: "suspended", label: "Suspended" },
-  { id: "busy", label: "Busy (spam check)" },
-  { id: "inactive", label: "Inactive 30 days" },
-];
+type View =
+  | { type: "overview" }
+  | { type: "coaches"; filter: Filter }
+  | { type: "coach"; id: string; back: Filter };
+const filterLabels: Record<Filter, string> = {
+  all: "All coaches",
+  never: "Never published",
+  suspended: "Suspended",
+  busy: "Busy (spam check)",
+  inactive: "Inactive 30 days",
+};
 const plans = ["trial", "paid", "free", "overdue"];
 const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
@@ -54,10 +58,10 @@ export function PlatformAdmin() {
   const [rows, setRows] = useState<CoachRow[]>([]);
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
+  const [view, setView] = useState<View>({ type: "overview" });
   const [tools, setTools] = useState(true);
-  const [open, setOpen] = useState<string | null>(null);
   const [now] = useState(() => Date.now());
+  const [nav, setNav] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -209,40 +213,83 @@ export function PlatformAdmin() {
           : error.message,
       );
     setRows((list) => list.filter((r) => r.id !== row.id));
+    setView({ type: "coaches", filter: "all" });
   };
 
+  const cutoff = now - 30 * 86_400_000;
+  const matches = (r: CoachRow, f: Filter) =>
+    f === "never"
+      ? !r.published && !r.suspended
+      : f === "suspended"
+        ? Boolean(r.suspended)
+        : f === "busy"
+          ? Number(r.requests_24h ?? 0) >= 10 ||
+            Number(r.bookings_pending) >= 10
+          : f === "inactive"
+            ? !r.last_sign_in_at ||
+              new Date(r.last_sign_in_at).getTime() < cutoff
+            : true;
+  const counts: Record<Filter, number> = {
+    all: rows.length,
+    never: rows.filter((r) => matches(r, "never")).length,
+    suspended: rows.filter((r) => matches(r, "suspended")).length,
+    busy: rows.filter((r) => matches(r, "busy")).length,
+    inactive: rows.filter((r) => matches(r, "inactive")).length,
+  };
+  const activeFilter: Filter =
+    view.type === "coaches"
+      ? view.filter
+      : view.type === "coach"
+        ? view.back
+        : "all";
   const shown = (() => {
     const q = query.trim().toLowerCase();
-    const cutoff = now - 30 * 86_400_000;
-    const byFilter = rows.filter((r) =>
-      filter === "never"
-        ? !r.published && !r.suspended
-        : filter === "suspended"
-          ? r.suspended
-          : filter === "busy"
-            ? Number(r.requests_24h ?? 0) >= 10 ||
-              Number(r.bookings_pending) >= 10
-            : filter === "inactive"
-              ? !r.last_sign_in_at ||
-                new Date(r.last_sign_in_at).getTime() < cutoff
-              : true,
-    );
+    const list = rows.filter((r) => matches(r, activeFilter));
     return q
-      ? byFilter.filter((r) =>
+      ? list.filter((r) =>
           [r.name, r.slug, r.owner_email, r.title].some((v) =>
             v?.toLowerCase().includes(q),
           ),
         )
-      : byFilter;
+      : list;
   })();
-  const totals = useMemo(
-    () => ({
-      coaches: rows.length,
-      published: rows.filter((r) => r.published).length,
-      pending: rows.reduce((n, r) => n + Number(r.bookings_pending), 0),
-      bookings: rows.reduce((n, r) => n + Number(r.bookings_total), 0),
-    }),
-    [rows],
+  const totals = {
+    coaches: rows.length,
+    published: rows.filter((r) => r.published).length,
+    pending: rows.reduce((n, r) => n + Number(r.bookings_pending), 0),
+    bookings: rows.reduce((n, r) => n + Number(r.bookings_total), 0),
+  };
+  const current =
+    view.type === "coach" ? rows.find((r) => r.id === view.id) : undefined;
+  const status = (r: CoachRow) =>
+    r.suspended
+      ? { label: "Suspended", cls: styles.badgeRed }
+      : r.published
+        ? { label: "Live", cls: styles.badgeGreen }
+        : { label: "Private", cls: styles.badgeGrey };
+  const plan = (r: CoachRow) =>
+    (r.billing_status ?? "trial")[0].toUpperCase() +
+    (r.billing_status ?? "trial").slice(1);
+
+  const navButton = (
+    label: string,
+    active: boolean,
+    onClick: () => void,
+    count?: number,
+    sub = false,
+  ) => (
+    <button
+      type="button"
+      className={`${styles.navItem} ${sub ? styles.navSub : ""}`}
+      aria-current={active ? "page" : undefined}
+      onClick={() => {
+        setNav(false);
+        onClick();
+      }}
+    >
+      <span>{label}</span>
+      {count !== undefined && <em>{count}</em>}
+    </button>
   );
 
   if (state === "loading")
@@ -252,206 +299,279 @@ export function PlatformAdmin() {
       </p>
     );
   return (
-    <div className={styles.page}>
-      <header className={styles.top}>
-        <Logo compact />
-        <span className={styles.tag}>Platform admin</span>
-        <Link href="/dashboard">My dashboard</Link>
-        <LogoutButton className={styles.logout} />
-      </header>
-      <section className={styles.body}>
-        <h1>Coaches</h1>
+    <div className={styles.shell}>
+      <div className={styles.sidebar}>
+        <div className={styles.brand}>
+          <Logo compact />
+          <span className={styles.tag}>Admin</span>
+        </div>
+        <button
+          type="button"
+          className={styles.menuButton}
+          aria-expanded={nav}
+          onClick={() => setNav((v) => !v)}
+        >
+          Menu
+        </button>
+        <nav
+          className={`${styles.nav} ${nav ? styles.navOpen : ""}`}
+          aria-label="Admin"
+        >
+          {navButton("Overview", view.type === "overview", () =>
+            setView({ type: "overview" }),
+          )}
+          {navButton(
+            "Coaches",
+            activeFilter === "all" && view.type !== "overview",
+            () => setView({ type: "coaches", filter: "all" }),
+            counts.all,
+          )}
+          {tools && (
+            <div
+              className={styles.navGroup}
+              role="group"
+              aria-label="Needs attention"
+            >
+              <span>Needs attention</span>
+              {(["never", "busy", "inactive", "suspended"] as Filter[]).map(
+                (f) =>
+                  navButton(
+                    filterLabels[f],
+                    view.type !== "overview" && activeFilter === f,
+                    () => setView({ type: "coaches", filter: f }),
+                    counts[f],
+                    true,
+                  ),
+              )}
+            </div>
+          )}
+          <div className={styles.navFoot}>
+            <Link href="/dashboard">My dashboard</Link>
+            <LogoutButton className={styles.logout} />
+          </div>
+        </nav>
+      </div>
+      <div className={styles.content}>
         {state === "error" && (
           <p className={styles.error} role="alert">
             Couldn’t load coaches: {message}
           </p>
         )}
-        <dl className={styles.stats}>
-          <div>
-            <dt>Coaches</dt>
-            <dd>{totals.coaches}</dd>
-          </div>
-          <div>
-            <dt>Published</dt>
-            <dd>{totals.published}</dd>
-          </div>
-          <div>
-            <dt>Requests waiting</dt>
-            <dd>{totals.pending}</dd>
-          </div>
-          <div>
-            <dt>All requests</dt>
-            <dd>{totals.bookings}</dd>
-          </div>
-        </dl>
-        <label className={styles.search}>
-          <span>Search coaches</span>
-          <input
-            type="search"
-            value={query}
-            placeholder="Name, page address or email"
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
         {!tools && state === "ready" && (
           <p className={styles.error} role="alert">
             Suspend, plans, activity and spam tools aren’t set up yet. Run
             supabase/admin_tools.sql in the Supabase SQL editor.
           </p>
         )}
-        <div
-          className={styles.filters}
-          role="group"
-          aria-label="Filter coaches"
-        >
-          {filters.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              aria-pressed={filter === f.id}
-              onClick={() => setFilter(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
-          <button type="button" className={styles.export} onClick={exportCsv}>
-            Export CSV
-          </button>
-        </div>
         {message && state === "ready" && (
           <p className={styles.error} role="alert">
             {message}
           </p>
         )}
-        {shown.length === 0 ? (
-          <p className={styles.empty}>
-            {rows.length
-              ? "No coaches match that search."
-              : "No coaches have signed up yet."}
-          </p>
-        ) : (
-          <ul className={styles.list}>
-            {shown.map((r) => (
-              <li key={r.id}>
-                <div className={styles.who}>
-                  <strong>{r.name || "Unnamed coach"}</strong>
-                  <small>
-                    /{r.slug} · {r.owner_email}
-                  </small>
-                </div>
-                <div className={styles.badges}>
-                  <span
-                    className={
-                      r.suspended
-                        ? styles.badgeRed
-                        : r.published
-                          ? styles.badgeGreen
-                          : styles.badgeGrey
-                    }
-                  >
-                    {r.suspended
-                      ? "Suspended"
-                      : r.published
-                        ? "Live"
-                        : "Private"}
-                  </span>
-                  {tools && (
-                    <span className={styles.badgeGrey}>
-                      {(r.billing_status ?? "trial")[0].toUpperCase() +
-                        (r.billing_status ?? "trial").slice(1)}
-                    </span>
+
+        {view.type === "overview" && (
+          <>
+            <h1>Overview</h1>
+            <dl className={styles.stats}>
+              <div>
+                <dt>Coaches</dt>
+                <dd>{totals.coaches}</dd>
+              </div>
+              <div>
+                <dt>Published</dt>
+                <dd>{totals.published}</dd>
+              </div>
+              <div>
+                <dt>Requests waiting</dt>
+                <dd>{totals.pending}</dd>
+              </div>
+              <div>
+                <dt>All requests</dt>
+                <dd>{totals.bookings}</dd>
+              </div>
+            </dl>
+            {tools && (
+              <>
+                <h2 className={styles.h2}>Needs attention</h2>
+                <ul className={styles.attention}>
+                  {(["never", "busy", "inactive", "suspended"] as Filter[]).map(
+                    (f) => (
+                      <li key={f}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setView({ type: "coaches", filter: f })
+                          }
+                        >
+                          <strong>{counts[f]}</strong>
+                          <span>{filterLabels[f]}</span>
+                        </button>
+                      </li>
+                    ),
                   )}
-                </div>
-                <p className={styles.summary}>
-                  {r.bookings_total} request
-                  {Number(r.bookings_total) === 1 ? "" : "s"}
-                  {Number(r.bookings_pending) > 0 &&
-                    ` · ${r.bookings_pending} waiting`}
-                  {" · "}Joined {date(r.created_at)}
-                  {tools && ` · Last seen ${date(r.last_sign_in_at ?? null)}`}
-                </p>
+                </ul>
+              </>
+            )}
+            <p className={styles.note}>
+              Counts only. Player names, emails and messages stay private to
+              each coach.
+            </p>
+          </>
+        )}
+
+        {view.type === "coaches" && (
+          <>
+            <h1>{filterLabels[view.filter]}</h1>
+            <div className={styles.toolbar}>
+              <label className={styles.search}>
+                <span>Search coaches</span>
+                <input
+                  type="search"
+                  value={query}
+                  placeholder="Name, page address or email"
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </label>
+              <button type="button" className={styles.view} onClick={exportCsv}>
+                Export CSV
+              </button>
+            </div>
+            {shown.length === 0 ? (
+              <p className={styles.empty}>
+                {rows.length
+                  ? "No coaches match."
+                  : "No coaches have signed up yet."}
+              </p>
+            ) : (
+              <ul className={styles.list}>
+                {shown.map((r) => (
+                  <li key={r.id}>
+                    <button
+                      type="button"
+                      className={styles.rowButton}
+                      onClick={() =>
+                        setView({ type: "coach", id: r.id, back: view.filter })
+                      }
+                    >
+                      <span className={styles.who}>
+                        <strong>{r.name || "Unnamed coach"}</strong>
+                        <small>
+                          /{r.slug} · {r.owner_email}
+                        </small>
+                      </span>
+                      <span className={status(r).cls}>{status(r).label}</span>
+                      {tools && (
+                        <span className={styles.badgeGrey}>{plan(r)}</span>
+                      )}
+                      <span className={styles.rowMeta}>
+                        {r.bookings_total} request
+                        {Number(r.bookings_total) === 1 ? "" : "s"}
+                        {Number(r.bookings_pending) > 0 &&
+                          ` · ${r.bookings_pending} waiting`}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+
+        {view.type === "coach" && !current && (
+          <p className={styles.empty}>Coach not found.</p>
+        )}
+        {view.type === "coach" && current && (
+          <>
+            <button
+              type="button"
+              className={styles.back}
+              onClick={() => setView({ type: "coaches", filter: view.back })}
+            >
+              ← {filterLabels[view.back]}
+            </button>
+            <h1>{current.name || "Unnamed coach"}</h1>
+            <p className={styles.sub}>
+              /{current.slug} · {current.owner_email}{" "}
+              <span className={status(current).cls}>
+                {status(current).label}
+              </span>{" "}
+              {tools && (
+                <span className={styles.badgeGrey}>{plan(current)}</span>
+              )}
+            </p>
+            <p className={styles.summary}>
+              Joined {date(current.created_at)}
+              {tools && ` · Last seen ${date(current.last_sign_in_at ?? null)}`}
+              {" · "}
+              {current.bookings_total} request
+              {Number(current.bookings_total) === 1 ? "" : "s"}
+              {Number(current.bookings_pending) > 0 &&
+                ` (${current.bookings_pending} waiting)`}
+            </p>
+            <div className={styles.actions}>
+              {tools && (
+                <label className={styles.plan}>
+                  <span>Plan</span>
+                  <select
+                    value={current.billing_status ?? "trial"}
+                    onChange={(e) => setPlan(current, e.target.value)}
+                  >
+                    {plans.map((p) => (
+                      <option key={p} value={p}>
+                        {p[0].toUpperCase() + p.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {current.published && (
+                <Link
+                  className={styles.view}
+                  href={`/${current.slug}`}
+                  target="_blank"
+                >
+                  View page
+                </Link>
+              )}
+              <button
+                type="button"
+                className={styles.view}
+                onClick={() => setPublished(current, !current.published)}
+              >
+                {current.published ? "Unpublish" : "Publish"}
+              </button>
+              {tools && (
                 <button
                   type="button"
-                  className={styles.manage}
-                  aria-expanded={open === r.id}
-                  onClick={() => setOpen(open === r.id ? null : r.id)}
+                  className={styles.view}
+                  onClick={() => suspend(current)}
                 >
-                  {open === r.id ? "Close" : "Manage"}
+                  {current.suspended ? "Unsuspend" : "Suspend"}
                 </button>
-                {open === r.id && (
-                  <div className={styles.supportWrap}>
-                    <div className={styles.actions}>
-                      {tools && (
-                        <label className={styles.plan}>
-                          <span>Plan</span>
-                          <select
-                            value={r.billing_status ?? "trial"}
-                            onChange={(e) => setPlan(r, e.target.value)}
-                          >
-                            {plans.map((p) => (
-                              <option key={p} value={p}>
-                                {p[0].toUpperCase() + p.slice(1)}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      )}
-                      {r.published && (
-                        <Link
-                          className={styles.view}
-                          href={`/${r.slug}`}
-                          target="_blank"
-                        >
-                          View page
-                        </Link>
-                      )}
-                      <button
-                        type="button"
-                        className={styles.view}
-                        onClick={() => setPublished(r, !r.published)}
-                      >
-                        {r.published ? "Unpublish" : "Publish"}
-                      </button>
-                      {tools && (
-                        <button
-                          type="button"
-                          className={styles.view}
-                          onClick={() => suspend(r)}
-                        >
-                          {r.suspended ? "Unsuspend" : "Suspend"}
-                        </button>
-                      )}
-                      {tools && Number(r.bookings_pending) > 0 && (
-                        <button
-                          type="button"
-                          className={styles.view}
-                          onClick={() => clearPending(r)}
-                        >
-                          Clear waiting requests
-                        </button>
-                      )}
-                    </div>
-                    <SupportView coachId={r.id} />
-                    <div className={styles.danger}>
-                      <button
-                        type="button"
-                        className={styles.delete}
-                        onClick={() => remove(r)}
-                      >
-                        Delete this coach…
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
+              )}
+              {tools && Number(current.bookings_pending) > 0 && (
+                <button
+                  type="button"
+                  className={styles.view}
+                  onClick={() => clearPending(current)}
+                >
+                  Clear waiting requests
+                </button>
+              )}
+            </div>
+            <SupportView coachId={current.id} />
+            <div className={styles.danger}>
+              <button
+                type="button"
+                className={styles.delete}
+                onClick={() => remove(current)}
+              >
+                Delete this coach…
+              </button>
+            </div>
+          </>
         )}
-        <p className={styles.note}>
-          Counts only. Player names, emails and messages stay private to each
-          coach.
-        </p>
-      </section>
+      </div>
     </div>
   );
 }
