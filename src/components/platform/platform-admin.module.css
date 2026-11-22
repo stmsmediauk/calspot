@@ -133,6 +133,23 @@
   margin: 2px 0 0;
   font-size: 14px;
 }
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.delete {
+  min-height: var(--tap);
+  padding: 0 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: var(--background);
+  color: #b3261e;
+  border: 1px solid #e3b4b0;
+}
 .on,
 .off {
   min-height: var(--tap);

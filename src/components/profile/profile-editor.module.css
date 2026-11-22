@@ -326,14 +326,46 @@
 }
 .fineTune {
   margin-top: 22px;
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 0 16px 16px;
+  background: #fff;
 }
 .fineTune > summary {
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 44px;
+  justify-content: center;
+  padding: 12px 0;
+  margin: 0 -16px 12px;
+  padding-inline: 16px;
+  background: #f0f4ff;
+  border-radius: 11px 11px 0 0;
+  border-bottom: 1px solid var(--border);
+}
+.fineTune > summary::-webkit-details-marker {
+  display: none;
+}
+.fineTune > summary span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.fineTune > summary small {
+  font-size: 13px;
   color: var(--text-2);
+}
+.fineTune:not([open]) > summary {
+  border-radius: 11px;
+  border-bottom: 0;
+  margin-bottom: 0;
+}
+.fineTune > summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }
 .choiceRow {
   display: grid;

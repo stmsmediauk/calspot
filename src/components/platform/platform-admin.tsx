@@ -73,6 +73,26 @@ export function PlatformAdmin() {
     );
   };
 
+  const remove = async (row: CoachRow) => {
+    setMessage("");
+    const typed = window.prompt(
+      `Delete ${row.name || row.slug} permanently? This removes their page, lessons, availability, all booking requests and their login. It cannot be undone.\n\nType the page address (${row.slug}) to confirm.`,
+    );
+    if (typed === null) return;
+    if (typed.trim() !== row.slug)
+      return setMessage("The address didn’t match, so nothing was deleted.");
+    const { error } = await createClient().rpc("admin_delete_coach", {
+      p_coach: row.id,
+    });
+    if (error)
+      return setMessage(
+        /function|schema cache/i.test(error.message)
+          ? "Delete isn’t set up in the database yet. Run supabase/admin_delete_coach.sql in the Supabase SQL editor."
+          : error.message,
+      );
+    setRows((list) => list.filter((r) => r.id !== row.id));
+  };
+
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q
@@ -185,6 +205,7 @@ export function PlatformAdmin() {
                     <dd>{date(r.last_request_at)}</dd>
                   </div>
                 </dl>
+                <div className={styles.actions}>
                 <button
                   type="button"
                   className={r.published ? styles.on : styles.off}
@@ -193,6 +214,14 @@ export function PlatformAdmin() {
                 >
                   {r.published ? "Published · Unpublish" : "Private · Publish"}
                 </button>
+                <button
+                  type="button"
+                  className={styles.delete}
+                  onClick={() => remove(r)}
+                >
+                  Delete
+                </button>
+                </div>
               </li>
             ))}
           </ul>

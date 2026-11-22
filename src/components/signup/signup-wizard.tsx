@@ -21,6 +21,7 @@ import { Logo } from "../logo";
 import { LookPreview } from "../profile/appearance-editor";
 import { PreviewFrame, PreviewSheet } from "../profile/preview-frame";
 import { AssetInput } from "../profile/profile-editor";
+import { FocusPicker } from "../profile/focus-picker";
 import profileStyles from "../profile/profile-editor.module.css";
 import styles from "./signup.module.css";
 
@@ -67,6 +68,8 @@ const starterLessons = [
 
 type Draft = {
   photograph: string | null;
+  focusX: number;
+  focusY: number;
   name: string;
   slug: string;
   title: string;
@@ -84,6 +87,8 @@ type Draft = {
 };
 const blank: Draft = {
   photograph: null,
+  focusX: 50,
+  focusY: 30,
   name: "",
   slug: "",
   title: "Padel coach",
@@ -130,8 +135,8 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
     testimonials: [],
     appearance: d.appearance,
     photograph: d.photograph,
-    photoFocusX: 50,
-    photoFocusY: 25,
+    photoFocusX: d.focusX,
+    photoFocusY: d.focusY,
     logo: null,
     logoDark: null,
     whatsapp: "",
@@ -320,6 +325,17 @@ export function SignupWizard() {
                   onError={setError}
                   onReading={(n) => setReading((r) => r + n)}
                 />
+                {draft.photograph && (
+                  <FocusPicker
+                    src={draft.photograph}
+                    x={draft.focusX}
+                    y={draft.focusY}
+                    onChange={(x, y) => {
+                      set("focusX", x);
+                      set("focusY", y);
+                    }}
+                  />
+                )}
                 <div className={profileStyles.columns}>
                   <label>
                     Your name

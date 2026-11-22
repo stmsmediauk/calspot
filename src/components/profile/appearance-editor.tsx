@@ -147,8 +147,11 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
             You have a custom look. Choose a style above to start again.
           </p>
         )}
-        <details className={styles.fineTune}>
-          <summary>Fine-tune</summary>
+        <details className={styles.fineTune} open>
+          <summary>
+            <span>Fine-tune your page</span>
+            <small>Layout, colours, accent, fonts and more</small>
+          </summary>
           <fieldset className={styles.fieldsetReset}>
             <legend>Page style</legend>
             <div className={styles.choiceRow}>
@@ -327,59 +330,6 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
           />
           Show the “Before you ask” questions
         </label>
-        <label className={styles.checkLine}>
-          <input
-            type="checkbox"
-            checked={appearance.poweredBy}
-            onChange={(e) => onAppearance({ poweredBy: e.target.checked })}
-          />
-          Show “Powered by calspot.” in the footer
-        </label>
-        {draft.photograph && (
-          <fieldset className={styles.fieldsetReset}>
-            <legend>Photograph focus</legend>
-            <p className={styles.hint}>
-              Move the focus so your face stays in view when the photograph is
-              cropped.
-            </p>
-            <div className={styles.focusRow}>
-              <div
-                className={styles.focusPreview}
-                style={{
-                  backgroundImage: `url("${draft.photograph}")`,
-                  backgroundPosition: `${draft.photoFocusX}% ${draft.photoFocusY}%`,
-                }}
-                aria-hidden="true"
-              />
-              <div>
-                <label>
-                  Left to right
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={draft.photoFocusX}
-                    onChange={(e) =>
-                      onPatch({ photoFocusX: Number(e.target.value) })
-                    }
-                  />
-                </label>
-                <label>
-                  Top to bottom
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={draft.photoFocusY}
-                    onChange={(e) =>
-                      onPatch({ photoFocusY: Number(e.target.value) })
-                    }
-                  />
-                </label>
-              </div>
-            </div>
-          </fieldset>
-        )}
       </section>
     </>
   );

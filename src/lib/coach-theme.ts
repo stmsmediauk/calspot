@@ -185,7 +185,7 @@ export const defaultAppearance: CoachAppearance = {
   showHighlights: true,
   showTestimonials: true,
   showFaq: true,
-  poweredBy: false,
+  poweredBy: true,
 };
 
 /** Whole-site looks. Each bundles hero, palette, accent, type and corners. */
@@ -297,7 +297,7 @@ export function sanitiseAppearance(
     showHighlights: flag("showHighlights"),
     showTestimonials: flag("showTestimonials"),
     showFaq: flag("showFaq"),
-    poweredBy: flag("poweredBy"),
+    poweredBy: true,
   };
 }
 

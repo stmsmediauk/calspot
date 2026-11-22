@@ -19,10 +19,43 @@ import {
   templateLabels,
   type WhatsAppTemplates,
 } from "@/lib/whatsapp";
+import { FocusPicker } from "./focus-picker";
 import { AppearanceEditor } from "./appearance-editor";
 import { PreviewFrame, PreviewSheet } from "./preview-frame";
 import { useAdmin } from "../admin/context";
 import styles from "./profile-editor.module.css";
+
+/** Shrinks big photos in the browser so any camera image can be uploaded. */
+async function prepareImage(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const max = 1800;
+  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+  const small = file.size <= 900_000 && scale === 1;
+  if (small) {
+    bitmap.close();
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Image could not be read."));
+      reader.readAsDataURL(file);
+    });
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("No canvas");
+  if (file.type === "image/png") {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const keepPng = file.type === "image/png";
+  return canvas.toDataURL(keepPng ? "image/png" : "image/jpeg", 0.86);
+}
 
 export function AssetInput({
   label,
@@ -68,24 +101,15 @@ export function AssetInput({
                 !["image/jpeg", "image/png", "image/webp"].includes(
                   file.type,
                 ) ||
-                file.size > 1_048_576
+                file.size > 25_000_000
               ) {
-                onError("Choose a JPEG, PNG or WebP image smaller than 1 MB.");
+                onError("Choose a JPEG, PNG or WebP image smaller than 25 MB.");
                 return;
               }
               onReading(1);
               onError("");
               try {
-                const bitmap = await createImageBitmap(file);
-                bitmap.close();
-                const data = await new Promise<string>((resolve, reject) => {
-                  const reader = new FileReader();
-                  reader.onload = () => resolve(String(reader.result));
-                  reader.onerror = () =>
-                    reject(new Error("Image could not be read."));
-                  reader.readAsDataURL(file);
-                });
-                onChange(data);
+                onChange(await prepareImage(file));
               } catch {
                 onError(
                   "This image could not be opened. Try another JPEG, PNG or WebP.",
@@ -96,7 +120,7 @@ export function AssetInput({
             }}
           />
         </label>
-        <p>JPEG, PNG or WebP · Up to 1 MB · Local preview only</p>
+        <p>JPEG, PNG or WebP · Large photos are fine, we resize them for you</p>
         {value && (
           <button
             type="button"
@@ -274,6 +298,16 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
                   onChange={(value) => change("photograph", value)}
                   {...assetProps}
                 />
+                {draft.photograph && (
+                  <FocusPicker
+                    src={draft.photograph}
+                    x={draft.photoFocusX}
+                    y={draft.photoFocusY}
+                    onChange={(x, y) =>
+                      setDraft((d) => ({ ...d, photoFocusX: x, photoFocusY: y }))
+                    }
+                  />
+                )}
                 <div className={styles.columns}>
                   <label>
                     Name

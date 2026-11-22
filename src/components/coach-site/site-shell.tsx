@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCoachWorkspace } from "@/lib/coach-workspace";
 import { coachTheme } from "@/lib/coach-theme";
+import { Logo } from "@/components/logo";
 import { useSite } from "./site-context";
 import styles from "./site.module.css";
 
@@ -68,8 +69,15 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         <nav className={styles.footerLinks} aria-label="Legal">
           <Link href={`${basePath}/privacy`}>Privacy</Link>
           <Link href={`${basePath}/terms`}>Terms</Link>
-          {appearance.poweredBy && <span>Powered by calspot.</span>}
         </nav>
+        <Link
+          className={styles.poweredBy}
+          href="/"
+          aria-label="Powered by Calspot"
+        >
+          <span>Powered by</span>
+          <Logo />
+        </Link>
       </footer>
     </div>
   );
