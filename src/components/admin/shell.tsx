@@ -2,7 +2,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
   CalendarDays,
   Check,
@@ -78,6 +79,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [notice, setNotice] = useState("");
   const [modal, setModal] = useState<ModalState | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    let live = true;
+    createClient()
+      .rpc("is_platform_admin")
+      .then(({ data }) => live && setIsAdmin(data === true));
+    return () => {
+      live = false;
+    };
+  }, []);
   const router = useRouter();
   const dirty = useRef(false);
   const [leaving, setLeaving] = useState<string | null>(null);
@@ -180,6 +191,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="account">
             <span>{account.email}</span>
+            {isAdmin && (
+              <Link href="/admin" className="signup-link">
+                Platform admin
+              </Link>
+            )}
             <button
               type="button"
               className="signup-link"

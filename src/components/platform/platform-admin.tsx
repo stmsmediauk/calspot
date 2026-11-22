@@ -20,7 +20,22 @@ type CoachRow = {
   bookings_total: number;
   bookings_pending: number;
   last_request_at: string | null;
+  suspended?: boolean;
+  billing_status?: string;
+  last_sign_in_at?: string | null;
+  requests_24h?: number;
 };
+
+type Filter = "all" | "never" | "suspended" | "busy" | "inactive";
+const filters: { id: Filter; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "never", label: "Never published" },
+  { id: "suspended", label: "Suspended" },
+  { id: "busy", label: "Busy (spam check)" },
+  { id: "inactive", label: "Inactive 30 days" },
+];
+const plans = ["trial", "paid", "free", "overdue"];
+const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
 const date = (value: string | null) =>
   value
@@ -38,6 +53,9 @@ export function PlatformAdmin() {
   const [rows, setRows] = useState<CoachRow[]>([]);
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [tools, setTools] = useState(true);
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     let live = true;
@@ -47,7 +65,11 @@ export function PlatformAdmin() {
       if (!auth.user) return router.replace("/login");
       const admin = await supabase.rpc("is_platform_admin");
       if (admin.data !== true) return router.replace("/dashboard");
-      const { data, error } = await supabase.rpc("admin_coaches");
+      let { data, error } = await supabase.rpc("admin_coaches_v2");
+      if (error) {
+        setTools(false);
+        ({ data, error } = await supabase.rpc("admin_coaches"));
+      }
       if (!live) return;
       if (error) {
         setMessage(error.message);
@@ -73,6 +95,65 @@ export function PlatformAdmin() {
     );
   };
 
+  const patch = (row: CoachRow, change: Partial<CoachRow>) =>
+    setRows((list) => list.map((r) => (r.id === row.id ? { ...r, ...change } : r)));
+  const suspend = async (row: CoachRow) => {
+    setMessage("");
+    const next = !row.suspended;
+    if (
+      next &&
+      !window.confirm(
+        `Suspend ${row.name || row.slug}? Their page goes offline and they can’t publish it again until you unsuspend.`,
+      )
+    )
+      return;
+    const { error } = await createClient().rpc("admin_set_suspended", {
+      p_coach: row.id,
+      p_suspended: next,
+    });
+    if (error) return setMessage(error.message);
+    patch(row, { suspended: next, published: next ? false : row.published });
+  };
+  const setPlan = async (row: CoachRow, status: string) => {
+    setMessage("");
+    const { error } = await createClient().rpc("admin_set_billing", {
+      p_coach: row.id,
+      p_status: status,
+    });
+    if (error) return setMessage(error.message);
+    patch(row, { billing_status: status });
+  };
+  const clearPending = async (row: CoachRow) => {
+    setMessage("");
+    if (
+      !window.confirm(
+        `Delete the ${row.bookings_pending} waiting request(s) for ${row.name || row.slug}? Use this to clear spam. Confirmed requests are kept.`,
+      )
+    )
+      return;
+    const { error } = await createClient().rpc("admin_clear_pending", {
+      p_coach: row.id,
+    });
+    if (error) return setMessage(error.message);
+    patch(row, {
+      bookings_total: Number(row.bookings_total) - Number(row.bookings_pending),
+      bookings_pending: 0,
+    });
+  };
+  const exportCsv = () => {
+    const head = ["Name","Title","Page address","Email","Published","Suspended","Plan","Joined","Last sign in","Clubs","Lessons","Requests","Waiting","Last request"];
+    const lines = [head, ...shown.map((r) => [
+      r.name, r.title, r.slug, r.owner_email, r.published, r.suspended ?? "", r.billing_status ?? "",
+      r.created_at, r.last_sign_in_at ?? "", r.clubs, r.lessons, r.bookings_total, r.bookings_pending, r.last_request_at ?? "",
+    ])];
+    const blob = new Blob([lines.map((l) => l.map(csvCell).join(",")).join("\n")], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `calspot-coaches-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
   const remove = async (row: CoachRow) => {
     setMessage("");
     const typed = window.prompt(
@@ -93,16 +174,28 @@ export function PlatformAdmin() {
     setRows((list) => list.filter((r) => r.id !== row.id));
   };
 
-  const shown = useMemo(() => {
+  const shown = (() => {
     const q = query.trim().toLowerCase();
+    const cutoff = now - 30 * 86_400_000;
+    const byFilter = rows.filter((r) =>
+      filter === "never"
+        ? !r.published && !r.suspended
+        : filter === "suspended"
+          ? r.suspended
+          : filter === "busy"
+            ? Number(r.requests_24h ?? 0) >= 10 || Number(r.bookings_pending) >= 10
+            : filter === "inactive"
+              ? !r.last_sign_in_at || new Date(r.last_sign_in_at).getTime() < cutoff
+              : true,
+    );
     return q
-      ? rows.filter((r) =>
+      ? byFilter.filter((r) =>
           [r.name, r.slug, r.owner_email, r.title].some((v) =>
             v?.toLowerCase().includes(q),
           ),
         )
-      : rows;
-  }, [rows, query]);
+      : byFilter;
+  })();
   const totals = useMemo(
     () => ({
       coaches: rows.length,
@@ -161,6 +254,27 @@ export function PlatformAdmin() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
+        {!tools && state === "ready" && (
+          <p className={styles.error} role="alert">
+            Suspend, plans, activity and spam tools aren’t set up yet. Run
+            supabase/admin_tools.sql in the Supabase SQL editor.
+          </p>
+        )}
+        <div className={styles.filters} role="group" aria-label="Filter coaches">
+          {filters.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              aria-pressed={filter === f.id}
+              onClick={() => setFilter(f.id)}
+            >
+              {f.label}
+            </button>
+          ))}
+          <button type="button" className={styles.export} onClick={exportCsv}>
+            Export CSV
+          </button>
+        </div>
         {message && state === "ready" && (
           <p className={styles.error} role="alert">
             {message}
@@ -180,6 +294,7 @@ export function PlatformAdmin() {
                   <small>
                     /{r.slug} · {r.owner_email}
                   </small>
+                  {r.suspended && <em className={styles.badge}>Suspended</em>}
                 </div>
                 <dl className={styles.counts}>
                   <div>
@@ -200,12 +315,42 @@ export function PlatformAdmin() {
                         ` (${r.bookings_pending} waiting)`}
                     </dd>
                   </div>
+                  {tools && (
+                    <div>
+                      <dt>Last sign in</dt>
+                      <dd>{date(r.last_sign_in_at ?? null)}</dd>
+                    </div>
+                  )}
                   <div>
                     <dt>Last request</dt>
                     <dd>{date(r.last_request_at)}</dd>
                   </div>
                 </dl>
                 <div className={styles.actions}>
+                  {tools && (
+                    <label className={styles.plan}>
+                      <span>Plan</span>
+                      <select
+                        value={r.billing_status ?? "trial"}
+                        onChange={(e) => setPlan(r, e.target.value)}
+                      >
+                        {plans.map((p) => (
+                          <option key={p} value={p}>
+                            {p[0].toUpperCase() + p.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                  {r.published && (
+                    <Link
+                      className={styles.view}
+                      href={`/${r.slug}`}
+                      target="_blank"
+                    >
+                      View page
+                    </Link>
+                  )}
                 <button
                   type="button"
                   className={r.published ? styles.on : styles.off}
@@ -214,6 +359,16 @@ export function PlatformAdmin() {
                 >
                   {r.published ? "Published · Unpublish" : "Private · Publish"}
                 </button>
+                {tools && (
+                  <button type="button" className={styles.view} onClick={() => suspend(r)}>
+                    {r.suspended ? "Unsuspend" : "Suspend"}
+                  </button>
+                )}
+                {tools && Number(r.bookings_pending) > 0 && (
+                  <button type="button" className={styles.view} onClick={() => clearPending(r)}>
+                    Clear waiting requests
+                  </button>
+                )}
                 <button
                   type="button"
                   className={styles.delete}
