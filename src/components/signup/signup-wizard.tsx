@@ -16,6 +16,7 @@ import {
 import { slugAvailable } from "@/lib/workspace-db";
 import { defaultTemplates } from "@/lib/whatsapp";
 import { useMediaQuery } from "@/lib/use-media";
+import { LogoutButton } from "../auth/logout-button";
 import { Logo } from "../logo";
 import { LookPreview } from "../profile/appearance-editor";
 import { PreviewFrame, PreviewSheet } from "../profile/preview-frame";
@@ -264,6 +265,7 @@ export function SignupWizard() {
       <header className={styles.top}>
         <Logo />
         <span className={styles.demoTag}>Setting up your page</span>
+        <LogoutButton className={styles.skip} />
       </header>
       <div className={`${styles.layout} ${wide ? styles.withPreview : ""}`}>
         <section className={styles.panel} aria-label="Sign up">

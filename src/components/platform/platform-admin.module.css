@@ -20,6 +20,16 @@
   text-decoration: underline;
   text-underline-offset: 4px;
 }
+.logout {
+  min-height: var(--tap);
+  padding: 0 14px;
+  font: inherit;
+  font-size: 14px;
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
 .tag {
   font-size: 13px;
   font-weight: 600;

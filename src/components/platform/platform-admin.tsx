@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { LogoutButton } from "../auth/logout-button";
 import { Logo } from "../logo";
 import styles from "./platform-admin.module.css";
 
@@ -104,6 +105,7 @@ export function PlatformAdmin() {
         <Logo compact />
         <span className={styles.tag}>Platform admin</span>
         <Link href="/dashboard">My dashboard</Link>
+        <LogoutButton className={styles.logout} />
       </header>
       <section className={styles.body}>
         <h1>Coaches</h1>

@@ -17,6 +17,10 @@
   color: var(--muted);
 }
 .skip {
+  background: none;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
