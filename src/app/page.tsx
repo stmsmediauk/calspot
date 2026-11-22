@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
 import { Landing } from "@/components/landing/landing";
 
+const title = "Calspot · Less admin. More court time.";
 const description =
-  "Your coaching. All in one spot. A personal booking page for coaches: players request a time, you approve it, and the conversation carries on in WhatsApp. £29.99 a month.";
+  "Your own booking page in minutes. Players pick a time, you tap approve, and the chat carries on in WhatsApp. £29 a month, with a 14-day free trial.";
 
 export const metadata: Metadata = {
-  title: "Calspot · Your coaching. All in one spot.",
+  title,
   description,
-  openGraph: {
-    title: "Calspot · Your coaching. All in one spot.",
-    description,
-    type: "website",
-  },
+  alternates: { canonical: "/" },
+  openGraph: { title, description, type: "website", url: "/" },
+  twitter: { card: "summary_large_image", title, description },
 };
 
 export default function Home() {

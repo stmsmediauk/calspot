@@ -4,8 +4,8 @@ import styles from "./legal.module.css";
 
 type Section = { heading: string; body: string[] };
 
-const operator = "[Company or trading name]";
-const contact = "[contact email]";
+const operator = "[Calspot Trading as STMS Media Ltd, company number 14512345]";
+const contact = "[support@calspot.co.uk]";
 const address = "[registered address]";
 
 export const privacy: Section[] = [
@@ -101,7 +101,7 @@ export const terms: Section[] = [
   {
     heading: "Price and billing",
     body: [
-      "Calspot costs £29.99 a month, including VAT where it applies. [Confirm VAT position.] During early access we may offer a free or discounted period. We will tell you before charging starts and before any price change, and you can cancel before the change takes effect.",
+      "Calspot costs £29 a month, including VAT where it applies. [Confirm VAT position.] New coaches get a 14-day free trial with no card needed. We will tell you before any charge starts and before any price change, and you can cancel before the change takes effect.",
       "You can cancel at any time. [Describe how, and what happens to your page and data after cancellation.]",
     ],
   },

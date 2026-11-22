@@ -1,11 +1,24 @@
 import Image from "next/image";
 
-/** Frame the supplied artwork without modifying its original pixels or proportions. */
-export function Logo({ compact = false }: { compact?: boolean }) {
+/**
+ * Frames the supplied artwork without modifying its proportions.
+ * `tone="light"` is the same logo with white letters, for dark backgrounds.
+ */
+export function Logo({
+  compact = false,
+  tone = "dark",
+}: {
+  compact?: boolean;
+  tone?: "dark" | "light";
+}) {
   return (
     <span className={`calspot-logo${compact ? " compact" : ""}`}>
       <Image
-        src="/brand/calspot-logo.png"
+        src={
+          tone === "light"
+            ? "/brand/calspot-logo-light.png"
+            : "/brand/calspot-logo.png"
+        }
         alt="Calspot"
         width={2172}
         height={724}

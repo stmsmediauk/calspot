@@ -20,6 +20,7 @@ import { LogoutButton } from "../auth/logout-button";
 import { Logo } from "../logo";
 import { LookPreview } from "../profile/appearance-editor";
 import { PreviewFrame, PreviewSheet } from "../profile/preview-frame";
+import { claimKey, slugPattern, slugify } from "@/lib/slug";
 import { AssetInput } from "../profile/profile-editor";
 import { FocusPicker } from "../profile/focus-picker";
 import profileStyles from "../profile/profile-editor.module.css";
@@ -104,19 +105,25 @@ const blank: Draft = {
   start: "09:00",
   end: "17:00",
 };
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
-const slugPattern = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 const hours = (value: string) => {
   const [h, m] = value.split(":").map(Number);
   return h + (m || 0) / 60;
 };
+
+/** Reads the name and address the landing page saved, if they are valid. */
+function readClaim(): { name: string; slug: string } | null {
+  try {
+    const raw = JSON.parse(localStorage.getItem(claimKey) ?? "null");
+    if (
+      raw &&
+      typeof raw.name === "string" &&
+      typeof raw.slug === "string" &&
+      slugPattern.test(raw.slug)
+    )
+      return { name: raw.name.slice(0, 80), slug: raw.slug };
+  } catch {}
+  return null;
+}
 
 /** Builds a complete workspace from the wizard's answers. */
 function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
@@ -186,14 +193,18 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
 export function SignupWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [draft, setDraft] = useState<Draft>(blank);
+  /** A name and address claimed on the landing page, if any. */
+  const [claim] = useState(readClaim);
+  const [draft, setDraft] = useState<Draft>(() =>
+    claim ? { ...blank, name: claim.name, slug: claim.slug } : blank,
+  );
   const [error, setError] = useState("");
   const [reading, setReading] = useState(0);
   const [sheet, setSheet] = useState(false);
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const heading = useRef<HTMLHeadingElement>(null);
   const wide = useMediaQuery("(min-width: 1100px)");
-  const [slugEdited, setSlugEdited] = useState(false);
+  const [slugEdited, setSlugEdited] = useState(claim !== null);
   const [busy, setBusy] = useState(false);
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((d) => ({
@@ -255,6 +266,9 @@ export function SignupWizard() {
     setError("");
     try {
       await registerCoach(draft.slug, toWorkspace(draft, false));
+      try {
+        localStorage.removeItem(claimKey);
+      } catch {}
       router.push("/dashboard/overview");
     } catch (e) {
       setBusy(false);

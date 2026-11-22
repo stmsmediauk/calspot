@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { claimKey, slugPattern } from "@/lib/slug";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "../logo";
 import styles from "./auth.module.css";
@@ -14,6 +15,19 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const signup = mode === "signup";
+  // The landing page links here with ?slug=&name=; keep it for the sign-up wizard.
+  useEffect(() => {
+    if (!signup) return;
+    const query = new URLSearchParams(location.search);
+    const slug = query.get("slug") ?? "";
+    if (!slugPattern.test(slug)) return;
+    try {
+      localStorage.setItem(
+        claimKey,
+        JSON.stringify({ slug, name: (query.get("name") ?? "").slice(0, 80) }),
+      );
+    } catch {}
+  }, [signup]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -2203,3 +2203,10 @@ a.button {
     font-weight: 500;
   }
 }
+
+/* Smooth in-page links, e.g. the landing page's How it works, Pricing and FAQ. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

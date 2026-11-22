@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
 
-export const alt = "Calspot. Your coaching. All in one spot.";
+export const alt = "Calspot. Less admin. More court time.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -38,7 +38,7 @@ export default async function Image() {
             color: "#33343a",
           }}
         >
-          Your coaching. All in one spot.
+          Less admin. More court time.
         </div>
         <div
           style={{
@@ -52,7 +52,7 @@ export default async function Image() {
             fontWeight: 700,
           }}
         >
-          A booking page of your own · £29.99 a month
+          Your own booking page · £29 a month · 14 days free
         </div>
       </div>
     ),
