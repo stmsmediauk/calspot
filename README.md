@@ -14,14 +14,17 @@
 
 ## Project status
 
-**Local prototype (Phase 1 plus an early Phase 4 preview).** A local-only dashboard, a themeable public coach page and a sign-up prototype exist. There is no backend, authentication, email or deployment, and none of it is production-ready. This README is the source of truth. Build incrementally; do not claim features are complete until implemented and tested.
+**Live on Vercel, in early access.** Coaches can sign up, build a page, publish it and receive booking requests. Auth, database and file storage run on Supabase. Updated November 2026. Sections further down are the original planning and prototype notes; the section **Current state** at the end of this file is the up-to-date description.
 
 | Area | Status |
 | --- | --- |
-| Dashboard (routes, requests, calendar, availability, clubs, lessons, profile with live preview) | Local prototype, sample data |
-| Public coach page template (three hero layouts, five looks, availability-aware request form) | Local prototype |
-| Sign-up wizard (`/signup`) | Local prototype, no accounts |
-| Supabase, tenant security, real bookings, email, subdomains, exports, legal pages | Not started |
+| Landing page (`/`), sign-up, log in, password reset | Built |
+| Coach dashboard (requests, calendar, availability, clubs, lessons, profile and looks) | Built, saved to Supabase |
+| Public coach pages (`/<address>`), booking requests, share images, SEO | Built |
+| Master admin (`/admin`) | Built |
+| 14-day free trial | Built (needs `supabase/trial.sql`) |
+| Billing (Stripe), email notifications | Not started |
+| Legal text | Drafts, need review and completing |
 
 ## Product vision
 
@@ -498,7 +501,7 @@ Lint, strict TypeScript and the production build pass. Local headless-Chrome che
 
 Findings from that pass were fixed: the dashboard's global `main` offset leaked into the public page, and button text colour was overridden by link styles. Screenshots were inspected visually. A mobile sticky "Request a session" bar was prototyped and removed because the mobile layout leaves no scroll range where it would be useful; the header button covers that need. This is prototype verification, not a full accessibility audit. Player details remain outside session storage. No services were connected or deployed.
 
-### Not yet built
+### Not yet built (historical, from the local prototype)
 
 - Drag-and-drop ordering of lessons (up/down buttons are used). The unsaved-changes prompt covers in-app links and reloads, not the browser Back button.
 - Production slot generation, booking window and minimum notice. The availability the public page shows is illustrative.
@@ -508,27 +511,99 @@ Findings from that pass were fixed: the dashboard's global `main` offset leaked 
 
 ## Next steps
 
-Suggested order. Backend work needs explicit go-ahead before connecting any service (see the instructions above).
+1. **Stripe billing** for £29 a month, started when a trial ends. Until then an admin moves coaches to Paid by hand in `/admin`.
+2. **Email notifications** (Resend or Postmark): a coach is told when a request arrives, a player when it is answered, and a coach before their trial ends.
+3. **Legal review.** Complete the `[square bracket]` placeholders in `src/components/legal/calspot-legal.tsx` and the per-coach drafts in `src/components/coach-site/legal-content.ts`, then have a solicitor check them.
+4. **Content for the landing page.** Real coach testimonials (add to `quotes` in `src/components/landing/landing.tsx`), the FAQ answers about what happens after the trial and how players pay, and a photo for step 2.
+5. **Pilot.** Have Kelly-Jane sign up like any coach, test on her phone and gather feedback before onboarding more coaches.
 
-1. **Commit and keep the prototype safe.** Source is committed locally; push when ready (pushing does not deploy).
-2. **Close prototype gaps.** Done in the local prototype (see below). Remaining: wire the public page to real tenant data (Phase 2) and have the legal drafts reviewed by a solicitor.
-3. **Phase 2: Supabase and tenant security.** Accounts, tenant membership, row-level security and tests proving two coaches cannot see each other's data. Turn the sign-up prototype into real sign-up with email verification and coach subdomains. Confirm hosting and domain first; no domain is assumed to be owned.
-4. **Phase 3: booking logic and notifications.** Slot generation with timezone and daylight-saving tests, booking window and minimum notice, concurrency-safe holds, and transactional email through Resend or Postmark.
-5. **Pilot.** Have Kelly-Jane sign up with her own approved photo, clubs, prices and contact details, test on her phone and gather feedback before onboarding more coaches.
-
-## Source control
+## Source control and deployment
 
 Repository: https://github.com/stmsmediauk/calspot
 
-The local project tracks `main` with `origin` pointing to this repository. Commit
-source changes and push them to save progress; pushing source does not deploy the
-application. Dependencies, build output, environment files and TypeScript caches
-are excluded by `.gitignore`. No deployment workflow is configured.
+`main` deploys automatically to Vercel (project `calspot`). Push to `main` to release. Environment files and build output are git-ignored.
 
-## Public pages and booking requests (Supabase)
+## Current state
 
-- A coach's page lives at `/<their-address>` and is served from Supabase for visitors (`src/lib/tenant.ts`, using the public key so row-level security decides what is visible). It is hidden until the coach presses **Publish my page** on the dashboard overview, and an admin can unpublish from `/admin`.
-- Players send requests through the `request_booking` database function, which checks the time against the coach's real availability, blocked days and existing requests (including lesson length) and limits one email to three waiting requests. The public page only ever receives busy times from `booked_times`, never player details.
+### Run locally
+
+```bash
+npm install
+cp .env.example .env.local   # then fill in the Supabase values
+npm run dev                  # http://localhost:3000
+npm run lint && npm run build
+```
+
+### Environment variables
+
+Set these in `.env.local` and in Vercel (Project Settings, Environment Variables).
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase project. Required. |
+| `NEXT_PUBLIC_SITE_URL` | The public address (for example `https://calspot.co.uk`). Used for canonical links, the sitemap and share images. Falls back to the Vercel production URL. |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Optional. Turns on a Cloudflare Turnstile CAPTCHA on the booking form. |
+
+Supabase Auth, URL Configuration: the Site URL and redirect URLs must include the live address and `http://localhost:3000/**`.
+
+### SQL to run in the Supabase SQL editor
+
+Tables, row-level security and the booking function were applied as migrations. The admin, spam and trial functions are plain SQL files you run once, in this order (each is safe to run again):
+
+1. `supabase/admin_delete_coach.sql` lets an admin delete a coach.
+2. `supabase/admin_tools.sql` adds suspend, plans, activity and spam clean-up.
+3. `supabase/admin_support_view.sql` adds the admin support view (setup and counts, no player details).
+4. `supabase/spam_limits.sql` adds database-level limits on booking requests.
+5. `supabase/trial.sql` adds the 14-day free trial.
+
+The app tolerates a missing file (the related feature just stays off), so deploys do not break if one has not been run yet.
+
+### Routes
+
+| Route | What it is |
+| --- | --- |
+| `/` | Landing page. A name typed here is passed to sign-up as `?slug=&name=`. |
+| `/signup`, `/login`, `/forgot-password`, `/reset-password` | Accounts. |
+| `/onboarding` | The page-building wizard, shown after the first sign-up. |
+| `/dashboard/*` | The coach dashboard. |
+| `/admin` | Master admin. Only for users in `platform_admins`. |
+| `/privacy`, `/terms` | Calspot's own legal pages (drafts). |
+| `/<address>` | A coach's public page, with `/<address>/privacy` and `/<address>/terms`. |
+| `/api/book` | Receives booking requests and filters spam. |
+| `/sitemap.xml`, `/robots.txt` | Search engine files. |
+
+### Public pages and booking requests
+
+- A coach's page lives at `/<their-address>` and is served from Supabase using the public key, so row-level security decides what is visible (`src/lib/tenant.ts`). It stays hidden until the coach presses **Publish my page**. An admin can unpublish or suspend it.
+- Players send requests through `/api/book`, which calls the `request_booking` database function. That function checks the time against the coach's real availability, blocked days and existing requests (including lesson length) and limits one email to three waiting requests. The public page only ever receives busy times from `booked_times`, never player details.
 - Requests appear in the coach's Requests screen. **No emails are sent yet**; coaches reply by WhatsApp or their own email.
-- Not built yet: email notifications, payments, spam protection beyond the per-email limit, and search-engine indexing (pages are `noindex`).
-- The old `taken_slots` function is unused and can be dropped.
+- Spam protection, in layers: a hidden field, a minimum fill-in time, a per-IP limit, an optional Turnstile CAPTCHA, and database limits (30 an hour per coach, 5 a day per email and per phone number).
+- Reserved page addresses (such as `admin`, `login`, `privacy`) are blocked at sign-up by `slug_available`.
+
+### SEO and share images
+
+- Published coach pages are indexable. Each has its own title, description, canonical link and JSON-LD (a `Person` with their lessons as offers).
+- `src/app/[slug]/opengraph-image.tsx` (and `twitter-image.tsx`) draws a share image per coach from their name, title, location, tagline, photo and look. The landing page has its own in `src/app/opengraph-image.tsx`. Share images can only use JPEG or PNG photos; uploads are converted automatically.
+- `/sitemap.xml` lists the landing page, the legal pages and every live coach page. `/robots.txt` keeps the dashboard, admin, auth and API routes out of search.
+
+### Free trial and plans
+
+- A new coach gets `trial_ends_at` 14 days after sign-up, with no card. `billing_status` is `trial`, `paid`, `free` or `overdue`.
+- A coach is active when paid or free, or on a trial that has not ended. An expired trial or an overdue plan pauses the page: it returns 404, players cannot send requests, and it leaves the sitemap. Nothing is deleted and the dashboard still opens, with a banner explaining.
+- Coaches cannot change their own plan or trial; the database blocks it. Admins set the plan and can extend a trial by 14 days in `/admin`.
+- There is no billing yet. Until Stripe is added, move a paying coach to **Paid** in `/admin`.
+
+### Master admin (`/admin`)
+
+Overview with totals and a Needs attention list, a coach list with search, CSV export and filters, and a page per coach with: plan, extend trial, view page, publish or unpublish, suspend, clear waiting requests, delete, and a support view. The admin never sees player names, emails, phone numbers or messages. To make someone an admin, add their user id to `platform_admins` in Supabase.
+
+### Landing page
+
+`src/components/landing/` holds the page, built from `calspot-handoff/design-reference.html` (kept in the repo for reference). The five looks in "Make it look like you" are drawn from the real presets in `src/lib/coach-theme.ts`. The testimonials section stays hidden until real quotes are added.
+
+### Known gaps
+
+- No email, no billing, no CAPTCHA unless Turnstile keys are set.
+- Calspot's legal pages contain placeholders and are drafts.
+- Coach pages live at `calspot.../<address>`; per-coach subdomains and custom domains are not built.
+- The old `taken_slots` database function is unused and can be dropped.
