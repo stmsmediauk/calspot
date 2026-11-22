@@ -97,17 +97,71 @@
 }
 .list li {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   grid-template-areas:
-    "who actions"
-    "counts counts"
-    "support support";
-  gap: 16px 24px;
-  align-items: start;
+    "who badges manage"
+    "summary summary summary"
+    "support support support";
+  gap: 6px 16px;
+  align-items: center;
   padding: 16px 20px;
   background: var(--background);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
+}
+.badges {
+  grid-area: badges;
+  display: flex;
+  gap: 6px;
+}
+.badgeGreen,
+.badgeGrey,
+.badgeRed {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.badgeGreen {
+  background: #e6f4ea;
+  color: #1a7f37;
+}
+.badgeGrey {
+  background: #eef0f4;
+  color: var(--text-2);
+}
+.badgeRed {
+  background: #fdecea;
+  color: #b3261e;
+}
+.summary {
+  grid-area: summary;
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.manage {
+  grid-area: manage;
+  min-height: var(--tap);
+  padding: 0 18px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--background);
+  color: var(--text);
+  cursor: pointer;
+}
+.danger {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.supportWrap {
+  display: grid;
+  gap: 18px;
 }
 .who {
   display: grid;
@@ -148,9 +202,8 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: flex-end;
-  max-width: 560px;
 }
 .delete {
   min-height: var(--tap);
@@ -205,9 +258,8 @@
     grid-template-columns: repeat(2, 1fr);
   }
   .list li {
-    grid-template-columns: 1fr;
-    grid-template-areas: "who" "counts" "actions" "support";
-    gap: 12px;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "who manage" "badges badges" "summary summary" "support support";
   }
   .actions {
     justify-content: flex-start;
@@ -272,10 +324,10 @@
 }
 
 .supportWrap {
-  grid-column: 1 / -1;
   grid-area: support;
   border-top: 1px solid var(--border);
   padding-top: 16px;
+  margin-top: 8px;
 }
 .support {
   display: grid;

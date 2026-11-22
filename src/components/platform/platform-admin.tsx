@@ -335,114 +335,112 @@ export function PlatformAdmin() {
               <li key={r.id}>
                 <div className={styles.who}>
                   <strong>{r.name || "Unnamed coach"}</strong>
-                  <span>{r.title}</span>
                   <small>
                     /{r.slug} · {r.owner_email}
                   </small>
-                  {r.suspended && <em className={styles.badge}>Suspended</em>}
                 </div>
-                <dl className={styles.counts}>
-                  <div>
-                    <dt>Joined</dt>
-                    <dd>{date(r.created_at)}</dd>
-                  </div>
-                  <div>
-                    <dt>Clubs · lessons</dt>
-                    <dd>
-                      {r.clubs} · {r.lessons}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Requests</dt>
-                    <dd>
-                      {r.bookings_total}
-                      {Number(r.bookings_pending) > 0 &&
-                        ` (${r.bookings_pending} waiting)`}
-                    </dd>
-                  </div>
-                  {tools && (
-                    <div>
-                      <dt>Last sign in</dt>
-                      <dd>{date(r.last_sign_in_at ?? null)}</dd>
-                    </div>
-                  )}
-                  <div>
-                    <dt>Last request</dt>
-                    <dd>{date(r.last_request_at)}</dd>
-                  </div>
-                </dl>
-                <div className={styles.actions}>
-                  <button
-                    type="button"
-                    className={styles.view}
-                    aria-expanded={open === r.id}
-                    onClick={() => setOpen(open === r.id ? null : r.id)}
+                <div className={styles.badges}>
+                  <span
+                    className={
+                      r.suspended
+                        ? styles.badgeRed
+                        : r.published
+                          ? styles.badgeGreen
+                          : styles.badgeGrey
+                    }
                   >
-                    Support view
-                  </button>
+                    {r.suspended
+                      ? "Suspended"
+                      : r.published
+                        ? "Live"
+                        : "Private"}
+                  </span>
                   {tools && (
-                    <label className={styles.plan}>
-                      <span>Plan</span>
-                      <select
-                        value={r.billing_status ?? "trial"}
-                        onChange={(e) => setPlan(r, e.target.value)}
-                      >
-                        {plans.map((p) => (
-                          <option key={p} value={p}>
-                            {p[0].toUpperCase() + p.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <span className={styles.badgeGrey}>
+                      {(r.billing_status ?? "trial")[0].toUpperCase() +
+                        (r.billing_status ?? "trial").slice(1)}
+                    </span>
                   )}
-                  {r.published && (
-                    <Link
-                      className={styles.view}
-                      href={`/${r.slug}`}
-                      target="_blank"
-                    >
-                      View page
-                    </Link>
-                  )}
-                  <button
-                    type="button"
-                    className={r.published ? styles.on : styles.off}
-                    aria-pressed={r.published}
-                    onClick={() => setPublished(r, !r.published)}
-                  >
-                    {r.published
-                      ? "Published · Unpublish"
-                      : "Private · Publish"}
-                  </button>
-                  {tools && (
-                    <button
-                      type="button"
-                      className={styles.view}
-                      onClick={() => suspend(r)}
-                    >
-                      {r.suspended ? "Unsuspend" : "Suspend"}
-                    </button>
-                  )}
-                  {tools && Number(r.bookings_pending) > 0 && (
-                    <button
-                      type="button"
-                      className={styles.view}
-                      onClick={() => clearPending(r)}
-                    >
-                      Clear waiting requests
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.delete}
-                    onClick={() => remove(r)}
-                  >
-                    Delete
-                  </button>
                 </div>
+                <p className={styles.summary}>
+                  {r.bookings_total} request
+                  {Number(r.bookings_total) === 1 ? "" : "s"}
+                  {Number(r.bookings_pending) > 0 &&
+                    ` · ${r.bookings_pending} waiting`}
+                  {" · "}Joined {date(r.created_at)}
+                  {tools && ` · Last seen ${date(r.last_sign_in_at ?? null)}`}
+                </p>
+                <button
+                  type="button"
+                  className={styles.manage}
+                  aria-expanded={open === r.id}
+                  onClick={() => setOpen(open === r.id ? null : r.id)}
+                >
+                  {open === r.id ? "Close" : "Manage"}
+                </button>
                 {open === r.id && (
                   <div className={styles.supportWrap}>
+                    <div className={styles.actions}>
+                      {tools && (
+                        <label className={styles.plan}>
+                          <span>Plan</span>
+                          <select
+                            value={r.billing_status ?? "trial"}
+                            onChange={(e) => setPlan(r, e.target.value)}
+                          >
+                            {plans.map((p) => (
+                              <option key={p} value={p}>
+                                {p[0].toUpperCase() + p.slice(1)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      {r.published && (
+                        <Link
+                          className={styles.view}
+                          href={`/${r.slug}`}
+                          target="_blank"
+                        >
+                          View page
+                        </Link>
+                      )}
+                      <button
+                        type="button"
+                        className={styles.view}
+                        onClick={() => setPublished(r, !r.published)}
+                      >
+                        {r.published ? "Unpublish" : "Publish"}
+                      </button>
+                      {tools && (
+                        <button
+                          type="button"
+                          className={styles.view}
+                          onClick={() => suspend(r)}
+                        >
+                          {r.suspended ? "Unsuspend" : "Suspend"}
+                        </button>
+                      )}
+                      {tools && Number(r.bookings_pending) > 0 && (
+                        <button
+                          type="button"
+                          className={styles.view}
+                          onClick={() => clearPending(r)}
+                        >
+                          Clear waiting requests
+                        </button>
+                      )}
+                    </div>
                     <SupportView coachId={r.id} />
+                    <div className={styles.danger}>
+                      <button
+                        type="button"
+                        className={styles.delete}
+                        onClick={() => remove(r)}
+                      >
+                        Delete this coach…
+                      </button>
+                    </div>
                   </div>
                 )}
               </li>
