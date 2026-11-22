@@ -92,6 +92,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
               />
               {signup && <small>At least 8 characters.</small>}
             </label>
+            {!signup && (
+              <p className={styles.forgot}>
+                <Link href="/forgot-password">Forgot your password?</Link>
+              </p>
+            )}
             {error && (
               <p className={styles.error} role="alert">
                 {error}
