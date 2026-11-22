@@ -9,11 +9,11 @@ import {
   type CoachAppearance,
 } from "@/lib/coach-theme";
 import {
-  updateCoachWorkspace,
+  registerCoach,
   type CoachProfile,
   type CoachWorkspace,
 } from "@/lib/coach-workspace";
-import { platform } from "@/lib/platform";
+import { slugAvailable } from "@/lib/workspace-db";
 import { defaultTemplates } from "@/lib/whatsapp";
 import { useMediaQuery } from "@/lib/use-media";
 import { Logo } from "../logo";
@@ -67,6 +67,7 @@ const starterLessons = [
 type Draft = {
   photograph: string | null;
   name: string;
+  slug: string;
   title: string;
   location: string;
   tagline: string;
@@ -83,6 +84,7 @@ type Draft = {
 const blank: Draft = {
   photograph: null,
   name: "",
+  slug: "",
   title: "Padel coach",
   location: "",
   tagline: "",
@@ -96,6 +98,15 @@ const blank: Draft = {
   start: "09:00",
   end: "17:00",
 };
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+const slugPattern = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 const hours = (value: string) => {
   const [h, m] = value.split(":").map(Number);
   return h + (m || 0) / 60;
@@ -127,13 +138,14 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
     instagram: "",
   };
   const clubName = d.clubName.trim() || (placeholders ? "Your club" : "");
+  const clubId = crypto.randomUUID();
   const chosen = d.lessons.filter((l) => l.on);
   return {
     profile,
     clubs: clubName
       ? [
           {
-            id: "c1",
+            id: clubId,
             name: clubName,
             address:
               d.clubAddress.trim() || (placeholders ? "Club address" : ""),
@@ -142,8 +154,8 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
           },
         ]
       : [],
-    lessons: chosen.map((l, i) => ({
-      id: `l${i + 1}`,
+    lessons: chosen.map((l) => ({
+      id: crypto.randomUUID(),
       name: l.name.trim() || "Lesson",
       description: l.description,
       duration: l.duration,
@@ -152,9 +164,9 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
     })),
     bookings: [],
     rules: d.days.map((day) => ({
-      id: `r${day}`,
+      id: crypto.randomUUID(),
       day,
-      clubId: "c1",
+      clubId,
       lessonId: "all",
       start: hours(d.start),
       end: hours(d.end),
@@ -175,8 +187,14 @@ export function SignupWizard() {
   const [device, setDevice] = useState<"desktop" | "phone">("desktop");
   const heading = useRef<HTMLHeadingElement>(null);
   const wide = useMediaQuery("(min-width: 1100px)");
+  const [slugEdited, setSlugEdited] = useState(false);
+  const [busy, setBusy] = useState(false);
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
-    setDraft((d) => ({ ...d, [key]: value }));
+    setDraft((d) => ({
+      ...d,
+      [key]: value,
+      ...(key === "name" && !slugEdited ? { slug: slugify(String(value)) } : {}),
+    }));
     setError("");
   };
   const preview = useMemo(() => toWorkspace(draft, true), [draft]);
@@ -188,6 +206,8 @@ export function SignupWizard() {
   const validate = (): string => {
     if (step === 0 && (!draft.name.trim() || !draft.title.trim()))
       return "Add your name and what you coach.";
+    if (step === 0 && !slugPattern.test(draft.slug))
+      return "Choose a page address of 3–40 letters, numbers or hyphens.";
     if (step === 1 && !draft.introduction.trim())
       return "Add a short introduction so players know who you are.";
     if (step === 3) {
@@ -205,15 +225,37 @@ export function SignupWizard() {
     }
     return "";
   };
-  const next = () => {
+  const next = async () => {
     const problem = validate();
     if (problem) return setError(problem);
+    if (step === 0) {
+      setBusy(true);
+      try {
+        if (!(await slugAvailable(draft.slug))) {
+          setBusy(false);
+          return setError("That page address is taken. Try another.");
+        }
+      } catch {
+        setBusy(false);
+        return setError("Couldn’t check that address. Check your connection and try again.");
+      }
+      setBusy(false);
+    }
     setError("");
     setStep((s) => Math.min(steps.length - 1, s + 1));
   };
-  const finish = () => {
-    updateCoachWorkspace(() => toWorkspace(draft, false));
-    router.push("/dashboard/overview");
+  const finish = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      await registerCoach(draft.slug, toWorkspace(draft, false));
+      router.push("/dashboard/overview");
+    } catch (e) {
+      setBusy(false);
+      const message = e instanceof Error ? e.message : "Something went wrong.";
+      if (/address/i.test(message)) setStep(0);
+      setError(message);
+    }
   };
 
   const first = draft.name.trim().split(" ")[0];
@@ -221,9 +263,7 @@ export function SignupWizard() {
     <div className={styles.page}>
       <header className={styles.top}>
         <Logo />
-        <span className={styles.demoTag}>
-          {platform.demoMode ? "Prototype sign-up · No account is created" : ""}
-        </span>
+        <span className={styles.demoTag}>Setting up your page</span>
       </header>
       <div className={`${styles.layout} ${wide ? styles.withPreview : ""}`}>
         <section className={styles.panel} aria-label="Sign up">
@@ -297,6 +337,20 @@ export function SignupWizard() {
                     />
                   </label>
                 </div>
+                <label>
+                  Your page address
+                  <input
+                    value={draft.slug}
+                    maxLength={40}
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    onChange={(e) => {
+                      setSlugEdited(true);
+                      set("slug", slugify(e.target.value));
+                    }}
+                  />
+                  <small>calspot.com/{draft.slug || "your-name"}</small>
+                </label>
                 <label>
                   Where you coach <span>(optional)</span>
                   <input
@@ -575,10 +629,10 @@ export function SignupWizard() {
               {error}
             </p>
           )}
-          {step === 5 && platform.demoMode && (
+          {step === 5 && (
             <p className={styles.demoNote}>
-              This is a prototype. No account, email or website is created. Your
-              answers are saved in this browser tab and open in the dashboard.
+              Your page is private for now. You’ll be able to publish it once
+              booking requests are connected.
             </p>
           )}
           <div className={styles.actions}>
@@ -610,13 +664,18 @@ export function SignupWizard() {
                 <button
                   type="button"
                   className="button"
-                  disabled={reading > 0}
+                  disabled={reading > 0 || busy}
                   onClick={next}
                 >
                   Continue <ArrowRight size={16} aria-hidden="true" />
                 </button>
               ) : (
-                <button type="button" className="button" onClick={finish}>
+                <button
+                  type="button"
+                  className="button"
+                  disabled={busy || reading > 0}
+                  onClick={finish}
+                >
                   Create my page <Check size={16} aria-hidden="true" />
                 </button>
               )}

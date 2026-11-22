@@ -92,10 +92,14 @@ export function coachInitials(name: string) {
     .join("")
     .toUpperCase();
 }
+/** Public URL prefix of uploaded coach media in Supabase storage. */
+const mediaPrefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}/storage/v1/object/public/coach-media/`;
 export function isProfileImage(value: unknown): value is string {
   return (
     typeof value === "string" &&
-    (value === defaultProfile.photograph ||
+    ((process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? value.startsWith(mediaPrefix) && value.length <= 300
+      : false) ||
       (value.length <= 1_450_000 &&
         /^data:image\/(png|jpeg|webp);base64,[a-zA-Z0-9+/=]+$/.test(value)))
   );

@@ -2171,3 +2171,19 @@ a.button {
     width: 100%;
   }
 }
+.account {
+  margin-top: auto;
+  padding: 12px 16px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.account .signup-link {
+  background: none;
+  border: 0;
+  justify-self: start;
+  cursor: pointer;
+  font: inherit;
+}

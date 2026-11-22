@@ -218,16 +218,12 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
       whatsapp: normaliseWhatsApp(draft.whatsapp),
       instagram: draft.instagram.trim().replace(/^@/, ""),
     };
-    const persisted = updateCoachWorkspace((current) => ({
+    updateCoachWorkspace((current) => ({
       ...current,
       profile: cleaned,
     }));
     setDraft(cleaned);
-    setStatus(
-      persisted
-        ? "Saved in this browser tab. Your booking page is updated."
-        : "Updated for this visit. Browser storage is unavailable, so refresh will reset it.",
-    );
+    setStatus("Saved. Your booking page is updated.");
   };
   const assetProps = {
     onError: setError,

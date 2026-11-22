@@ -21,7 +21,10 @@ import type { Booking, Club, Exception, Lesson, Rule } from "@/lib/mock-data";
 import { platform } from "@/lib/platform";
 import {
   coachInitials,
+  signOutCoach,
   updateCoachWorkspace,
+  useAccount,
+  useSaveState,
   useCoachWorkspace,
 } from "@/lib/coach-workspace";
 import { matchingLook } from "@/lib/coach-theme";
@@ -69,6 +72,8 @@ export function CoachAvatar({ size = 36 }: { size?: number }) {
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { profile, bookings } = useCoachWorkspace();
+  const account = useAccount();
+  const save = useSaveState();
   const [drawer, setDrawer] = useState(false);
   const [notice, setNotice] = useState("");
   const [modal, setModal] = useState<ModalState | null>(null);
@@ -175,15 +180,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <nav aria-label="Main navigation">
             {navItems.map((item) => link(item, () => setDrawer(false)))}
           </nav>
-          {platform.demoMode && (
-            <Link
-              href="/signup"
+          <div className="account">
+            <span>{account.email}</span>
+            <button
+              type="button"
               className="signup-link"
-              onClick={guard("/signup")}
+              onClick={async () => {
+                await signOutCoach();
+                router.replace("/login");
+              }}
             >
-              Preview the sign-up flow
-            </Link>
-          )}
+              Log out
+            </button>
+          </div>
         </aside>
         {drawer && (
           <button
@@ -223,6 +232,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="content">
+            {(save.saving || save.error) && (
+              <div
+                className={save.error ? "form-error" : "notice"}
+                role={save.error ? "alert" : "status"}
+              >
+                {save.error
+                  ? `Your latest change hasn’t saved: ${save.error}. It will retry on your next edit.`
+                  : "Saving…"}
+              </div>
+            )}
             {notice && (
               <div className="notice" role="status">
                 {notice}
