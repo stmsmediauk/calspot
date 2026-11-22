@@ -186,7 +186,7 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
     ) {
       setTab("contact");
       setError(
-        "Enter your Instagram handle without the link, such as kellyjayne_padel.",
+        "Enter your Instagram handle without the link, such as yourhandle.",
       );
       return;
     }

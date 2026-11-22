@@ -266,8 +266,8 @@ original dashboard-only brief.
 
 ## Local prototype — Phase 1
 
-The coach dashboard now has a local-only implementation. The first pilot coach is **Kelly-Jane Whalley**, as supplied by the project owner.
-Player details, clubs, lessons and sessions are fictional. Kelly-Jane’s photograph and biography were supplied by the project owner. No authentication, database, court booking,
+The coach dashboard now has a local-only implementation. No coach's details are bundled in the code: the app starts at **/signup**, and every dashboard and public page redirects there until a coach has signed up in that browser tab. Kelly-Jane Whalley is the first pilot coach and will sign up like any new coach.
+No authentication, database, court booking,
 email delivery or production services are connected. Profile, club, lesson, availability and booking-decision changes are shared across the dashboard and booking page
 and are saved only in this browser tab’s session storage. The initial calendar opens on **23–29 November 2026** so the
 sample schedule is consistent; “Demo week” returns to this period.
@@ -357,11 +357,7 @@ segmented controls use quieter neutral selection surfaces.
 
 ### First pilot coach
 
-Kelly-Jane Whalley is the first real coach who will test Calspot. Her name is shared
-through the local workspace in `src/lib/coach-workspace.ts`. Demo players, venues, lessons and
-bookings are fictional and are not claims about her business. Use her identity for
-the public mini-site prototype; her supplied biography and photograph are now used. Contact details, real coaching
-venues and final branding still need approval.
+Kelly-Jane Whalley is the first real coach who will test Calspot. Her details are not stored in the repository; she enters them through the sign-up wizard, and nothing about her is fabricated. Her photograph and biography are entered or uploaded by her, and contact details, venues and branding need her approval.
 
 ## Personal coach booking page — local prototype
 
@@ -376,19 +372,7 @@ custom layout editor.
 
 ### Profile and photograph
 
-The existing three-step booking logic is preserved. The public presentation now follows the supplied fashion-editorial reference: dominant name typography, a wide photograph directly beneath, minimal navigation and an open introduction/booking grid. There are no ecommerce features, extra pages or site-building controls.
-Kelly-Jane's real photograph was supplied as `KellyJane.jpg`, and an optimised,
-orientation-correct WebP copy lives at `public/coach/kelly-jane.webp`. The source is
-preserved. CSS frames her face and racket in the large hero photograph, with a responsive crop on mobile. Removing a photograph shows a neutral portrait placeholder.
-The earlier generated court asset remains in the repository but is no longer used
-for Kelly-Jane's profile.
-
-Her three-sentence introduction, UK Top 50/Lancashire experience and tennis
-background are based on the owner's supplied biography, not independently
-verified rankings. Her supplied Instagram enquiry link is
-https://www.instagram.com/kellyjayne_padel/. Do not invent additional credentials,
-venues, testimonials or personal contact details. The current clubs, players,
-lessons, prices, dates and bookings remain explicitly sample records.
+The public presentation follows the supplied fashion-editorial reference: dominant name typography, a wide photograph directly beneath, minimal navigation and an open introduction/booking grid. There are no ecommerce features, extra pages or site-building controls. Removing a photograph shows a neutral portrait placeholder. Do not invent credentials, venues, testimonials or personal contact details for any coach.
 
 On mobile the hero name wraps at smaller sizes, followed by the photograph and a concise introduction. Experience and locations expand in a native disclosure. Header and photo-caption booking links jump directly to the integrated flow. Contact options remain optional.
 
@@ -530,7 +514,7 @@ Suggested order. Backend work needs explicit go-ahead before connecting any serv
 2. **Close prototype gaps.** Done in the local prototype (see below). Remaining: wire the public page to real tenant data (Phase 2) and have the legal drafts reviewed by a solicitor.
 3. **Phase 2: Supabase and tenant security.** Accounts, tenant membership, row-level security and tests proving two coaches cannot see each other's data. Turn the sign-up prototype into real sign-up with email verification and coach subdomains. Confirm hosting and domain first; no domain is assumed to be owned.
 4. **Phase 3: booking logic and notifications.** Slot generation with timezone and daylight-saving tests, booking window and minimum notice, concurrency-safe holds, and transactional email through Resend or Postmark.
-5. **Pilot.** Replace sample content with Kelly-Jane's approved photo, clubs, prices and contact details, test on her phone and gather feedback before onboarding more coaches.
+5. **Pilot.** Have Kelly-Jane sign up with her own approved photo, clubs, prices and contact details, test on her phone and gather feedback before onboarding more coaches.
 
 ## Source control
 

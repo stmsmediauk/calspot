@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { RequireCoach } from "@/components/require-coach";
 import { AdminShell } from "@/components/admin/shell";
 
 export const metadata: Metadata = {
@@ -10,5 +11,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <RequireCoach>
+      <AdminShell>{children}</AdminShell>
+    </RequireCoach>
+  );
 }

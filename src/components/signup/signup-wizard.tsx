@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
@@ -225,9 +224,6 @@ export function SignupWizard() {
         <span className={styles.demoTag}>
           {platform.demoMode ? "Prototype sign-up · No account is created" : ""}
         </span>
-        <Link href="/dashboard" className={styles.skip}>
-          Skip to dashboard
-        </Link>
       </header>
       <div className={`${styles.layout} ${wide ? styles.withPreview : ""}`}>
         <section className={styles.panel} aria-label="Sign up">

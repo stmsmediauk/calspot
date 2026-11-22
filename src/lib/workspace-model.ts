@@ -4,16 +4,12 @@ import {
   sanitiseAppearance,
   type CoachAppearance,
 } from "./coach-theme";
-import {
-  bookings,
-  clubs,
-  lessons,
-  rules,
-  type Booking,
-  type Club,
-  type Exception,
-  type Lesson,
-  type Rule,
+import type {
+  Booking,
+  Club,
+  Exception,
+  Lesson,
+  Rule,
 } from "./mock-data";
 
 export type Highlight = { value: string; label: string };
@@ -52,37 +48,32 @@ export type CoachWorkspace = {
   rules: Rule[];
   exceptions: Exception[];
 };
+/** A blank profile. No coach's details are bundled; sign-up fills these in. */
 export const defaultProfile: CoachProfile = {
-  name: "Kelly-Jane Whalley",
-  title: "Padel player & coach",
-  tagline: "Your game. Your pace.",
-  introduction:
-    "I coach players of all levels, from your first time on court to sharpening your competitive edge. I’m especially passionate about getting more women into padel and helping young players build confidence. Alongside coaching, I organise social tournaments, competitions and corporate days.",
-  experience:
-    "UK Top 50 padel player · Lancashire representative\nCounty, national and US Division One collegiate tennis background",
+  name: "",
+  title: "",
+  tagline: "",
+  introduction: "",
+  experience: "",
   location: "",
-  highlights: [
-    { value: "UK Top 50", label: "Padel player" },
-    { value: "Lancashire", label: "County representative" },
-    { value: "US Division One", label: "Collegiate tennis background" },
-  ],
+  highlights: [],
   testimonials: [],
   appearance: defaultAppearance,
-  photograph: "/coach/kelly-jane.webp",
+  photograph: null,
   photoFocusX: 50,
-  photoFocusY: 17,
+  photoFocusY: 20,
   logo: null,
   logoDark: null,
   whatsapp: "",
   whatsappTemplates: defaultTemplates,
-  instagram: "kellyjayne_padel",
+  instagram: "",
 };
 export const defaultWorkspace: CoachWorkspace = {
   profile: defaultProfile,
-  clubs,
-  lessons,
-  bookings,
-  rules,
+  clubs: [],
+  lessons: [],
+  bookings: [],
+  rules: [],
   exceptions: [],
 };
 

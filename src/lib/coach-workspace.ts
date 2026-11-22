@@ -12,6 +12,8 @@ export * from "./workspace-model";
 const storageKey = "calspot:coach-workspace:v1";
 let workspace = defaultWorkspace;
 let loaded = false;
+/** True once a coach has signed up in this tab. Until then there is no coach data at all. */
+let coachExists = false;
 const subscribers = new Set<() => void>();
 
 function getSnapshot() {
@@ -19,7 +21,11 @@ function getSnapshot() {
     loaded = true;
     try {
       const raw = window.sessionStorage.getItem(storageKey);
-      if (raw) workspace = parseWorkspace(raw) ?? defaultWorkspace;
+      const parsed = raw ? parseWorkspace(raw) : null;
+      if (parsed) {
+        workspace = parsed;
+        coachExists = true;
+      }
     } catch {
       /* Memory-only editing still works when storage is unavailable. */
     }
@@ -44,10 +50,22 @@ export function useCoachWorkspace() {
   );
   return preview ?? live;
 }
+/** null before hydration, then whether a coach has signed up in this tab. */
+export function useHasCoach(): boolean | null {
+  return useSyncExternalStore(
+    subscribe,
+    () => {
+      getSnapshot();
+      return coachExists;
+    },
+    () => null,
+  );
+}
 export function updateCoachWorkspace(
   update: (current: CoachWorkspace) => CoachWorkspace,
 ) {
   workspace = update(getSnapshot());
+  coachExists = true;
   let persisted = false;
   try {
     window.sessionStorage.setItem(storageKey, JSON.stringify(workspace));
@@ -57,4 +75,15 @@ export function updateCoachWorkspace(
   }
   subscribers.forEach((callback) => callback());
   return persisted;
+}
+/** Forgets the coach in this tab so the next visit starts at sign-up. */
+export function resetCoachWorkspace() {
+  workspace = defaultWorkspace;
+  coachExists = false;
+  try {
+    window.sessionStorage.removeItem(storageKey);
+  } catch {
+    /* Nothing stored to clear. */
+  }
+  subscribers.forEach((callback) => callback());
 }
