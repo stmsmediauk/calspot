@@ -17,7 +17,15 @@ export const getTenantWorkspace = cache(
       { auth: { persistSession: false } },
     );
     try {
-      return (await loadPublicCoach(supabase, slug))?.workspace ?? null;
+      const coach = await loadPublicCoach(supabase, slug);
+      if (!coach) return null;
+      // A coach whose trial has ended is paused. Ignore a missing function so
+      // pages keep working until the trial SQL has been run.
+      const { data: live, error } = await supabase.rpc("coach_is_live", {
+        p_slug: slug,
+      });
+      if (!error && live === false) return null;
+      return coach.workspace;
     } catch {
       return null;
     }

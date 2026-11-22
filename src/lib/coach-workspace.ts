@@ -14,6 +14,14 @@ import { defaultWorkspace, type CoachWorkspace } from "./workspace-model";
 
 export * from "./workspace-model";
 
+/** The coach's plan: on a free trial, paid, or complimentary. `active` is false once a trial ends. */
+export type Plan = {
+  status: "trial" | "paid" | "free" | "overdue";
+  trialEndsAt: string | null;
+  suspended: boolean;
+  active: boolean;
+};
+
 export type SessionStatus = "loading" | "signed-out" | "no-coach" | "ready";
 type State = {
   status: SessionStatus;
@@ -21,6 +29,7 @@ type State = {
   coachId: string | null;
   slug: string | null;
   published: boolean;
+  plan: Plan | null;
   email: string | null;
   saving: boolean;
   saveError: string | null;
@@ -31,6 +40,7 @@ const initial: State = {
   coachId: null,
   slug: null,
   published: false,
+  plan: null,
   email: null,
   saving: false,
   saveError: null,
@@ -54,6 +64,18 @@ function subscribe(callback: () => void) {
   };
 }
 
+/** Reads the coach's plan. Returns null until the trial tables exist in the database. */
+async function loadPlan(): Promise<Plan | null> {
+  const { data, error } = await createClient().rpc("my_plan");
+  if (error || !data) return null;
+  return {
+    status: data.status,
+    trialEndsAt: data.trial_ends_at ?? null,
+    suspended: Boolean(data.suspended),
+    active: Boolean(data.active),
+  };
+}
+
 async function refresh() {
   const supabase = createClient();
   const { data } = await supabase.auth.getUser();
@@ -70,8 +92,10 @@ async function refresh() {
       return;
     }
     saved = snapshotOf(coach.coachId, coach.workspace);
+    const plan = await loadPlan();
     set({
       status: "ready",
+      plan,
       workspace: coach.workspace,
       coachId: coach.coachId,
       slug: coach.slug,
@@ -112,7 +136,8 @@ export function useAccount() {
   const email = useSyncExternalStore(subscribe, () => state.email, () => null);
   const slug = useSyncExternalStore(subscribe, () => state.slug, () => null);
   const published = useSyncExternalStore(subscribe, () => state.published, () => false);
-  return { email, slug, published };
+  const plan = useSyncExternalStore(subscribe, () => state.plan, () => null);
+  return { email, slug, published, plan };
 }
 export function useSaveState() {
   const saving = useSyncExternalStore(subscribe, () => state.saving, () => false);

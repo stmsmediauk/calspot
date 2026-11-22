@@ -25,9 +25,11 @@ type CoachRow = {
   billing_status?: string;
   last_sign_in_at?: string | null;
   requests_24h?: number;
+  trial_ends_at?: string | null;
 };
 
-type Filter = "all" | "never" | "suspended" | "busy" | "inactive";
+type Filter =
+  "all" | "never" | "suspended" | "busy" | "inactive" | "ending" | "expired";
 type View =
   | { type: "overview" }
   | { type: "coaches"; filter: Filter }
@@ -38,6 +40,8 @@ const filterLabels: Record<Filter, string> = {
   suspended: "Suspended",
   busy: "Busy (spam check)",
   inactive: "Inactive 30 days",
+  ending: "Trial ending (3 days)",
+  expired: "Trial expired",
 };
 const plans = ["trial", "paid", "free", "overdue"];
 const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -131,6 +135,15 @@ export function PlatformAdmin() {
     if (error) return setMessage(error.message);
     patch(row, { billing_status: status });
   };
+  const extend = async (row: CoachRow, days: number) => {
+    setMessage("");
+    const { data, error } = await createClient().rpc("admin_extend_trial", {
+      p_coach: row.id,
+      p_days: days,
+    });
+    if (error) return setMessage(error.message);
+    patch(row, { billing_status: "trial", trial_ends_at: String(data) });
+  };
   const clearPending = async (row: CoachRow) => {
     setMessage("");
     if (
@@ -217,23 +230,33 @@ export function PlatformAdmin() {
   };
 
   const cutoff = now - 30 * 86_400_000;
+  const trialLeft = (r: CoachRow) =>
+    r.billing_status === "trial" && r.trial_ends_at
+      ? new Date(r.trial_ends_at).getTime() - now
+      : null;
   const matches = (r: CoachRow, f: Filter) =>
-    f === "never"
-      ? !r.published && !r.suspended
-      : f === "suspended"
-        ? Boolean(r.suspended)
-        : f === "busy"
-          ? Number(r.requests_24h ?? 0) >= 10 ||
-            Number(r.bookings_pending) >= 10
-          : f === "inactive"
-            ? !r.last_sign_in_at ||
-              new Date(r.last_sign_in_at).getTime() < cutoff
-            : true;
+    f === "ending"
+      ? (trialLeft(r) ?? -1) > 0 && (trialLeft(r) ?? 0) < 3 * 86_400_000
+      : f === "expired"
+        ? (trialLeft(r) ?? 1) <= 0 || r.billing_status === "overdue"
+        : f === "never"
+          ? !r.published && !r.suspended
+          : f === "suspended"
+            ? Boolean(r.suspended)
+            : f === "busy"
+              ? Number(r.requests_24h ?? 0) >= 10 ||
+                Number(r.bookings_pending) >= 10
+              : f === "inactive"
+                ? !r.last_sign_in_at ||
+                  new Date(r.last_sign_in_at).getTime() < cutoff
+                : true;
   const counts: Record<Filter, number> = {
     all: rows.length,
     never: rows.filter((r) => matches(r, "never")).length,
     suspended: rows.filter((r) => matches(r, "suspended")).length,
     busy: rows.filter((r) => matches(r, "busy")).length,
+    ending: rows.filter((r) => matches(r, "ending")).length,
+    expired: rows.filter((r) => matches(r, "expired")).length,
     inactive: rows.filter((r) => matches(r, "inactive")).length,
   };
   const activeFilter: Filter =
@@ -262,11 +285,13 @@ export function PlatformAdmin() {
   const current =
     view.type === "coach" ? rows.find((r) => r.id === view.id) : undefined;
   const status = (r: CoachRow) =>
-    r.suspended
-      ? { label: "Suspended", cls: styles.badgeRed }
-      : r.published
-        ? { label: "Live", cls: styles.badgeGreen }
-        : { label: "Private", cls: styles.badgeGrey };
+    !r.suspended && ((trialLeft(r) ?? 1) <= 0 || r.billing_status === "overdue")
+      ? { label: "Paused", cls: styles.badgeRed }
+      : r.suspended
+        ? { label: "Suspended", cls: styles.badgeRed }
+        : r.published
+          ? { label: "Live", cls: styles.badgeGreen }
+          : { label: "Private", cls: styles.badgeGrey };
   const plan = (r: CoachRow) =>
     (r.billing_status ?? "trial")[0].toUpperCase() +
     (r.billing_status ?? "trial").slice(1);
@@ -333,15 +358,23 @@ export function PlatformAdmin() {
               aria-label="Needs attention"
             >
               <span>Needs attention</span>
-              {(["never", "busy", "inactive", "suspended"] as Filter[]).map(
-                (f) =>
-                  navButton(
-                    filterLabels[f],
-                    view.type !== "overview" && activeFilter === f,
-                    () => setView({ type: "coaches", filter: f }),
-                    counts[f],
-                    true,
-                  ),
+              {(
+                [
+                  "expired",
+                  "ending",
+                  "never",
+                  "busy",
+                  "inactive",
+                  "suspended",
+                ] as Filter[]
+              ).map((f) =>
+                navButton(
+                  filterLabels[f],
+                  view.type !== "overview" && activeFilter === f,
+                  () => setView({ type: "coaches", filter: f }),
+                  counts[f],
+                  true,
+                ),
               )}
             </div>
           )}
@@ -394,21 +427,26 @@ export function PlatformAdmin() {
               <>
                 <h2 className={styles.h2}>Needs attention</h2>
                 <ul className={styles.attention}>
-                  {(["never", "busy", "inactive", "suspended"] as Filter[]).map(
-                    (f) => (
-                      <li key={f}>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setView({ type: "coaches", filter: f })
-                          }
-                        >
-                          <strong>{counts[f]}</strong>
-                          <span>{filterLabels[f]}</span>
-                        </button>
-                      </li>
-                    ),
-                  )}
+                  {(
+                    [
+                      "expired",
+                      "ending",
+                      "never",
+                      "busy",
+                      "inactive",
+                      "suspended",
+                    ] as Filter[]
+                  ).map((f) => (
+                    <li key={f}>
+                      <button
+                        type="button"
+                        onClick={() => setView({ type: "coaches", filter: f })}
+                      >
+                        <strong>{counts[f]}</strong>
+                        <span>{filterLabels[f]}</span>
+                      </button>
+                    </li>
+                  ))}
                 </ul>
               </>
             )}
@@ -501,6 +539,9 @@ export function PlatformAdmin() {
             </p>
             <p className={styles.summary}>
               Joined {date(current.created_at)}
+              {tools &&
+                current.billing_status === "trial" &&
+                ` · Trial ends ${date(current.trial_ends_at ?? null)}`}
               {tools && ` · Last seen ${date(current.last_sign_in_at ?? null)}`}
               {" · "}
               {current.bookings_total} request
@@ -547,6 +588,15 @@ export function PlatformAdmin() {
                   onClick={() => suspend(current)}
                 >
                   {current.suspended ? "Unsuspend" : "Suspend"}
+                </button>
+              )}
+              {tools && (
+                <button
+                  type="button"
+                  className={styles.view}
+                  onClick={() => extend(current, 14)}
+                >
+                  Extend trial 14 days
                 </button>
               )}
               {tools && Number(current.bookings_pending) > 0 && (

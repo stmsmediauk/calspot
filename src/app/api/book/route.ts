@@ -66,8 +66,14 @@ export async function POST(request: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     { auth: { persistSession: false } },
   );
+  const slug = str(body.slug, 60);
+  const { data: live, error: liveError } = await supabase.rpc("coach_is_live", {
+    p_slug: slug,
+  });
+  if (!liveError && live === false)
+    return bad("This coach isn’t taking requests right now.", 403);
   const { error } = await supabase.rpc("request_booking", {
-    p_slug: str(body.slug, 60),
+    p_slug: slug,
     p_club: str(body.club, 60),
     p_lesson: str(body.lesson, 60),
     p_date: str(body.date, 10),
@@ -82,7 +88,7 @@ export async function POST(request: Request) {
     return bad(
       /taken|not available/i.test(m)
         ? "Sorry, that time is no longer available. Please go back and choose another."
-        : /several requests|too many/i.test(m)
+        : /several requests|too many|not taking requests/i.test(m)
           ? m
           : "Your request couldn’t be sent. Please try again.",
       /taken|not available/i.test(m) ? 409 : 400,

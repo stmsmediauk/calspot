@@ -30,7 +30,8 @@ export function OverviewPage() {
   const { openModal, notify } = useAdmin();
   const [copied, setCopied] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const { slug, published } = useAccount();
+  const { slug, published, plan } = useAccount();
+  const paused = plan !== null && !plan.active;
   const pending = bookings.filter((b) => b.status === "pending");
   const confirmed = bookings
     .filter((b) => b.status === "confirmed")
@@ -143,7 +144,11 @@ export function OverviewPage() {
           <strong>/{slug}</strong>
           <small>
             {look ? `${look.name} look` : "Custom look"}
-            {published ? " · Live" : " · Private, only you can see it"}
+            {paused
+              ? " · Paused, your trial has ended"
+              : published
+                ? " · Live"
+                : " · Private, only you can see it"}
           </small>
           <div className="row">
             {published ? (
@@ -159,7 +164,7 @@ export function OverviewPage() {
             ) : null}
             <button
               className={published ? "button secondary small" : "button small"}
-              disabled={publishing || (!published && !ready)}
+              disabled={publishing || (!published && (!ready || paused))}
               onClick={togglePublish}
             >
               {publishing

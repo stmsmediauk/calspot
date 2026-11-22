@@ -324,7 +324,7 @@ export function SignupWizard() {
                 "Pick a style for your whole page. You can fine-tune it later.",
                 "Add your club and the lessons players can request.",
                 "Set your regular week. Players only see times you have open.",
-                "Check everything looks right. You can change any of it later.",
+                "Check everything looks right. You can change any of it later. Your 14-day free trial starts when you finish, with no card needed.",
               ][step]
             }
           </p>

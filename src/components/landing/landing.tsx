@@ -423,7 +423,7 @@ export function Landing() {
               <Link href="/login">Log in</Link>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
-              {/* TODO: add a Contact link once there is an address to use. */}
+              <a href="mailto:contact@calspot.co.uk">Contact</a>
               <span>© Calspot</span>
             </nav>
           </div>

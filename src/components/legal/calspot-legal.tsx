@@ -5,7 +5,7 @@ import styles from "./legal.module.css";
 type Section = { heading: string; body: string[] };
 
 const operator = "[Calspot Trading as STMS Media Ltd, company number 14512345]";
-const contact = "[support@calspot.co.uk]";
+const contact = "contact@calspot.co.uk";
 const address = "[registered address]";
 
 export const privacy: Section[] = [

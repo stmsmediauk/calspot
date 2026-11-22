@@ -18,13 +18,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
       { auth: { persistSession: false } },
     );
-    const { data } = await supabase
-      .from("coaches")
-      .select("slug")
-      .eq("published", true);
-    for (const coach of data ?? [])
+    // Live pages only: published, and not paused by an ended trial.
+    let slugs: string[] = [];
+    const live = await supabase.rpc("live_coach_slugs");
+    if (!live.error) slugs = (live.data ?? []) as string[];
+    else {
+      const { data } = await supabase
+        .from("coaches")
+        .select("slug")
+        .eq("published", true);
+      slugs = (data ?? []).map((c) => c.slug);
+    }
+    for (const slug of slugs)
       entries.push({
-        url: `${base}/${coach.slug}`,
+        url: `${base}/${slug}`,
         changeFrequency: "weekly",
         priority: 0.8,
       });

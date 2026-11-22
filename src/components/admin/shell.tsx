@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { TrialBanner } from "./trial-banner";
 import { createClient } from "@/lib/supabase/client";
 import {
   CalendarDays,
@@ -268,6 +269,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="content">
+            <TrialBanner />
             {(save.saving || save.error) && (
               <div
                 className={save.error ? "form-error" : "notice"}
