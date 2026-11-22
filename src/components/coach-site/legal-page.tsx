@@ -7,11 +7,12 @@ import {
   termsSections,
   type LegalSection,
 } from "./legal-content";
-import { publicCoach } from "./content";
+import { useSite } from "./site-context";
 import styles from "./site.module.css";
 
 export function LegalPage({ kind }: { kind: "privacy" | "terms" }) {
   const { profile } = useCoachWorkspace();
+  const { basePath } = useSite();
   const sections: LegalSection[] =
     kind === "privacy"
       ? privacySections(profile.name)
@@ -20,7 +21,7 @@ export function LegalPage({ kind }: { kind: "privacy" | "terms" }) {
   return (
     <SiteShell>
       <article className={`${styles.wrap} ${styles.legal}`}>
-        <Link href={publicCoach.basePath} className={styles.legalBack}>
+        <Link href={basePath} className={styles.legalBack}>
           ← Back to {profile.name.split(" ")[0]}’s page
         </Link>
         <h1 className={styles.sectionTitle}>{title}</h1>

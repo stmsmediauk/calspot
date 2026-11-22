@@ -3,14 +3,16 @@ import { useRef, useState } from "react";
 import { ArrowRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { hasWhatsApp, useCoachWorkspace } from "@/lib/coach-workspace";
 import { startTimes } from "@/lib/availability";
+import { createClient } from "@/lib/supabase/client";
+import { londonHour, today } from "@/lib/mock-data";
 import {
   formatDay,
   formatHour,
-  publicCoach,
   sampleDay,
   sampleWeeks,
   zoneName,
 } from "./content";
+import { useSite } from "./site-context";
 import { WhatsAppButton } from "./whatsapp-button";
 import styles from "./site.module.css";
 
@@ -42,6 +44,8 @@ export function BookingForm({
     [dayIndex, setDayIndex] = useState<number | null>(null),
     [time, setTime] = useState(""),
     [submitted, setSubmitted] = useState(false),
+    [sending, setSending] = useState(false),
+    [sendError, setSendError] = useState(""),
     [player, setPlayer] = useState({
       ...emptyPlayer,
       contact: "",
@@ -52,13 +56,16 @@ export function BookingForm({
   const lesson = lessons.find((l) => l.id === lessonId) ?? lessons[0];
   const venue = clubs.find((c) => c.id === venueId) ?? clubs[0];
   const shortName = profile.name.split(" ")[0];
-  const demo = publicCoach.demoMode;
+  const { live, slug } = useSite();
+  const demo = !live;
   /** Start times from the coach's own availability, bookings and exceptions. */
   const timesFor = (weekIndex: number, index: number) => {
     if (!lesson || !venue) return [];
     const d = sampleDay(weekIndex, index);
     const key = d.toISOString().slice(0, 10);
-    return startTimes({
+    const now = today();
+    if (key < now) return [];
+    const times = startTimes({
       date: key,
       rules: workspace.rules,
       exceptions: workspace.exceptions,
@@ -66,7 +73,11 @@ export function BookingForm({
       lessons: workspace.lessons,
       lesson,
       clubId: venue.id,
-    }).map(formatHour);
+    });
+    // Today only offers times that are still ahead.
+    return (key === now ? times.filter((t) => t > londonHour()) : times).map(
+      formatHour,
+    );
   };
 
   const advance = (next: number) => {
@@ -357,8 +368,42 @@ export function BookingForm({
           </>
         ) : (
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
+              setSendError("");
+              if (live && slug && chosenDay) {
+                setSending(true);
+                const [h, m] = time.split(":").map(Number);
+                const notes = [
+                  player.level && `Level: ${player.level}.`,
+                  `Prefers ${contact === "whatsapp" ? "WhatsApp" : "email"}.`,
+                  player.message.trim(),
+                ]
+                  .filter(Boolean)
+                  .join(" ");
+                const { error } = await createClient().rpc("request_booking", {
+                  p_slug: slug,
+                  p_club: venue.id,
+                  p_lesson: lesson.id,
+                  p_date: chosenDay.toISOString().slice(0, 10),
+                  p_hour: h + m / 60,
+                  p_name: player.name.trim(),
+                  p_email: player.email.trim(),
+                  p_phone: player.phone.trim(),
+                  p_message: notes.slice(0, 1000),
+                });
+                setSending(false);
+                if (error) {
+                  const taken = /taken|not available/i.test(error.message);
+                  return setSendError(
+                    taken
+                      ? "Sorry, that time is no longer available. Please go back and choose another."
+                      : error.message.includes("several requests")
+                        ? error.message
+                        : "Your request couldn’t be sent. Please try again.",
+                  );
+                }
+              }
               setSubmitted(true);
               requestAnimationFrame(() => heading.current?.focus());
             }}
@@ -478,6 +523,11 @@ export function BookingForm({
                 </span>
               </label>
             )}
+            {sendError && (
+              <p className={styles.formNote} role="alert">
+                {sendError}
+              </p>
+            )}
             <div className={styles.formButtons}>
               <button
                 type="button"
@@ -486,8 +536,12 @@ export function BookingForm({
               >
                 Back
               </button>
-              <button type="submit" className={styles.button}>
-                {demo ? "Create demo request" : "Send request"}{" "}
+              <button type="submit" className={styles.button} disabled={sending}>
+                {sending
+                  ? "Sending…"
+                  : demo
+                    ? "Create demo request"
+                    : "Send request"}{" "}
                 <ArrowRight size={16} aria-hidden="true" />
               </button>
             </div>

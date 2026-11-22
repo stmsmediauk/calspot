@@ -104,6 +104,13 @@ export type LoadedCoach = {
   workspace: CoachWorkspace;
 };
 
+type CoachRecord = {
+  id: string;
+  slug: string;
+  published: boolean;
+  profile: unknown;
+};
+
 export async function loadCoach(
   supabase: SupabaseClient,
   userId: string,
@@ -114,7 +121,45 @@ export async function loadCoach(
     .eq("owner_id", userId)
     .maybeSingle();
   if (error) throw error;
+  return coach ? readWorkspace(supabase, coach) : null;
+}
+
+/** A published coach's page data for visitors, plus which times are already taken. */
+export async function loadPublicCoach(
+  supabase: SupabaseClient,
+  slug: string,
+): Promise<LoadedCoach | null> {
+  const { data: coach, error } = await supabase
+    .from("coaches")
+    .select("id, slug, published, profile")
+    .eq("slug", slug)
+    .eq("published", true)
+    .maybeSingle();
+  if (error) throw error;
   if (!coach) return null;
+  const loaded = await readWorkspace(supabase, coach);
+  const taken = await supabase.rpc("booked_times", { p_slug: slug });
+  if (taken.error) throw taken.error;
+  // Only busy times are exposed: no names, emails or messages.
+  const busy: Booking[] = ((taken.data ?? []) as Row[]).map((t, i) => ({
+    id: `busy-${i}`,
+    player: "",
+    email: "",
+    lessonId: "",
+    clubId: t.club_id as string,
+    date: t.date as string,
+    hour: Number(t.hour),
+    status: "confirmed",
+    message: "",
+    minutes: Number(t.minutes),
+  }));
+  return { ...loaded, workspace: { ...loaded.workspace, bookings: busy } };
+}
+
+async function readWorkspace(
+  supabase: SupabaseClient,
+  coach: CoachRecord,
+): Promise<LoadedCoach> {
   const q = (table: Table) =>
     supabase.from(table).select("*").eq("coach_id", coach.id);
   const [clubs, lessons, rules, exceptions, bookings] = await Promise.all([

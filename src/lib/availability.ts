@@ -71,7 +71,9 @@ export function startTimes({
       start: b.hour,
       end:
         b.hour +
-        (lessons.find((l) => l.id === b.lessonId)?.duration ?? 60) / 60,
+        (b.minutes ??
+          lessons.find((l) => l.id === b.lessonId)?.duration ??
+          60) / 60,
     }));
   const starts = new Set<number>();
   for (const w of windows)

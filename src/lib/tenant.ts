@@ -1,14 +1,25 @@
-import { platform } from "./platform";
-import { defaultWorkspace, type CoachWorkspace } from "./workspace-model";
+import { cache } from "react";
+import { createClient } from "@supabase/supabase-js";
+import { loadPublicCoach } from "./workspace-db";
+import type { CoachWorkspace } from "./workspace-model";
 
 /**
- * Server-side lookup of a coach's published data. This is the seam where
- * Supabase will plug in (resolve the tenant from the hostname, then read its
- * profile, clubs and lessons). For now only the pilot coach exists, so it
- * returns the bundled demo workspace. Edits made in the dashboard live in the
- * browser tab's session storage and are not visible to the server.
+ * Server-side lookup of a published coach's page data. Uses the public
+ * (anonymous) key, so row-level security decides what is visible: only
+ * published coaches, their active clubs and lessons, and availability.
  */
-export function getTenantWorkspace(slug: string): CoachWorkspace | null {
-  return `/${slug}` === platform.publicBasePath ? defaultWorkspace : null;
-}
-export const pilotSlug = platform.publicBasePath.slice(1);
+export const getTenantWorkspace = cache(
+  async (slug: string): Promise<CoachWorkspace | null> => {
+    if (!/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(slug)) return null;
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      { auth: { persistSession: false } },
+    );
+    try {
+      return (await loadPublicCoach(supabase, slug))?.workspace ?? null;
+    } catch {
+      return null;
+    }
+  },
+);

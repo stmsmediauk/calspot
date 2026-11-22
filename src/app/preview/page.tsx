@@ -28,7 +28,7 @@ export default function PreviewPage() {
   }, []);
   return (
     <CoachWorkspacePreview value={workspace}>
-      <CoachBookingPage embed />
+      <CoachBookingPage />
     </CoachWorkspacePreview>
   );
 }

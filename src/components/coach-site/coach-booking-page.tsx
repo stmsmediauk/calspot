@@ -7,16 +7,9 @@ import { Faq, Testimonials } from "./sections";
 import { resolveLessonId } from "./content";
 import styles from "./site.module.css";
 
-export function CoachBookingPage({
-  initialLesson,
-  embed = false,
-}: {
-  initialLesson?: string;
-  /** Used by the dashboard preview frame: hides prototype chrome. */
-  embed?: boolean;
-}) {
+export function CoachBookingPage({ initialLesson }: { initialLesson?: string }) {
   return (
-    <SiteShell embed={embed}>
+    <SiteShell>
       <CoachHero />
       <div className={`${styles.wrap} ${styles.mainGrid}`}>
         <CoachProfileCard />

@@ -122,13 +122,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(
-        `${window.location.origin}${platform.publicBasePath}`,
+        `${window.location.origin}/${account.slug}`,
       );
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setNotice(
-        `Your page link is ${window.location.origin}${platform.publicBasePath}`,
+        `Your page link is ${window.location.origin}/${account.slug}`,
       );
     }
   };
@@ -207,26 +207,38 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </span>
               {platform.demoMode && (
                 <span className="demo-indicator">
-                  <i /> Early access · Booking requests not live yet
+                  <i /> Early access · No emails sent yet
                 </span>
               )}
             </div>
             <div className="topbar-actions">
-              <button
-                className="button secondary small hide-mobile"
-                onClick={copyLink}
-              >
-                {copied ? <Check size={15} /> : <Copy size={15} />}
-                {copied ? "Link copied" : "Copy link"}
-              </button>
-              <Link
-                className="button small"
-                href={platform.publicBasePath}
-                onClick={guard(platform.publicBasePath)}
-              >
-                <ExternalLink size={15} aria-hidden="true" />
-                View my page
-              </Link>
+              {account.published && (
+                <button
+                  className="button secondary small hide-mobile"
+                  onClick={copyLink}
+                >
+                  {copied ? <Check size={15} /> : <Copy size={15} />}
+                  {copied ? "Link copied" : "Copy link"}
+                </button>
+              )}
+              {account.published ? (
+                <Link
+                  className="button small"
+                  href={`/${account.slug}`}
+                  onClick={guard(`/${account.slug}`)}
+                >
+                  <ExternalLink size={15} aria-hidden="true" />
+                  View my page
+                </Link>
+              ) : (
+                <Link
+                  className="button small"
+                  href="/dashboard/overview"
+                  onClick={guard("/dashboard/overview")}
+                >
+                  Publish my page
+                </Link>
+              )}
               <button
                 type="button"
                 className="button secondary small mobile-only"

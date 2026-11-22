@@ -13,7 +13,7 @@ export function CalendarPage() {
   const { clubs, lessons, bookings, rules, exceptions } = useCoachWorkspace();
   const { openModal } = useAdmin();
   const narrow = useMediaQuery("(max-width: 760px)");
-  const [week, setWeek] = useState(mock.demoWeek),
+  const [week, setWeek] = useState(mock.thisWeekStart()),
     [chosenView, setChosenView] = useState<string | null>(null),
     [filter, setFilter] = useState("all");
   /** Phones default to a day-by-day agenda; the week grid needs horizontal scrolling. */

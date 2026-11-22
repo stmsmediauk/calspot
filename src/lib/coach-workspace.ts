@@ -20,6 +20,7 @@ type State = {
   workspace: CoachWorkspace;
   coachId: string | null;
   slug: string | null;
+  published: boolean;
   email: string | null;
   saving: boolean;
   saveError: string | null;
@@ -29,6 +30,7 @@ const initial: State = {
   workspace: defaultWorkspace,
   coachId: null,
   slug: null,
+  published: false,
   email: null,
   saving: false,
   saveError: null,
@@ -73,6 +75,7 @@ async function refresh() {
       workspace: coach.workspace,
       coachId: coach.coachId,
       slug: coach.slug,
+      published: coach.published,
       email: user.email ?? null,
       saving: false,
       saveError: null,
@@ -108,7 +111,8 @@ export function useCoachSession() {
 export function useAccount() {
   const email = useSyncExternalStore(subscribe, () => state.email, () => null);
   const slug = useSyncExternalStore(subscribe, () => state.slug, () => null);
-  return { email, slug };
+  const published = useSyncExternalStore(subscribe, () => state.published, () => false);
+  return { email, slug, published };
 }
 export function useSaveState() {
   const saving = useSyncExternalStore(subscribe, () => state.saving, () => false);
@@ -200,10 +204,22 @@ export async function registerCoach(slug: string, workspace: CoachWorkspace) {
     workspace: coach.workspace,
     coachId: coach.coachId,
     slug: coach.slug,
+    published: coach.published,
     email: data.user.email ?? null,
     saving: false,
     saveError: null,
   });
+}
+
+/** Makes the public page visible to players, or hides it again. */
+export async function setCoachPublished(published: boolean) {
+  if (!state.coachId) throw new Error("Please sign in again.");
+  const { error } = await createClient()
+    .from("coaches")
+    .update({ published })
+    .eq("id", state.coachId);
+  if (error) throw new Error(error.message);
+  set({ published });
 }
 
 export async function signOutCoach() {

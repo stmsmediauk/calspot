@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from "react";
 import { MapPin, Instagram } from "lucide-react";
 import { hasWhatsApp, useCoachWorkspace } from "@/lib/coach-workspace";
-import { publicCoach } from "./content";
+import { useSite } from "./site-context";
 import { WhatsAppButton } from "./whatsapp-button";
 import styles from "./site.module.css";
 
@@ -21,6 +21,7 @@ function useNarrow() {
 
 export function CoachProfileCard() {
   const { profile, clubs } = useCoachWorkspace();
+  const { live } = useSite();
   const narrow = useNarrow();
   const activeClubs = clubs.filter((c) => c.active);
   const shortName = profile.name.split(" ")[0];
@@ -46,7 +47,7 @@ export function CoachProfileCard() {
               </div>
             </div>
           ))}
-          {publicCoach.demoMode && (
+          {!live && (
             <span className={styles.demoNote}>
               Sample clubs for this preview.
             </span>

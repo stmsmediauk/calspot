@@ -3,17 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCoachWorkspace } from "@/lib/coach-workspace";
 import { coachTheme } from "@/lib/coach-theme";
-import { publicCoach } from "./content";
+import { useSite } from "./site-context";
 import styles from "./site.module.css";
 
-export function SiteShell({
-  children,
-  embed = false,
-}: {
-  children: React.ReactNode;
-  embed?: boolean;
-}) {
+export function SiteShell({ children }: { children: React.ReactNode }) {
   const { profile } = useCoachWorkspace();
+  const { basePath } = useSite();
   const { appearance } = profile;
   /** A dark logo vanishes on a dark look, so use the dark-look logo or fall back to text. */
   const logo =
@@ -27,18 +22,10 @@ export function SiteShell({
       <a href="#coach-main" className={styles.skip}>
         Skip to content
       </a>
-      {publicCoach.demoMode && !embed && (
-        <div className={styles.previewBar}>
-          <span>
-            Design preview · Sample sessions. No bookings or messages are sent.
-          </span>
-          <Link href="/">Back to dashboard</Link>
-        </div>
-      )}
       <header className={`${styles.wrap} ${styles.header}`}>
         <Link
           className={styles.wordmark}
-          href={publicCoach.basePath}
+          href={basePath}
           aria-label={`${profile.name} home`}
         >
           {logo ? (
@@ -79,8 +66,8 @@ export function SiteShell({
           © {profile.name} · {profile.title}
         </span>
         <nav className={styles.footerLinks} aria-label="Legal">
-          <Link href={`${publicCoach.basePath}/privacy`}>Privacy</Link>
-          <Link href={`${publicCoach.basePath}/terms`}>Terms</Link>
+          <Link href={`${basePath}/privacy`}>Privacy</Link>
+          <Link href={`${basePath}/terms`}>Terms</Link>
           {appearance.poweredBy && <span>Powered by calspot.</span>}
         </nav>
       </footer>

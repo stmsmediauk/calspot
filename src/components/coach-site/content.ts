@@ -1,18 +1,13 @@
 /** One shared page template. Profile, clubs, lessons and availability come from the local workspace. */
-import { platform } from "@/lib/platform";
 import { zoneName as zoneOf } from "@/lib/dates";
-import { demoWeek, time } from "@/lib/mock-data";
+import { platform } from "@/lib/platform";
+import { thisWeekStart, time } from "@/lib/mock-data";
 
 export const publicCoach = {
-  basePath: platform.publicBasePath,
-  /** Mirrors the platform prototype switch (see src/lib/platform.ts). */
-  demoMode: platform.demoMode,
-  /** Monday of the first sample week, matching the dashboard's demo week. */
-  weekStart: demoWeek,
   timeZone: platform.timeZone,
 };
 /** Number of weeks of availability shown in the request form. */
-export const sampleWeeks = 2;
+export const sampleWeeks = 4;
 /** Formats decimal hours as HH:MM. */
 export const formatHour = time;
 
@@ -36,7 +31,7 @@ export const faqItems = [
 ];
 
 export function sampleDay(week: number, index: number) {
-  const [y, m, d] = publicCoach.weekStart.split("-").map(Number);
+  const [y, m, d] = thisWeekStart().split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + week * 7 + index));
 }
 export function formatDay(

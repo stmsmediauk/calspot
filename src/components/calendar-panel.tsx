@@ -69,7 +69,7 @@ export function CalendarPanel({
           </div>
           <button
             className="button secondary small"
-            onClick={() => setWeek(mock.demoWeek)}
+            onClick={() => setWeek(mock.thisWeekStart())}
           >
             This week
           </button>

@@ -102,7 +102,7 @@ export function AvailabilityPage() {
   const club = (id: string) =>
     clubs.find((c) => c.id === id)?.name ?? "Unknown club";
   const previewDays = Array.from({ length: 7 }, (_, i) => {
-    const d = mock.parseDate(mock.demoWeek);
+    const d = mock.parseDate(mock.thisWeekStart());
     d.setDate(d.getDate() + i);
     return d;
   });

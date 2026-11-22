@@ -633,8 +633,7 @@ export function SignupWizard() {
           )}
           {step === 5 && (
             <p className={styles.demoNote}>
-              Your page is private for now. You’ll be able to publish it once
-              booking requests are connected.
+              Your page stays private until you publish it from your dashboard.
             </p>
           )}
           <div className={styles.actions}>

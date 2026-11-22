@@ -524,3 +524,11 @@ The local project tracks `main` with `origin` pointing to this repository. Commi
 source changes and push them to save progress; pushing source does not deploy the
 application. Dependencies, build output, environment files and TypeScript caches
 are excluded by `.gitignore`. No deployment workflow is configured.
+
+## Public pages and booking requests (Supabase)
+
+- A coach's page lives at `/<their-address>` and is served from Supabase for visitors (`src/lib/tenant.ts`, using the public key so row-level security decides what is visible). It is hidden until the coach presses **Publish my page** on the dashboard overview, and an admin can unpublish from `/admin`.
+- Players send requests through the `request_booking` database function, which checks the time against the coach's real availability, blocked days and existing requests (including lesson length) and limits one email to three waiting requests. The public page only ever receives busy times from `booked_times`, never player details.
+- Requests appear in the coach's Requests screen. **No emails are sent yet**; coaches reply by WhatsApp or their own email.
+- Not built yet: email notifications, payments, spam protection beyond the per-email limit, and search-engine indexing (pages are `noindex`).
+- The old `taken_slots` function is unused and can be dropped.

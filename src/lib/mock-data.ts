@@ -29,6 +29,8 @@ export type Booking = {
   requestedAt?: string;
   /** Note the coach added when deciding. */
   reply?: string;
+  /** Length in minutes, set on the public page where the lesson itself may be hidden. */
+  minutes?: number;
   /** Another time the coach offered when declining. */
   suggested?: { date: string; hour: number };
 };
@@ -63,14 +65,35 @@ export const formatDate = (value: string) =>
   });
 export const time = (hour: number) =>
   `${String(Math.floor(hour)).padStart(2, "0")}:${hour % 1 ? "30" : "00"}`;
-/** The prototype's fixed "today", so sample data stays consistent. */
-export const demoToday = "2026-11-22";
-export const demoWeek = "2026-11-23";
+/** Today's date (YYYY-MM-DD) in UK time. A function so long-running servers never go stale. */
+export const today = () =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London" }).format(
+    new Date(),
+  );
+/** Monday of the current UK week. */
+export const thisWeekStart = () => {
+  const d = parseDate(today());
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return dateKey(d);
+};
+/** The current UK clock time as decimal hours, e.g. 14.5 for 14:30. */
+export const londonHour = () => {
+  const [h, m] = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  })
+    .format(new Date())
+    .split(":")
+    .map(Number);
+  return h + m / 60;
+};
 export const lessonName = (list: Lesson[], id: string) =>
   id === "all"
     ? "All lessons"
     : (list.find((l) => l.id === id)?.name ?? "Lesson");
-export function daysAgo(key: string, from = demoToday) {
+export function daysAgo(key: string, from = today()) {
   const diff = Math.round(
     (parseDate(from).getTime() - parseDate(key).getTime()) / 864e5,
   );

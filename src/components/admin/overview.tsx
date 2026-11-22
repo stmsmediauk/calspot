@@ -12,10 +12,13 @@ import {
   Inbox,
   MessageCircle,
 } from "lucide-react";
-import { useCoachWorkspace } from "@/lib/coach-workspace";
+import {
+  setCoachPublished,
+  useAccount,
+  useCoachWorkspace,
+} from "@/lib/coach-workspace";
 import { matchingLook } from "@/lib/coach-theme";
 import * as mock from "@/lib/mock-data";
-import { platform } from "@/lib/platform";
 import { Badge, Empty } from "../ui";
 import { useAdmin } from "./context";
 import { PageHeader } from "./page-header";
@@ -26,18 +29,22 @@ export function OverviewPage() {
   const { profile, clubs, lessons, bookings, rules } = useCoachWorkspace();
   const { openModal, notify } = useAdmin();
   const [copied, setCopied] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const { slug, published } = useAccount();
   const pending = bookings.filter((b) => b.status === "pending");
   const confirmed = bookings
     .filter((b) => b.status === "confirmed")
     .sort((a, b) => a.date.localeCompare(b.date) || a.hour - b.hour);
+  const weekStart = mock.thisWeekStart();
+  const weekEnd = mock.dateKey(
+    new Date(mock.parseDate(weekStart).getTime() + 6 * 864e5),
+  );
   const thisWeek = confirmed.filter(
-    (b) => b.date >= mock.demoWeek && b.date <= "2026-11-29",
+    (b) => b.date >= weekStart && b.date <= weekEnd,
   ).length;
   const look = matchingLook(profile.appearance);
   const workspace = useCoachWorkspace();
-  const tomorrowDate = mock.parseDate(
-    platform.demoMode ? mock.demoToday : mock.dateKey(new Date()),
-  );
+  const tomorrowDate = mock.parseDate(mock.today());
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
   const tomorrowKey = mock.dateKey(tomorrowDate);
   const tomorrow = confirmed.filter((b) => b.date === tomorrowKey);
@@ -68,9 +75,27 @@ export function OverviewPage() {
       href: "/dashboard/profile?tab=appearance",
     },
   ];
+  const ready =
+    clubs.some((c) => c.active) &&
+    lessons.some((l) => l.active) &&
+    rules.length > 0;
+  const togglePublish = async () => {
+    setPublishing(true);
+    try {
+      await setCoachPublished(!published);
+      notify(
+        published
+          ? "Your page is private again."
+          : "Your page is live. Copy the link and share it with players.",
+      );
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Couldn’t update your page.");
+    }
+    setPublishing(false);
+  };
   const remaining = checklist.filter((c) => !c.done);
   const copy = async () => {
-    const url = `${window.location.origin}${platform.publicBasePath}`;
+    const url = `${window.location.origin}/${slug}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -115,18 +140,33 @@ export function OverviewPage() {
         </section>
         <section className="panel page-card">
           <span>Your booking page</span>
-          <strong>{platform.publicBasePath}</strong>
+          <strong>/{slug}</strong>
           <small>
             {look ? `${look.name} look` : "Custom look"}
-            {platform.demoMode ? " · Private, not published yet" : ""}
+            {published ? " · Live" : " · Private, only you can see it"}
           </small>
           <div className="row">
-            <Link className="button small" href={platform.publicBasePath}>
-              <ExternalLink size={14} aria-hidden="true" /> View
-            </Link>
-            <button className="button secondary small" onClick={copy}>
-              {copied ? <Check size={14} /> : <Copy size={14} />}
-              {copied ? "Copied" : "Copy link"}
+            {published ? (
+              <>
+                <Link className="button small" href={`/${slug}`}>
+                  <ExternalLink size={14} aria-hidden="true" /> View
+                </Link>
+                <button className="button secondary small" onClick={copy}>
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                  {copied ? "Copied" : "Copy link"}
+                </button>
+              </>
+            ) : null}
+            <button
+              className={published ? "button secondary small" : "button small"}
+              disabled={publishing || (!published && !ready)}
+              onClick={togglePublish}
+            >
+              {publishing
+                ? "Saving…"
+                : published
+                  ? "Unpublish"
+                  : "Publish my page"}
             </button>
             <Link
               className="text-button"

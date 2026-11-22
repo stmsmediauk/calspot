@@ -16,8 +16,8 @@ function useSuggestions(b: Booking) {
     const lesson = lessons.find((l) => l.id === b.lessonId);
     if (!lesson) return [];
     const options: { date: string; hour: number }[] = [];
-    for (let i = 0; i < 14 && options.length < 6; i++) {
-      const d = mock.parseDate(mock.demoWeek);
+    for (let i = 1; i < 15 && options.length < 6; i++) {
+      const d = mock.parseDate(mock.today());
       d.setDate(d.getDate() + i);
       const date = mock.dateKey(d);
       for (const hour of startTimes({
