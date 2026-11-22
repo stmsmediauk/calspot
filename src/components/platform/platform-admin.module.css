@@ -97,9 +97,12 @@
 }
 .list li {
   display: grid;
-  grid-template-columns: minmax(200px, 1.2fr) 2fr auto;
-  gap: 20px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "who actions"
+    "counts counts";
+  gap: 16px 24px;
+  align-items: start;
   padding: 16px 20px;
   background: var(--background);
   border: 1px solid var(--border);
@@ -120,10 +123,16 @@
   overflow-wrap: anywhere;
 }
 .counts {
+  grid-area: counts;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px 20px;
   margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.who {
+  grid-area: who;
 }
 .counts dt {
   font-size: 13px;
@@ -134,9 +143,13 @@
   font-size: 14px;
 }
 .actions {
+  grid-area: actions;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-end;
+  max-width: 560px;
 }
 .delete {
   min-height: var(--tap);
@@ -192,7 +205,12 @@
   }
   .list li {
     grid-template-columns: 1fr;
+    grid-template-areas: "who" "counts" "actions";
     gap: 12px;
+  }
+  .actions {
+    justify-content: flex-start;
+    max-width: none;
   }
   .counts {
     grid-template-columns: repeat(2, 1fr);
