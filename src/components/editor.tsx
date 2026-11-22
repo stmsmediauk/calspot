@@ -5,6 +5,7 @@ import type { Club, Lesson, Rule } from "@/lib/mock-data";
 export function Editor({
   kind,
   item,
+  defaults,
   clubs,
   lessons,
   onSave,
@@ -12,13 +13,15 @@ export function Editor({
 }: {
   kind: string;
   item?: Club | Lesson | Rule;
+  /** Pre-filled values for a new record. */
+  defaults?: Record<string, unknown>;
   clubs: Club[];
   lessons: Lesson[];
   onSave: (value: Record<string, unknown>) => void;
   onCancel: () => void;
 }) {
   const [error, setError] = useState("");
-  const values = (item ?? {}) as Record<string, unknown>;
+  const values = { ...defaults, ...(item ?? {}) } as Record<string, unknown>;
   const field = (
     name: string,
     label: string,
@@ -166,11 +169,10 @@ export function Editor({
             <select
               aria-label="Lesson"
               name="lessonId"
-              defaultValue={String(
-                values.lessonId ?? lessons.find((l) => l.active)?.id,
-              )}
+              defaultValue={String(values.lessonId ?? "all")}
               required
             >
+              <option value="all">All lessons</option>
               {lessons
                 .filter((l) => l.active || l.id === values.lessonId)
                 .map((l) => (

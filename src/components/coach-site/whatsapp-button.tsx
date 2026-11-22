@@ -2,20 +2,27 @@
 
 import { useRef, useState } from "react";
 import { MessageCircle, X, Copy, Check } from "lucide-react";
+import { hasWhatsApp, useCoachWorkspace } from "@/lib/coach-workspace";
 import styles from "./site.module.css";
 
-/** Local preview only: no phone number, external links or messaging service. */
+/** Only configured coach numbers can display this local, unsent message preview. */
 export function WhatsAppButton({
-  message = "Hi Kelly-Jane, I’m interested in padel coaching. Could you help me choose a session?",
+  message: suppliedMessage,
   label = "Ask on WhatsApp",
 }: {
   message?: string;
   label?: string;
 }) {
+  const { profile } = useCoachWorkspace();
+  const shortName = profile.name.split(" ")[0];
+  const message =
+    suppliedMessage ??
+    `Hi ${shortName}, I’m interested in coaching. Could you help me choose a session?`;
   const dialog = useRef<HTMLDialogElement>(null);
   const draft = useRef<HTMLTextAreaElement>(null);
   const [copyStatus, setCopyStatus] = useState("");
 
+  if (!hasWhatsApp(profile.whatsapp)) return null;
   return (
     <>
       <button
@@ -57,7 +64,7 @@ export function WhatsAppButton({
           </form>
         </div>
         <span className={styles.eyebrow}>WHATSAPP · DEMO PREVIEW</span>
-        <h2>A quick hello to Kelly-Jane.</h2>
+        <h2>A quick hello to {shortName}.</h2>
         <p>Here’s how your message could look.</p>
         <label className={styles.formLabel}>
           Message draft
@@ -70,9 +77,9 @@ export function WhatsAppButton({
           />
         </label>
         <p className={styles.formNote}>
-          Kelly-Jane’s WhatsApp number hasn’t been added. This preview won’t
-          open a chat or send a message. A message does not confirm a lesson or
-          reserve a court.
+          Demo draft for {profile.whatsapp}. This preview won’t open a chat or
+          send a message. A message does not confirm a lesson or reserve a
+          court.
         </p>
         <div className={styles.dialogActions}>
           <button

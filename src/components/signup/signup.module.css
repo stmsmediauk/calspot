@@ -1,0 +1,282 @@
+.page {
+  min-height: 100vh;
+  background: #fbfbfd;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px max(24px, env(safe-area-inset-left, 0px));
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+.demoTag {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+.skip {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-2);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.layout {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+.withPreview {
+  max-width: 1500px;
+  display: grid;
+  grid-template-columns: minmax(480px, 640px) minmax(380px, 1fr);
+  gap: 36px;
+  align-items: start;
+  padding-inline: 32px;
+}
+.panel {
+  min-width: 0;
+}
+.progress {
+  display: flex;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+}
+.progress li {
+  flex: 1;
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 3px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  transition: border-color 0.3s ease;
+}
+.progress span {
+  font-variant-numeric: tabular-nums;
+}
+.progress b {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.current,
+.done {
+  border-top-color: var(--accent) !important;
+  color: var(--text) !important;
+}
+.current b {
+  font-weight: 600;
+}
+.panel h1 {
+  font-size: clamp(30px, 4vw, 40px);
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+}
+.panel h1:focus {
+  outline: none;
+}
+.lead {
+  margin: 10px 0 24px;
+  font-size: 16px;
+  max-width: 54ch;
+}
+.fields {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  padding: 24px;
+  margin-bottom: 20px;
+  animation: step 0.3s ease both;
+}
+@keyframes step {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.lessonRow {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 96px 96px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.lessonRow input:not([type="checkbox"]),
+.lessonRow select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 15px;
+  min-width: 0;
+}
+.lessonRow.off {
+  opacity: 0.55;
+}
+.include {
+  display: grid !important;
+  place-items: center;
+  min-height: 44px;
+  margin: 0 !important;
+}
+.include input {
+  width: 20px !important;
+  height: 20px;
+  accent-color: var(--accent);
+}
+.price {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+}
+.dayPicker {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+.dayPicker label {
+  position: relative;
+  display: grid !important;
+  place-items: center;
+  min-height: 48px;
+  margin: 0 !important;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  font-size: 14px !important;
+  font-weight: 500;
+  color: var(--text-2) !important;
+  cursor: pointer;
+}
+.dayPicker input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100% !important;
+  height: 100%;
+  cursor: pointer;
+}
+.dayPicker label:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.dayPicker .dayOn {
+  background: var(--accent);
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+.review {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 16px 20px;
+  margin: 0;
+  font-size: 15px;
+}
+.review dt {
+  color: var(--muted);
+}
+.review dd {
+  margin: 0;
+  color: var(--text);
+}
+.review small,
+.review span {
+  display: block;
+  font-size: 14px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+.demoNote {
+  font-size: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  margin-bottom: 16px;
+}
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.rightActions {
+  display: flex;
+  gap: 10px;
+}
+.preview {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+}
+.previewBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+@media (max-width: 700px) {
+  .top {
+    padding: 12px 16px;
+  }
+  .demoTag {
+    display: none;
+  }
+  .skip {
+    margin-left: auto;
+  }
+  .layout {
+    padding: 24px 16px 48px;
+  }
+  .progress b {
+    display: none;
+  }
+  .progress li {
+    justify-content: center;
+  }
+  .current b {
+    display: none;
+  }
+  .fields {
+    padding: 18px;
+  }
+  .lessonRow {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+  .lessonRow select,
+  .lessonRow .price {
+    grid-column: 2;
+  }
+  .actions {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 0;
+    background: #fbfbfd;
+  }
+  .rightActions {
+    flex: 1;
+    justify-content: flex-end;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fields {
+    animation: none;
+  }
+}

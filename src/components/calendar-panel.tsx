@@ -1,6 +1,9 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as mock from "@/lib/mock-data";
+import { zoneName } from "@/lib/dates";
+import { platform } from "@/lib/platform";
+import { Badge } from "./ui";
 import type { Booking, Club, Lesson, Rule, Exception } from "@/lib/mock-data";
 type CalendarProps = {
   week: string;
@@ -66,9 +69,9 @@ export function CalendarPanel({
           </div>
           <button
             className="button secondary small"
-            onClick={() => setWeek("2026-11-23")}
+            onClick={() => setWeek(mock.demoWeek)}
           >
-            Demo week
+            {platform.demoMode ? "Demo week" : "Today"}
           </button>
         </div>
         <div className="row">
@@ -85,7 +88,7 @@ export function CalendarPanel({
             ))}
           </select>
           <div className="segmented">
-            {["Week", "Month"].map((v) => (
+            {["Agenda", "Week", "Month"].map((v) => (
               <button
                 key={v}
                 aria-pressed={view === v}
@@ -98,10 +101,57 @@ export function CalendarPanel({
           </div>
         </div>
       </div>
-      {view === "Week" ? (
+      {view === "Agenda" ? (
+        <div className="agenda">
+          {dates.map((d) => {
+            const key = mock.dateKey(d);
+            const bs = visible
+              .filter((b) => b.date === key)
+              .sort((a, b) => a.hour - b.hour);
+            return (
+              <section className="agenda-day" key={key}>
+                <h3>
+                  {d.toLocaleDateString("en-GB", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "short",
+                  })}
+                </h3>
+                {bs.length ? (
+                  bs.map((b) => (
+                    <button
+                      key={b.id}
+                      className={`agenda-item ${b.status}`}
+                      onClick={() => onSelect(b.id)}
+                    >
+                      <span className="agenda-time">
+                        {mock.time(b.hour)}
+                        <small>
+                          {mock.time(
+                            b.hour + (lesson(b.lessonId)?.duration ?? 60) / 60,
+                          )}
+                        </small>
+                      </span>
+                      <span className="grow">
+                        <strong>{b.player}</strong>
+                        <small>
+                          {lesson(b.lessonId)?.name} · {club(b.clubId)}
+                        </small>
+                      </span>
+                      <Badge tone={b.status}>{b.status}</Badge>
+                    </button>
+                  ))
+                ) : (
+                  <p className="agenda-empty">No sessions</p>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      ) : view === "Week" ? (
         <div className="calendar-scroll">
           <div className="week-grid">
-            <div className="time-heading">GMT</div>
+            <div className="time-heading">{zoneName(dates[0])}</div>
             {dates.map((d) => (
               <div
                 className={`day-heading ${d.getDay() === 1 ? "highlight" : ""}`}
@@ -238,7 +288,10 @@ export function CalendarPanel({
             Available
           </span>
         </div>
-        <span>Europe/London · Demo schedule</span>
+        <span>
+          {platform.timeZone}
+          {platform.demoMode ? " · Demo schedule" : ""}
+        </span>
       </footer>
     </section>
   );

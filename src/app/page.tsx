@@ -1,4 +1,6 @@
-import { Dashboard } from "@/components/dashboard";
+import { redirect } from "next/navigation";
+
+/** The dashboard now lives at real URLs under /dashboard. */
 export default function Home() {
-  return <Dashboard />;
+  redirect("/dashboard");
 }

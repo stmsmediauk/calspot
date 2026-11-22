@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { publicCoach } from "@/components/coach-site/content";
 
-/** Keep earlier booking links working while the request flow lives on the mini-site. */
+/** Legacy booking links lead to the same single-page profile. */
 export default async function BookingPage({
   searchParams,
 }: {
@@ -9,9 +8,8 @@ export default async function BookingPage({
 }) {
   const selected = (await searchParams).lesson;
   const query =
-    typeof selected === "string" &&
-    publicCoach.lessons.some((l) => l.id === selected)
-      ? `?lesson=${selected}`
+    typeof selected === "string"
+      ? `?lesson=${encodeURIComponent(selected)}`
       : "";
   redirect(`/kelly-jane${query}#book`);
 }

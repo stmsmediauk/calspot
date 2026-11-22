@@ -54,3 +54,61 @@
 
 - Initialised Git on `main` and connected the project to `stmsmediauk/calspot`.
 - Included source, lockfile, documentation and prototype assets; excluded dependencies, builds, environment files and caches.
+
+## 0.4.0 — Personal coach profile and basic personalisation
+
+- Preserved the single-page two-column layout and existing three-step booking flow.
+- Added Kelly-Jane’s supplied photograph, concise biography, experience and Instagram enquiry link, with compact mobile framing and expandable details.
+- Added My profile to the dashboard for local photo/logo uploads, identity, introduction, experience, location, accent and optional contact details.
+- Shared profile, clubs and lesson types between the dashboard and public page using a typed per-tab session store; player request details remain temporary and are never persisted there.
+- Hid WhatsApp buttons, preferences and follow-ups until a valid coach number is supplied; previews remain unsent.
+- Kept inactive records out of public choices, handled empty availability configuration and preserved old lesson links.
+- Updated the product brief to specify a personal booking page, not a multi-page website builder.
+- Verified desktop/mobile layouts, local editing and media, contact visibility, state continuity, existing requests, lint, TypeScript and production build.
+
+## 0.5.0 — Editorial public-page direction
+
+- Adapted the supplied fashion-site reference into oversized coach-name typography, a large editorial portrait and a minimal one-page composition.
+- Removed profile/booking card chrome in favour of a consistent open grid, selectable lesson rows and restrained rules.
+- Preserved the existing three-step request logic, pending approval, validation, local data and conditional WhatsApp controls.
+- Introduced Studio, Clay, Court, Midnight and Sand as complete curated palettes; removed arbitrary colour editing.
+- Migrated older local profile accents to Studio without losing profile content. Unknown palette IDs use Studio.
+- Kept the dashboard's existing design; changed only its profile palette selector.
+- Verified five-theme contrast, desktop/mobile layouts, full request flow, contact behaviour, legacy links, palette restoration, lint, TypeScript and production build.
+
+## 0.6.0 — Template redesign and appearance options
+
+- Rebuilt the public coach page as a reusable template driven by an `appearance` configuration instead of Kelly-Jane specific styling.
+- Added three hero layouts (Editorial, Split, Full-bleed) with a stacked first-name/surname lockup sized to its longest word.
+- Added five whole-page looks plus fine-tuning of palette, accent (ten vetted swatches, automatic readable button text), three type pairings (bundled locally) and three corner styles.
+- Added an optional highlights strip, testimonials (shown only when real ones are entered), a generic FAQ, tagline, photograph focal point and an optional "Powered by calspot." footer line.
+- Replaced the dashboard palette picker with My profile → Page look and Page content, with live look previews and a contrast readout.
+- Booking flow: persistent session summary, week navigation, per-day availability, accessible step list, dates and timezone formatted with `Intl`, and clearer single-verb calls to action.
+- Gated prototype wording behind `publicCoach.demoMode` and replaced the public "Coach dashboard" footer link with a preview-bar link visible only in demo mode.
+- Raised the minimum text size, strengthened interactive control borders for contrast and added subtle headline and step motion that respects reduced-motion preferences.
+- Migrated saved drafts safely, keeping content and validating every appearance field.
+- Fixed a global dashboard `main` offset leaking into the public page.
+- Not included: the sign-up wizard, server-rendered public pages and real legal links (see README).
+
+## 0.7.0 — Dashboard redesign
+
+- Gave every dashboard section a real URL under `/dashboard`; `/` redirects there. Opens on Requests when requests are pending.
+- Moved bookings, recurring availability and exceptions into the shared per-tab workspace store. The public request form now offers start times derived from them, hiding blocked and already requested times. Added "All lessons" availability.
+- Rebuilt the shell: one identity card with the coach's photo and look, a single demo indicator, **View my page** and **Copy link**, and a mobile bottom tab bar. Removed the help card, repeated stats, banner, "Phase 1" badges and footer logo.
+- Overview now has a needs-attention card, booking-page card and a setup checklist. Requests show how long ago they arrived and warn about overlaps.
+- Calendar gained an Agenda view (default on phones). Booking details and the calendar header use the correct GMT/BST label.
+- Availability: weekly editor with Add time, Copy to other days, Block a date and a "What players see" preview.
+- Clubs and Lessons: compact lists with "On my page" switches and lesson ordering. Lesson descriptions and club notes now show publicly.
+- My profile: Profile, Appearance and Contact tabs, a live preview of the unsaved draft (desktop split view, phone sheet) and a sticky save bar with discard and an unsaved-changes browser warning.
+- Introduced shared dashboard tokens, a 13px readable-text floor, stronger control borders, 44px mobile targets and `platform.ts` as the single demo-mode switch.
+- Verified lint, strict types, production build, all seven dashboard pages at 1440px and 390px (no overflow, no text under 12px), availability changes reaching the public page, and live preview, save and approve flows.
+
+## 0.8.0 — Coach sign-up prototype
+
+- Added `/signup`, a six-step guided flow (You, Your story, Your look, Clubs & lessons, Your week, Review) with inline validation, focus management and a live preview of the real public page.
+- Creating a page replaces the tab's workspace with the new coach's data and opens the dashboard Overview with the setup checklist.
+- Reused the look presets, image input, preview frame and availability model. Exported `AssetInput` and `LookPreview` for reuse.
+- Added a demo-only "Preview the sign-up flow" link to the dashboard sidebar.
+- Prototype only: no accounts, email, authentication or hosting. The public page remains at the single pilot route.
+- Verified lint, strict types, production build, validation errors, a full run-through at 1440px and 390px, the resulting dashboard and public page, and no horizontal overflow.
+

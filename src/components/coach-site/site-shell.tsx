@@ -1,39 +1,81 @@
+"use client";
+import Image from "next/image";
 import Link from "next/link";
+import { useCoachWorkspace } from "@/lib/coach-workspace";
+import { coachTheme } from "@/lib/coach-theme";
 import { publicCoach } from "./content";
-import { WhatsAppButton } from "./whatsapp-button";
 import styles from "./site.module.css";
 
-export function SiteShell({ children }: { children: React.ReactNode }) {
-  const home = publicCoach.basePath;
+export function SiteShell({
+  children,
+  embed = false,
+}: {
+  children: React.ReactNode;
+  embed?: boolean;
+}) {
+  const { profile } = useCoachWorkspace();
+  const { appearance } = profile;
   return (
-    <div className={styles.site}>
+    <div
+      className={styles.site}
+      data-palette={appearance.palette}
+      style={coachTheme(appearance)}
+    >
       <a href="#coach-main" className={styles.skip}>
         Skip to content
       </a>
-      <div className={styles.previewBar}>
-        Design preview · Sample sessions. No bookings or messages are sent.
-      </div>
-      <header className={styles.header}>
+      {publicCoach.demoMode && !embed && (
+        <div className={styles.previewBar}>
+          <span>
+            Design preview · Sample sessions. No bookings or messages are sent.
+          </span>
+          <Link href="/">Back to dashboard</Link>
+        </div>
+      )}
+      <header className={`${styles.wrap} ${styles.header}`}>
         <Link
           className={styles.wordmark}
-          href={home}
-          aria-label="Kelly-Jane Whalley home"
+          href={publicCoach.basePath}
+          aria-label={`${profile.name} home`}
         >
-          Kelly-Jane<span>WHALLEY · PADEL COACHING</span>
+          {profile.logo ? (
+            <Image
+              src={profile.logo}
+              alt={`${profile.name} logo`}
+              width={180}
+              height={55}
+              unoptimized
+              className={styles.personalLogo}
+            />
+          ) : (
+            <span className={styles.headerIdentity}>
+              {profile.name}
+              <small>{profile.title}</small>
+            </span>
+          )}
         </Link>
-        <a className={styles.headerBooking} href="#book">
-          Request a session
-        </a>
-        <div className={styles.mobileContact}>
-          <WhatsAppButton label="WhatsApp" />
-        </div>
+        <nav className={styles.headerNav} aria-label="Coach page">
+          <a className={styles.navText} href="#about">
+            The coach
+          </a>
+          {appearance.showFaq && (
+            <a className={styles.navText} href="#faq">
+              FAQ
+            </a>
+          )}
+          <a className={`${styles.button} ${styles.small}`} href="#book">
+            Request a session
+          </a>
+        </nav>
       </header>
       <main className={styles.main} id="coach-main">
         {children}
       </main>
-      <footer className={styles.footer}>
-        <span>Kelly-Jane Whalley · Padel coaching</span>
-        <Link href="/">Coach dashboard</Link>
+      <footer className={`${styles.wrap} ${styles.footer}`}>
+        <span>
+          © {profile.name} · {profile.title}
+        </span>
+        {appearance.poweredBy && <span>Powered by calspot.</span>}
       </footer>
     </div>
   );

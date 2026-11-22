@@ -30,11 +30,14 @@ export type Booking = {
   hour: number;
   status: "pending" | "confirmed" | "declined" | "cancelled";
   message: string;
+  /** Date the request arrived, for "requested 2 days ago". */
+  requestedAt?: string;
 };
 export type Rule = {
   id: string;
   day: number;
   clubId: string;
+  /** A lesson id, or "all" for every active lesson. */
   lessonId: string;
   start: number;
   end: number;
@@ -125,6 +128,7 @@ export const bookings: Booking[] = [
     hour: 10,
     status: "pending",
     message: "I’m an intermediate player and would love to improve my bandeja.",
+    requestedAt: "2026-11-21",
   },
   {
     id: "b4",
@@ -147,6 +151,7 @@ export const bookings: Booking[] = [
     hour: 12,
     status: "pending",
     message: "My first private lesson. Keen to get the basics right.",
+    requestedAt: "2026-11-20",
   },
   {
     id: "b6",
@@ -169,13 +174,14 @@ export const bookings: Booking[] = [
     hour: 11,
     status: "pending",
     message: "A session for myself and my doubles partner.",
+    requestedAt: "2026-11-22",
   },
 ];
 export const rules: Rule[] = [1, 2, 3, 4, 5].map((day) => ({
   id: `r${day}`,
   day,
   clubId: day % 2 ? "c1" : "c2",
-  lessonId: "l1",
+  lessonId: "all",
   start: 9,
   end: 15,
   effectiveStart: "2026-11-01",
@@ -192,3 +198,14 @@ export const formatDate = (value: string) =>
   });
 export const time = (hour: number) =>
   `${String(Math.floor(hour)).padStart(2, "0")}:${hour % 1 ? "30" : "00"}`;
+/** The prototype's fixed "today", so sample data stays consistent. */
+export const demoToday = "2026-11-22";
+export const demoWeek = "2026-11-23";
+export const lessonName = (list: Lesson[], id: string) =>
+  id === "all" ? "All lessons" : (list.find((l) => l.id === id)?.name ?? "Lesson");
+export function daysAgo(key: string, from = demoToday) {
+  const diff = Math.round(
+    (parseDate(from).getTime() - parseDate(key).getTime()) / 864e5,
+  );
+  return diff <= 0 ? "today" : diff === 1 ? "yesterday" : `${diff} days ago`;
+}

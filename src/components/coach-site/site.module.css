@@ -1,638 +1,970 @@
+/*
+ * Public coach page. Everything is driven by the --coach-* tokens set from the
+ * coach's appearance (see src/lib/coach-theme.ts). No colours, fonts or radii
+ * are hardcoded for a specific coach.
+ */
 .site {
-  --coach-ink: #1d1d1f;
-  --coach-muted: #656d72;
-  --coach-blue: #254e60;
-  --coach-line: #e5e8ea;
-  --coach-surface: #f6f7f9;
+  --gutter: clamp(18px, 4.6vw, 48px);
+  --control-line: color-mix(in srgb, var(--coach-ink) 52%, var(--coach-background));
   color: var(--coach-ink);
-  background: #fbfbfd;
-  font:
-    16px/1.65 -apple-system,
-    BlinkMacSystemFont,
-    var(--font-geist-sans),
-    sans-serif;
-  letter-spacing: -0.015em;
+  background: var(--coach-background);
+  font-family: var(--coach-font-body);
+  font-size: 16px;
+  line-height: 1.6;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 .site * {
   box-sizing: border-box;
+}
+.site :is(h1, h2, h3, p, ol, ul, dl, dd, figure, blockquote) {
+  margin: 0;
 }
 .site a {
   color: inherit;
   text-decoration: none;
 }
-.site p {
-  font-size: 16px;
-  color: var(--coach-muted);
-  line-height: 1.7;
-}
-.site button {
+.site button,
+.site input,
+.site select,
+.site textarea {
   font: inherit;
-  letter-spacing: inherit;
+  color: inherit;
 }
-.site :is(a, button, input, select, textarea):focus-visible {
-  outline: 2px solid var(--coach-blue);
-  outline-offset: 4px;
+.site :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--coach-ink);
+  outline-offset: 3px;
 }
+.photo :is(a, button):focus-visible {
+  outline-color: #fff;
+}
+.wrap {
+  width: 100%;
+  max-width: 1360px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.skip {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  background: var(--coach-background);
+  color: var(--coach-ink);
+  padding: 12px 20px;
+  border: 1px solid var(--coach-line);
+  transform: translateY(-150%);
+}
+.skip:focus {
+  transform: translateY(0);
+}
+
+/* Buttons */
+.button,
+.primary,
+.secondary,
+.whatsappButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 22px;
+  border: 1px solid transparent;
+  border-radius: var(--coach-radius-button);
+  background: var(--coach-accent);
+  color: var(--coach-on-accent);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    background 0.18s ease;
+}
+.site .button,
+.site .primary {
+  color: var(--coach-on-accent);
+}
+.site .button:hover,
+.site .primary:hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+}
+.site .button:active {
+  transform: scale(0.985);
+}
+.site .ghost,
+.site .secondary,
+.site .whatsappButton {
+  background: transparent;
+  color: var(--coach-ink);
+  border-color: var(--control-line);
+}
+.site .ghost:hover,
+.site .secondary:hover,
+.site .whatsappButton:hover {
+  background: var(--coach-surface);
+  filter: none;
+}
+.site .small {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+.site button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--coach-accent-text);
+}
+.eyebrow::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--coach-accent);
+}
+
+/* Preview bar, header, footer */
+.previewBar {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  padding: 8px 20px;
+  background: var(--coach-surface);
+  color: var(--coach-muted);
+  font-size: 13px;
+  text-align: center;
+}
+.previewBar a {
+  color: var(--coach-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.header {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.wordmark {
+  max-width: 55%;
+  overflow-wrap: anywhere;
+}
+.headerIdentity {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.headerIdentity small {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--coach-muted);
+}
+.personalLogo {
+  display: block;
+  width: auto;
+  max-width: 160px;
+  height: 45px;
+  object-fit: contain;
+  object-position: left center;
+}
+.headerNav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 15px;
+}
+.navText:hover {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+/* Neutralises the dashboard's global <main> sidebar offset. */
 .main {
   margin: 0;
   width: 100%;
   background: transparent;
 }
-.previewBar {
-  padding: 8px 18px;
-  text-align: center;
-  background: #f0f2f5;
-  color: #626a72;
-  font-size: 12px;
-}
-.header {
-  max-width: 1200px;
-  margin: auto;
-  height: 100px;
-  padding: 0 35px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-.wordmark {
-  font-size: 27px;
-  font-weight: 550;
-  letter-spacing: -1.3px;
-  line-height: 1.1;
-  white-space: nowrap;
-}
-.wordmark > span {
-  display: block;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 2.3px;
-  margin-top: 8px;
-}
-.headerBooking {
-  font-size: 14px;
-  color: var(--coach-blue) !important;
-  font-weight: 500;
-  padding: 8px 0;
-  border-bottom: 1px solid #b9c7ce;
-}
-.miniIntro {
-  max-width: 1130px;
-  margin: 22px auto 30px;
-  padding: 0 0 0 1px;
-}
-.eyebrow {
-  display: block;
-  font-size: 11px;
-  letter-spacing: 1.7px;
-  font-weight: 600;
-  color: var(--coach-blue);
-  line-height: 1.5;
-}
-.miniIntro h1 {
-  font-size: clamp(34px, 3.3vw, 48px);
-  font-weight: 550;
-  letter-spacing: -1.7px;
-  line-height: 1.15;
-  margin: 13px 0 12px;
-}
-.miniIntro p {
-  font-size: 16px;
-}
-.miniGrid {
-  max-width: 1130px;
-  margin: 0 auto 60px;
-  display: grid;
-  grid-template-columns: 290px minmax(0, 1fr);
-  gap: 30px;
-  align-items: start;
-}
-.coachCard {
-  border: 1px solid var(--coach-line);
-  border-radius: 15px;
-  overflow: hidden;
-  background: white;
-  position: sticky;
-  top: 25px;
-}
-.coachImage {
-  height: 165px;
-  position: relative;
-  background: #dfe6e9;
-}
-.coachImage img {
-  object-fit: cover;
-  object-position: center 65%;
-}
-.coachImage > span {
-  position: absolute;
-  bottom: 10px;
-  left: 12px;
-  background: #183444cc;
-  color: white;
-  border-radius: 4px;
-  padding: 2px 7px;
-  font-size: 10px;
-}
-.coachIdentity {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 22px 20px 0;
-}
-.coachInitials {
-  display: grid;
-  place-items: center;
-  width: 39px;
-  height: 39px;
-  border-radius: 50%;
-  background: #eef2f5;
-  color: #4c6875;
-  flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 600;
-}
-.coachIdentity h2 {
-  font-size: 17px;
-  line-height: 1.3;
-  font-weight: 600;
-  letter-spacing: -0.4px;
-}
-.coachIdentity > div > span {
-  font-size: 11px;
-  color: var(--coach-muted);
-  display: block;
-  margin-top: 5px;
-}
-.coachBio {
-  font-size: 14px !important;
-  padding: 0 20px;
-  margin-top: 18px;
-}
-.sampleNote {
-  display: block;
-  font-size: 12px;
-  line-height: 1.7;
-  color: #6a737b;
-  margin: 14px 20px 22px;
-}
-.contactCard {
+.footer {
+  margin-top: auto;
+  width: calc(min(1360px, 100%) - 2 * var(--gutter));
+  padding-inline: 0;
   border-top: 1px solid var(--coach-line);
-  padding: 22px 20px 0;
+  padding-block: 26px 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--coach-muted);
 }
-.contactCard h3 {
-  font-size: 15px;
-  font-weight: 550;
-  letter-spacing: -0.3px;
+/* Hero */
+.hero {
+  padding-bottom: 4px;
 }
-.contactCard p {
-  font-size: 14px;
-  margin: 9px 0 17px;
+.heroName {
+  font-family: var(--coach-font-display);
+  font-weight: var(--coach-name-weight);
+  letter-spacing: var(--coach-name-tracking);
+  text-transform: var(--coach-name-case);
+  font-size: var(--name-size);
+  line-height: 0.92;
 }
-.contactCard .sampleNote {
-  margin: 10px 0 20px;
-  font-size: 11px;
+.heroName > span {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
 }
-.inlineBooking {
-  min-width: 0;
-  scroll-margin-top: 25px;
+.heroName i {
+  display: block;
+  font-style: normal;
+  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.1, 1) both;
 }
-.site .primary,
-.site .secondary,
-.whatsappButton {
-  display: inline-flex;
+.heroName > span:nth-child(2) i {
+  animation-delay: 0.09s;
+}
+@keyframes rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.photo {
+  position: relative;
+  overflow: hidden;
+  background: var(--coach-surface);
+  border-radius: var(--coach-radius-card);
+}
+.photo img {
+  object-fit: cover;
+  object-position: var(--focus, 50% 20%);
+}
+.portraitPlaceholder {
+  height: 100%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 12px 21px;
-  border: 1px solid var(--coach-blue);
-  border-radius: 9px;
-  background: var(--coach-blue);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.35;
-  transition:
-    background 0.18s,
-    border-color 0.18s;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--coach-muted);
 }
-.site .primary:hover {
-  background: #183e50;
-  border-color: #183e50;
+.photo_editorial {
+  height: clamp(360px, 40vw, 600px);
 }
-.site .secondary {
-  background: #fff;
+.heroCaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+  padding: 14px 0 18px;
+  margin-top: 6px;
+  border-top: 1px solid var(--coach-line);
+}
+.heroCaption p {
+  font-size: 15px;
+  color: var(--coach-muted);
+}
+.heroCaption b {
   color: var(--coach-ink);
-  border-color: #dde2e5;
+  font-weight: 500;
 }
-.site .secondary:hover {
-  background: #f6f7f9;
+.splitGrid {
+  display: grid;
+  gap: 28px;
+  align-items: center;
+  padding-top: 12px;
 }
-.site button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.whatsappButton {
-  background: #f0f7f3;
-  border-color: #dbeade;
-  color: #286348;
-  white-space: normal;
-}
-.whatsappButton:hover {
-  background: #e4f0e9;
-  border-color: #c7dece;
-}
-.contactCard .whatsappButton {
+.photo_split {
+  aspect-ratio: 4 / 5;
+  max-height: 680px;
+  justify-self: end;
   width: 100%;
 }
-.bookingPage {
-  max-width: 1160px;
-  margin: auto;
-  padding: 30px;
+.splitTagline {
+  margin-top: 22px;
+  font-size: 20px;
+  color: var(--coach-ink);
 }
-.embeddedBooking {
-  padding: 0;
-  max-width: none;
+.splitTitle {
+  margin: 6px 0 26px;
+  color: var(--coach-muted);
 }
-.bookingHeading {
-  margin-bottom: 30px;
-}
-.bookingHeading h1 {
-  font-size: 40px;
-  font-weight: 550;
-  letter-spacing: -1.5px;
-  line-height: 1.15;
-  margin: 15px 0;
-}
-.bookingSteps {
+.heroActions {
   display: flex;
-  align-items: center;
-  gap: 30px;
-  margin-bottom: 18px;
-  padding: 0 4px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-.bookingSteps > span {
+.photo_overlay {
+  min-height: clamp(460px, 48vw, 640px);
+  color: #fff;
+}
+.photo_overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(10 10 12 / 0.78), rgb(10 10 12 / 0.05) 62%);
+}
+.overlayCopy {
+  position: absolute;
+  z-index: 2;
+  inset: auto 0 0;
+  padding: clamp(18px, 4vw, 40px);
   display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 13px;
-  color: #6b747a;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
 }
-.bookingSteps i {
-  font-style: normal;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: #edf0f3;
-  font-size: 11px;
+.overlayCopy .heroName {
+  color: #fff;
 }
-.bookingSteps .currentStep {
-  font-weight: 600;
-  color: var(--coach-blue);
+.overlayCopy p {
+  margin-top: 12px;
+  color: rgb(255 255 255 / 0.85);
 }
-.currentStep i {
-  background: var(--coach-blue);
-  color: white;
+.overlayCopy .button:focus-visible {
+  outline-color: #fff;
 }
-.completedStep i {
-  background: #e7efea;
-  color: #416a57;
-}
-.bookingLayout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
-}
-.bookingPanel {
-  padding: 29px 30px;
-  border: 1px solid var(--coach-line);
-  border-radius: 15px;
-  background: white;
-}
-.bookingPanel h2 {
-  font-size: 27px;
-  font-weight: 550;
-  line-height: 1.2;
-  letter-spacing: -0.8px;
-}
-.formLead {
-  font-size: 15px !important;
-  margin: 10px 0 23px;
-}
-.choiceField {
-  border: 0;
+.highlights {
+  list-style: none;
   padding: 0;
-  margin: 21px 0;
+  display: grid;
+  margin-top: 28px !important;
+  border-block: 1px solid var(--coach-line);
 }
-.choiceField legend {
+.highlights li {
+  padding: 20px 0;
+}
+.highlights li + li {
+  padding-left: clamp(12px, 3vw, 32px);
+  border-left: 1px solid var(--coach-line);
+}
+.highlights strong {
+  display: block;
+  font-family: var(--coach-font-display);
+  font-size: clamp(18px, 2.6vw, 32px);
+  font-weight: var(--coach-heading-weight);
+  letter-spacing: var(--coach-heading-tracking);
+  line-height: 1.12;
+}
+.highlights strong::after {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 3px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: var(--coach-accent);
+}
+.highlights span {
+  display: block;
+  margin-top: 8px;
   font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 11px;
+  line-height: 1.4;
+  color: var(--coach-muted);
 }
-.radioCard {
+
+/* Main grid */
+.mainGrid {
+  display: grid;
+  gap: 48px;
+  padding-block: 64px 72px;
+}
+.sectionTitle {
+  font-family: var(--coach-font-display);
+  font-weight: var(--coach-heading-weight);
+  letter-spacing: var(--coach-heading-tracking);
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.06;
+  margin-top: 16px !important;
+  text-wrap: balance;
+}
+.about {
+  min-width: 0;
+}
+.bio {
+  margin-top: 20px !important;
+  max-width: 46ch;
+  font-size: 17.5px;
+  line-height: 1.75;
+  color: var(--coach-muted);
+}
+.about h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.experience {
+  margin-top: 28px !important;
+  padding-top: 22px;
+  border-top: 1px solid var(--coach-line);
+  max-width: 46ch;
+}
+.experience p {
+  white-space: pre-line;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--coach-muted);
+}
+.locations {
+  margin-top: 28px !important;
+}
+.locations > p {
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: var(--coach-muted);
+}
+.venue {
   display: flex;
-  align-items: center;
-  gap: 13px;
-  border: 1px solid var(--coach-line);
-  border-radius: 10px;
-  padding: 15px 17px;
-  margin: 10px 0;
-  cursor: pointer;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--coach-line);
 }
-.radioCard input {
-  accent-color: var(--coach-blue);
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
+.venue svg {
+  flex: none;
+  margin-top: 4px;
+  color: var(--coach-accent-text);
 }
-.radioCard strong {
+.venue strong {
   display: block;
   font-size: 15px;
   font-weight: 500;
 }
-.radioCard small {
+.venue span {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--coach-muted);
+  overflow-wrap: anywhere;
+}
+.demoNote {
+  display: block;
+  font-size: 13px;
+  color: var(--coach-muted);
+}
+.moreDetails {
+  margin-top: 22px !important;
+  border-top: 1px solid var(--coach-line);
+  padding-top: 14px;
+}
+.moreDetails summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+}
+.moreDetails > div:first-of-type {
+  margin-top: 18px;
+}
+.contactLinks {
+  display: flex;
+  align-items: center;
+  gap: 14px 22px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+}
+.contactLinks > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  text-decoration: underline;
+  text-decoration-color: var(--coach-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+.booking {
+  min-width: 0;
+  scroll-margin-top: 24px;
+}
+.bookingEmpty p {
+  margin-top: 12px;
+  color: var(--coach-muted);
+}
+
+/* Booking flow */
+.bookingFlow {
+  min-width: 0;
+}
+.steps {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 22px !important;
+}
+.steps li {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 3px solid var(--coach-line);
+  font-size: 13.5px;
+  color: var(--coach-muted);
+  transition:
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+.steps i {
+  font-style: normal;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.stepDone,
+.stepCurrent {
+  border-top-color: var(--coach-accent) !important;
+  color: var(--coach-ink) !important;
+}
+.stepCurrent {
+  font-weight: 600;
+}
+.bookingTitle {
+  font-family: var(--coach-font-display);
+  font-weight: var(--coach-heading-weight);
+  letter-spacing: var(--coach-heading-tracking);
+  font-size: clamp(28px, 3.4vw, 38px);
+  line-height: 1.1;
+}
+.bookingTitle:focus {
+  outline: none;
+}
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 24px !important;
+  padding: 14px 16px;
+  background: var(--coach-surface);
+  border-radius: var(--coach-radius-card);
+  font-size: 14.5px;
+}
+.summaryWhat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  min-width: 0;
+  color: var(--coach-muted);
+}
+.summaryWhat b {
+  color: var(--coach-ink);
+  font-weight: 600;
+}
+.summaryPrice {
+  font-family: var(--coach-font-display);
+  font-weight: var(--coach-heading-weight);
+  font-size: 24px;
+  letter-spacing: var(--coach-heading-tracking);
+  line-height: 1;
+}
+.summaryPrice small {
+  display: block;
   margin-top: 4px;
+  font-family: var(--coach-font-body);
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--coach-muted);
+  text-align: right;
 }
-.radioCard b {
+.stepPanel {
+  animation: settle 0.35s ease both;
+}
+.choiceField {
+  padding: 0;
+  border: 0;
+  margin: 0 0 20px;
+  min-width: 0;
+}
+.choiceField legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 16px 18px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--control-line);
+  border-radius: var(--coach-radius-card);
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+.option:hover {
+  background: var(--coach-surface);
+}
+.option[aria-checked="true"] {
+  background: var(--coach-selected);
+  border-color: var(--coach-ink);
+  box-shadow: inset 0 0 0 1px var(--coach-ink);
+}
+.optionDot {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--control-line);
+  border-radius: 50%;
+}
+.option[aria-checked="true"] .optionDot {
+  border-color: var(--coach-ink);
+}
+.option[aria-checked="true"] .optionDot::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--coach-ink);
+}
+.option strong {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.option small {
+  font-size: 14px;
+  color: var(--coach-muted);
+}
+.option b {
   margin-left: auto;
-  font-size: 18px;
-  font-weight: 550;
-}
-.radioSelected {
-  border-color: #98b0bc;
-  background: #f4f7f9;
+  font-family: var(--coach-font-display);
+  font-weight: var(--coach-heading-weight);
+  font-size: 22px;
+  letter-spacing: var(--coach-heading-tracking);
 }
 .formLabel {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
+  margin: 0 0 18px;
   font-size: 14px;
   font-weight: 500;
-  margin: 17px 0;
-}
-.formLabel > span {
-  font-weight: 400;
-  font-size: 12px;
-  color: var(--coach-muted);
 }
 .formLabel input,
 .formLabel select,
 .formLabel textarea {
   width: 100%;
   min-width: 0;
-  resize: vertical;
-  border: 1px solid #d9dfe4;
-  border-radius: 8px;
-  padding: 12px 13px;
-  background: #fff;
-  color: var(--coach-ink);
-  font: inherit;
+  padding: 13px 14px;
+  border: 1px solid var(--control-line);
+  border-radius: var(--coach-radius-input);
+  background: transparent;
   font-size: 16px;
+  line-height: 1.5;
+  resize: vertical;
 }
 .formLabel select {
   appearance: none;
-  padding-right: 36px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2367737a' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
+  background: var(--coach-chevron) no-repeat right 12px center / 16px;
+  padding-right: 38px;
+}
+.formLabel select option {
+  color: var(--coach-ink);
+  background: var(--coach-background);
+}
+.formLabel input:focus,
+.formLabel select:focus,
+.formLabel textarea:focus {
+  border-color: var(--coach-ink);
+}
+.formLead {
+  margin-bottom: 20px !important;
+  color: var(--coach-muted);
 }
 .formNote {
-  font-size: 12px !important;
+  margin-top: 6px !important;
+  font-size: 13.5px;
   line-height: 1.7;
-  margin-top: 17px;
+  color: var(--coach-muted);
 }
 .formButtons {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  border-top: 1px solid var(--coach-line);
-  padding-top: 20px;
-  margin-top: 23px;
+  gap: 10px;
+  margin-top: 22px;
 }
 .formTwo {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 17px;
+  gap: 0 16px;
 }
 .acknowledgement {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 13px;
+  gap: 11px;
+  margin: 8px 0 0;
+  font-size: 14px;
   line-height: 1.7;
   color: var(--coach-muted);
-  margin: 21px 0;
 }
 .acknowledgement input {
-  margin-top: 3px;
+  flex: none;
   width: 17px;
   height: 17px;
-  accent-color: var(--coach-blue);
-  flex-shrink: 0;
+  margin-top: 4px;
+  accent-color: var(--coach-ink);
 }
 .contactPreference {
-  border: 0;
-  padding: 0;
-  margin: 20px 0 13px;
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 13px;
+  align-items: center;
+  gap: 8px 22px;
+  padding: 0;
+  margin: 0 0 18px;
+  border: 0;
 }
 .contactPreference legend {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 0;
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 12px;
 }
 .contactPreference label {
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--coach-line);
-  background: #fff;
-  border-radius: 8px;
-  padding: 9px 14px;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
 }
-.contactPreference label:has(input:checked) {
-  background: #f0f5f7;
-  border-color: #a4b9c3;
-}
 .contactPreference input {
-  accent-color: var(--coach-blue);
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
+  accent-color: var(--coach-ink);
 }
 .approvalNote {
-  font-size: 12px !important;
-  margin: 16px 4px 0;
+  margin-top: 26px !important;
+  padding-top: 16px;
+  border-top: 1px solid var(--coach-line);
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--coach-muted);
+}
+.weekBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.weekBar div {
+  display: flex;
+  gap: 6px;
+}
+.weekBar button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--control-line);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
 }
 .dayChoices {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 9px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
 }
 .dayChoices button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  border: 1px solid var(--coach-line);
-  border-radius: 9px;
-  background: white;
-  padding: 14px 4px;
-  min-width: 0;
-}
-.dayChoices button > span {
-  font-size: 13px;
-  color: var(--coach-muted);
-}
-.dayChoices strong {
-  font-size: 25px;
-  font-weight: 500;
-  line-height: 1.2;
+  gap: 2px;
+  padding: 11px 0;
+  background: transparent;
+  border: 1px solid var(--control-line);
+  border-radius: var(--coach-radius-card);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 .dayChoices small {
   font-size: 12px;
   color: var(--coach-muted);
 }
-.dayChoices .daySelected {
-  background: var(--coach-blue);
-  border-color: var(--coach-blue);
-  color: white;
+.dayChoices strong {
+  font-size: 19px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
-.daySelected > span,
-.daySelected > small {
-  color: white !important;
+.dayChoices button:disabled {
+  border-style: dashed;
+}
+.dayChoices .daySelected {
+  background: var(--coach-accent);
+  border-color: var(--coach-accent);
+  color: var(--coach-on-accent);
+  transform: translateY(-2px);
+}
+.dayChoices .daySelected small {
+  color: inherit;
+  opacity: 0.85;
 }
 .timeChoices {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
 }
 .timeChoices button {
-  border: 1px solid var(--coach-line);
-  border-radius: 8px;
-  background: white;
-  padding: 12px 10px;
+  padding: 12px 6px;
+  background: transparent;
+  border: 1px solid var(--control-line);
+  border-radius: var(--coach-radius-card);
   font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.timeChoices button:hover {
+  background: var(--coach-surface);
 }
 .timeChoices .timeSelected {
-  background: #f0f5f7;
-  border-color: var(--coach-blue);
-  color: var(--coach-blue);
+  background: var(--coach-selected);
+  border-color: var(--coach-ink);
+  box-shadow: inset 0 0 0 1px var(--coach-ink);
+  font-weight: 600;
 }
-.bookingSummary {
-  padding: 23px 26px;
-  border-radius: 13px;
-  background: #f0f3f5;
-  border: 1px solid #e6ebee;
-}
-.bookingSummary h3 {
-  font-size: 17px;
-  font-weight: 550;
-}
-.summaryCoach {
-  font-size: 14px;
-  margin-top: 12px;
-}
-.summaryCoach > span {
-  font-size: 12px;
-  color: var(--coach-muted);
-  display: block;
-  margin-top: 4px;
-}
-.bookingSummary dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 17px 20px;
-  border-top: 1px solid #dce3e8;
-  border-bottom: 1px solid #dce3e8;
-  padding: 20px 0;
-  margin: 20px 0;
-}
-.bookingSummary dt {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--coach-muted);
-}
-.bookingSummary dt svg {
-  margin-top: 3px;
-}
-.bookingSummary dd {
-  margin: 0;
-  text-align: right;
-  font-size: 14px;
-}
-.bookingSummary dd small {
-  display: block;
-  font-size: 12px;
-  color: var(--coach-muted);
-  margin-top: 4px;
-}
-.bookingSummary > p {
-  font-size: 13px;
-}
+
+/* Confirmation */
 .confirmation {
-  max-width: 660px;
-  text-align: center;
-  padding: 30px 25px;
-  margin: auto;
+  animation: settle 0.4s ease both;
 }
 .confirmationIcon {
-  margin: 0 auto 22px;
-  width: 57px;
-  height: 57px;
+  width: 52px;
+  height: 52px;
   display: grid;
   place-items: center;
+  margin-bottom: 18px;
   border-radius: 50%;
-  background: #e9f2ed;
-  color: #3b7656;
+  background: var(--coach-accent);
+  color: var(--coach-on-accent);
 }
-.confirmation h1,
 .confirmation h2 {
-  font-size: 36px;
-  line-height: 1.15;
-  font-weight: 550;
-  letter-spacing: -1.2px;
-  margin: 18px 0;
+  font-family: var(--coach-font-display);
+  font-weight: var(--coach-heading-weight);
+  letter-spacing: var(--coach-heading-tracking);
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.1;
+  margin: 12px 0 !important;
+}
+.confirmation h2:focus {
+  outline: none;
 }
 .confirmation > p {
-  font-size: 16px;
-}
-.confirmationNotice {
-  font-size: 13px;
   color: var(--coach-muted);
-  padding: 16px;
-  border: 1px solid var(--coach-line);
-  border-radius: 9px;
-  margin: 21px 0;
-  background: white;
 }
-.confirmation .bookingSummary {
-  text-align: left;
+.notice {
+  padding-top: 16px;
+  border-top: 1px solid var(--coach-line);
+  font-size: 14px;
 }
 .confirmationActions {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 23px;
+  margin-top: 22px;
 }
-.embeddedConfirmation {
-  max-width: none;
-  padding: 25px 0;
+
+/* Testimonials and FAQ */
+.testimonials {
+  background: var(--coach-surface);
+  padding-block: 64px;
 }
+.quoteGrid {
+  display: grid;
+  gap: 28px;
+  margin-top: 32px;
+}
+.quoteGrid blockquote {
+  padding-top: 18px;
+  border-top: 1px solid var(--coach-line);
+  font-size: 18px;
+  line-height: 1.55;
+}
+.quoteGrid cite {
+  display: block;
+  margin-top: 14px;
+  font-style: normal;
+  font-size: 14px;
+  color: var(--coach-muted);
+}
+.faq {
+  padding-block: 64px 56px;
+  scroll-margin-top: 20px;
+}
+.faq > div {
+  margin-top: 26px;
+}
+.faq details {
+  padding: 16px 0;
+  border-top: 1px solid var(--coach-line);
+}
+.faq details:last-child {
+  border-bottom: 1px solid var(--coach-line);
+}
+.faq summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+.faq details p {
+  margin-top: 8px;
+  max-width: 62ch;
+  color: var(--coach-muted);
+}
+
+/* WhatsApp preview dialog */
 .whatsappDialog {
   position: fixed;
   inset: 0;
@@ -640,18 +972,18 @@
   width: min(500px, calc(100vw - 32px));
   max-height: calc(100dvh - 40px);
   overflow-y: auto;
-  padding: 28px;
+  padding: 29px;
   border: 1px solid var(--coach-line);
-  border-radius: 18px;
-  background: white;
+  border-radius: var(--coach-radius-card);
+  background: var(--coach-background);
   color: var(--coach-ink);
-  box-shadow: 0 25px 90px #17202226;
+  box-shadow: 0 25px 90px #00000020;
 }
 .whatsappDialog:not([open]) {
   display: none;
 }
 .whatsappDialog::backdrop {
-  background: #12202b66;
+  background: #10161599;
 }
 .dialogHeader {
   display: flex;
@@ -664,454 +996,131 @@
   height: 43px;
   display: grid;
   place-items: center;
-  color: #286348;
-  background: #edf6f0;
-  border-radius: 12px;
+  background: var(--coach-selected);
+  border-radius: 50%;
 }
 .dialogHeader form > button {
   display: grid;
   place-items: center;
-  border: 0;
-  background: #f6f7f9;
-  color: #68747d;
-  border-radius: 50%;
   width: 32px;
   height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--coach-muted);
 }
 .whatsappDialog h2 {
-  font-size: 27px;
-  letter-spacing: -0.8px;
-  line-height: 1.2;
-  font-weight: 550;
-  margin: 14px 0 12px;
+  font-family: var(--coach-font-display);
+  font-weight: var(--coach-heading-weight);
+  letter-spacing: var(--coach-heading-tracking);
+  font-size: 29px;
+  line-height: 1.15;
+  margin: 16px 0 14px !important;
 }
 .whatsappDialog > p {
   font-size: 15px;
+  color: var(--coach-muted);
 }
 .whatsappDialog textarea {
+  min-height: 160px;
   font-size: 15px;
-  line-height: 1.7;
-  min-height: 150px;
-  background: #f4f8f5;
-  border-color: #dce9e1;
+  line-height: 1.8;
+  background: var(--coach-surface);
 }
 .dialogActions {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
   gap: 10px;
-  margin-top: 23px;
+  margin-top: 26px;
 }
 .copyStatus {
-  font-size: 12px;
-  min-height: 20px;
+  min-height: 18px;
   margin-top: 12px;
-  color: #3d6650;
-}
-.footer {
-  max-width: 1130px;
-  margin: auto;
-  border-top: 1px solid var(--coach-line);
-  padding: 23px 0 30px;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
+  font-size: 13px;
   color: var(--coach-muted);
-  font-size: 12px;
 }
-.footer a:hover {
-  color: var(--coach-blue);
-  text-decoration: underline;
-}
-.skip {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 1000;
-  background: white;
-  padding: 12px 20px;
-  border: 1px solid var(--coach-line);
-  border-radius: 6px;
-  transform: translateY(-150%);
-}
-.skip:focus {
-  transform: translateY(0);
-}
-@media (max-width: 1200px) {
-  .miniIntro,
-  .miniGrid,
-  .footer {
-    margin-left: 35px;
-    margin-right: 35px;
+
+/* Wide layout */
+@media (min-width: 820px) {
+  .mainGrid {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 8%;
+    align-items: start;
   }
-  .miniGrid {
-    grid-template-columns: 270px minmax(0, 1fr);
-    gap: 25px;
+  .about {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
   }
-  .bookingSteps {
-    gap: 22px;
+  .splitGrid {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+  .quoteGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 48px;
   }
 }
-@media (max-width: 900px) {
-  .miniGrid {
-    grid-template-columns: 230px minmax(0, 1fr);
-    gap: 20px;
-  }
-  .coachIdentity {
-    padding: 18px 16px 0;
-    gap: 9px;
-  }
-  .coachIdentity h2 {
-    font-size: 16px;
-  }
-  .coachInitials {
-    width: 32px;
-    height: 32px;
-    font-size: 10px;
-  }
-  .coachBio {
-    padding: 0 16px;
-    font-size: 13px !important;
-  }
-  .sampleNote {
-    margin-left: 16px;
-    margin-right: 16px;
-  }
-  .contactCard {
-    padding: 20px 16px 0;
-  }
-  .contactCard h3 {
-    font-size: 14px;
-  }
-  .contactCard p {
-    font-size: 13px;
-  }
-  .whatsappButton {
-    padding: 12px 14px;
-    font-size: 13px;
-  }
-  .bookingPanel {
-    padding: 24px 22px;
-  }
-  .bookingSteps {
-    justify-content: space-between;
-    gap: 10px;
-  }
-  .bookingSteps > span {
-    font-size: 12px;
-    gap: 7px;
-  }
-  .formTwo {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-}
-@media (max-width: 760px) {
-  .header {
-    height: 85px;
-    padding: 0 22px;
-  }
-  .wordmark {
-    font-size: 24px;
-  }
-  .wordmark > span {
-    font-size: 8px;
-    letter-spacing: 1.7px;
-  }
-  .headerBooking {
-    font-size: 12px;
-  }
-  .miniIntro {
-    margin: 16px 22px 23px;
-    padding: 0;
-  }
-  .miniIntro h1 {
-    font-size: 35px;
-    letter-spacing: -1.3px;
-  }
-  .miniIntro p {
-    font-size: 15px;
-    max-width: 400px;
-  }
-  .miniGrid {
-    display: flex;
-    flex-direction: column;
-    margin: 0 22px 35px;
-    gap: 22px;
-  }
-  .inlineBooking {
-    width: 100%;
-    order: 0;
-    scroll-margin-top: 20px;
-  }
-  .coachCard {
-    position: static;
-    width: 100%;
-    order: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    overflow: hidden;
-  }
-  .coachImage {
+@media (max-width: 819px) {
+  .navText {
     display: none;
   }
-  .coachIdentity {
-    grid-column: 1;
-    padding: 22px 20px 0;
-    align-self: start;
+  .header {
+    min-height: 76px;
   }
-  .coachIdentity h2 {
-    font-size: 17px;
+  .photo_editorial {
+    height: auto;
+    aspect-ratio: 4 / 5;
+    max-height: 640px;
   }
-  .coachIdentity > div > span {
-    font-size: 12px;
+  .photo_overlay {
+    min-height: 0;
+    aspect-ratio: 3 / 4;
   }
-  .coachInitials {
-    width: 36px;
-    height: 36px;
-    font-size: 11px;
-  }
-  .coachBio {
-    grid-column: 1;
-    padding: 0 20px;
-    font-size: 14px !important;
-    margin-top: 16px;
-  }
-  .coachCard > .sampleNote {
-    grid-column: 1;
-    margin: 12px 20px 22px;
-    font-size: 12px;
-  }
-  .contactCard {
-    grid-column: 2;
-    grid-row: 1/4;
-    border-top: 0;
-    border-left: 1px solid var(--coach-line);
-    padding: 22px 20px 0;
-  }
-  .contactCard h3 {
-    font-size: 15px;
-  }
-  .contactCard p {
-    font-size: 14px;
-  }
-  .contactCard .sampleNote {
-    font-size: 12px;
-  }
-  .contactCard .whatsappButton {
-    font-size: 14px;
-  }
-  .bookingSteps {
-    padding: 0 1px;
-    margin-bottom: 16px;
-  }
-  .bookingSteps > span {
-    font-size: 13px;
-    gap: 7px;
-  }
-  .bookingSteps i {
-    width: 24px;
-    height: 24px;
-  }
-  .bookingPanel {
-    padding: 25px;
-  }
-  .bookingPanel h2 {
-    font-size: 27px;
-  }
-  .formLead {
-    font-size: 15px !important;
-  }
-  .formTwo {
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-  }
-  .bookingSummary {
-    padding: 23px;
-  }
-  .footer {
-    margin: 0 22px;
-    padding: 22px 0 27px;
-    font-size: 11px;
-  }
-  .previewBar {
-    font-size: 11px;
-    line-height: 1.6;
-    padding: 8px 15px;
-  }
-  .confirmation h2 {
-    font-size: 32px;
-  }
-  .eyebrow {
-    font-size: 10px;
-  }
-  .dayChoices button {
-    padding: 12px 3px;
+  .mainGrid {
+    padding-block: 48px 56px;
+    gap: 40px;
   }
 }
-@media (max-width: 520px) {
-  .headerBooking {
-    max-width: 100px;
-    text-align: right;
-    line-height: 1.5;
-    border-bottom: 0;
-  }
-  .miniIntro h1 {
-    font-size: 32px;
-  }
-  .miniIntro p {
-    font-size: 14px;
-    max-width: 320px;
-  }
-  .miniGrid {
-    margin-left: 18px;
-    margin-right: 18px;
-  }
-  .miniIntro {
-    margin-left: 20px;
-    margin-right: 20px;
-  }
-  .bookingPanel {
-    padding: 23px 18px;
-  }
-  .bookingSteps > span {
-    font-size: 12px;
-    gap: 6px;
-  }
-  .bookingSteps {
-    gap: 9px;
-  }
-  .bookingPanel h2 {
-    font-size: 26px;
-  }
-  .formLead {
-    font-size: 14px !important;
-  }
-  .choiceField legend {
-    font-size: 13px;
-  }
-  .radioCard {
-    padding: 14px 13px;
-    gap: 10px;
-  }
-  .radioCard strong {
-    font-size: 14px;
-  }
-  .radioCard small {
-    font-size: 11px;
-  }
-  .radioCard b {
-    font-size: 17px;
-  }
+@media (max-width: 560px) {
   .formTwo {
     grid-template-columns: 1fr;
-    gap: 0;
-  }
-  .formLabel {
-    margin: 15px 0;
-  }
-  .formNote {
-    font-size: 12px !important;
-  }
-  .formButtons .primary,
-  .formButtons .secondary {
-    font-size: 13px;
-    padding: 12px 16px;
-  }
-  .coachCard {
-    display: block;
-  }
-  .coachIdentity {
-    padding: 22px 20px 0;
-  }
-  .coachBio {
-    font-size: 14px !important;
-  }
-  .contactCard {
-    border-left: 0;
-    border-top: 1px solid var(--coach-line);
-    padding: 21px 20px 0;
-  }
-  .contactCard .whatsappButton {
-    width: auto;
-    min-width: 180px;
-  }
-  .coachCard > .sampleNote {
-    margin-bottom: 22px;
-  }
-  .contactCard .sampleNote {
-    margin-bottom: 22px;
   }
   .dayChoices {
-    gap: 6px;
-  }
-  .dayChoices button > span {
-    font-size: 11px;
+    gap: 4px;
   }
   .dayChoices strong {
-    font-size: 23px;
+    font-size: 16px;
   }
-  .dayChoices small {
-    font-size: 11px;
-  }
-  .bookingSummary dt {
-    font-size: 12px;
-  }
-  .bookingSummary dd {
+  .steps li {
     font-size: 13px;
   }
-  .bookingSummary dd small {
-    font-size: 11px;
+  .option {
+    padding: 14px;
+    gap: 12px;
+  }
+  .highlights strong {
+    font-size: 17px;
+  }
+  .highlights span {
+    font-size: 13px;
+  }
+  .formButtons .button {
+    flex: 1;
   }
   .confirmationActions {
     flex-direction: column;
-  }
-  .confirmationActions > button {
-    width: 100%;
+    align-items: stretch;
   }
   .whatsappDialog {
     padding: 24px 20px;
   }
-  .dialogActions {
-    gap: 8px;
-  }
-  .dialogActions .primary,
-  .dialogActions .secondary {
-    font-size: 13px;
-    padding: 11px 16px;
-  }
-  .footer {
-    font-size: 10px;
-    gap: 12px;
-  }
-  .contactPreference legend {
-    font-size: 13px;
-  }
-  .approvalNote {
-    font-size: 12px !important;
-    line-height: 1.7;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .site * {
+  .site *,
+  .site *::before {
+    animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
-  }
-}
-
-.mobileContact {
-  display: none;
-}
-@media (max-width: 760px) {
-  .mobileContact {
-    display: block;
-  }
-  .headerBooking {
-    display: none;
-  }
-  .mobileContact .whatsappButton {
-    min-height: 40px;
-    padding: 10px 13px;
-    font-size: 13px;
   }
 }

@@ -1,414 +1,453 @@
 "use client";
 import { useRef, useState } from "react";
-import { Check, Clock3, MapPin, CalendarDays } from "lucide-react";
-import { publicCoach } from "./content";
+import { ArrowRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { hasWhatsApp, useCoachWorkspace } from "@/lib/coach-workspace";
+import { startTimes } from "@/lib/availability";
+import {
+  formatDay,
+  formatHour,
+  publicCoach,
+  sampleDay,
+  sampleWeeks,
+  zoneName,
+} from "./content";
 import { WhatsAppButton } from "./whatsapp-button";
 import styles from "./site.module.css";
-const days = [
-  { date: "2026-11-23", day: "Mon", number: 23 },
-  { date: "2026-11-24", day: "Tue", number: 24 },
-  { date: "2026-11-25", day: "Wed", number: 25 },
-  { date: "2026-11-26", day: "Thu", number: 26 },
-  { date: "2026-11-27", day: "Fri", number: 27 },
-  { date: "2026-11-28", day: "Sat", number: 28 },
-];
-const times = ["09:00", "11:00", "14:00"];
-export function BookingForm({
-  initialLesson = "private",
-  embedded = false,
-}: {
-  initialLesson?: string;
-  embedded?: boolean;
-}) {
+
+const stepLabels = ["Session", "Time", "Details"];
+const stepHeadings = ["Choose your session.", "Pick a time.", "Nearly done."];
+const emptyPlayer = {
+  name: "",
+  email: "",
+  phone: "",
+  contact: "email",
+  level: "",
+  message: "",
+};
+
+export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }) {
+  const workspace = useCoachWorkspace();
+  const { profile } = workspace;
+  const lessons = workspace.lessons.filter((l) => l.active);
+  const clubs = workspace.clubs.filter((c) => c.active);
   const [step, setStep] = useState(0),
     [lessonId, setLessonId] = useState(initialLesson),
-    [venueId, setVenueId] = useState("yard"),
-    [date, setDate] = useState(days[0].date),
+    [venueId, setVenueId] = useState(""),
+    [week, setWeek] = useState(0),
+    [dayIndex, setDayIndex] = useState<number | null>(null),
     [time, setTime] = useState(""),
     [submitted, setSubmitted] = useState(false),
-    [player, setPlayer] = useState({
-      name: "",
-      email: "",
-      phone: "",
-      contact: "email",
-      level: "",
-      message: "",
-    });
+    [player, setPlayer] = useState(emptyPlayer);
   const heading = useRef<HTMLHeadingElement>(null);
-  const lesson = publicCoach.lessons.find((l) => l.id === lessonId)!;
-  const venue = publicCoach.venues.find((v) => v.id === venueId)!;
-  const day = days.find((d) => d.date === date)!;
+  const lesson = lessons.find((l) => l.id === lessonId) ?? lessons[0];
+  const venue = clubs.find((c) => c.id === venueId) ?? clubs[0];
+  const shortName = profile.name.split(" ")[0];
+  const demo = publicCoach.demoMode;
+  /** Start times from the coach's own availability, bookings and exceptions. */
+  const timesFor = (weekIndex: number, index: number) => {
+    if (!lesson || !venue) return [];
+    const d = sampleDay(weekIndex, index);
+    const key = d.toISOString().slice(0, 10);
+    return startTimes({
+      date: key,
+      rules: workspace.rules,
+      exceptions: workspace.exceptions,
+      bookings: workspace.bookings,
+      lessons: workspace.lessons,
+      lesson,
+      clubId: venue.id,
+    }).map(formatHour);
+  };
+
   const advance = (next: number) => {
     setStep(next);
     requestAnimationFrame(() => heading.current?.focus());
   };
-  const ConfirmationHeading = embedded ? "h2" : "h1";
-  const summary = (
-    <>
-      <h3>Your session</h3>
-      <div className={styles.summaryCoach}>
-        With Kelly-Jane Whalley
-        <span>Demo request · Coach approval required</span>
+
+  if (!lesson || !venue)
+    return (
+      <div className={styles.bookingEmpty}>
+        <h2 className={styles.sectionTitle}>Sessions will be available soon.</h2>
+        <p>
+          The coach is updating their clubs and lessons. Please check back
+          later.
+        </p>
       </div>
-      <dl>
-        <dt>Coaching</dt>
-        <dd>{lesson.name}</dd>
-        <dt>
-          <Clock3 size={15} /> Duration
-        </dt>
-        <dd>{lesson.duration} minutes</dd>
-        <dt>
-          <MapPin size={15} /> Club
-        </dt>
-        <dd>
-          {venue.name}
-          <small>Sample venue</small>
-        </dd>
-        {time && (
-          <>
-            <dt>
-              <CalendarDays size={15} /> When
-            </dt>
-            <dd>
-              {day.day} {day.number} November 2026
-              <br />
-              {time} · Europe/London (GMT)
-            </dd>
-          </>
-        )}
-        {step === 2 || submitted ? (
-          <>
-            <dt>Preferred contact</dt>
-            <dd>{player.contact === "whatsapp" ? "WhatsApp" : "Email"}</dd>
-          </>
-        ) : null}
-        <dt>Indicative price</dt>
-        <dd>
-          £{lesson.price}
-          <small>Sample session price · No payment taken</small>
-        </dd>
-      </dl>
-      <p>
-        Requests are not confirmed until approved. A request does not reserve a
-        court.
-      </p>
-    </>
+    );
+
+  const chosenDay = dayIndex === null ? null : sampleDay(week, dayIndex);
+  const whenText =
+    chosenDay && time
+      ? `${formatDay(chosenDay, { weekday: "short", day: "numeric", month: "long" })}, ${time} ${zoneName(chosenDay)}`
+      : "";
+  const summary = (
+    <div className={styles.summary} aria-live="polite">
+      <div className={styles.summaryWhat}>
+        <b>{lesson.name}</b>
+        <span>{lesson.duration} min</span>
+        <span>{venue.name}</span>
+        <span>{whenText || "Time not chosen yet"}</span>
+      </div>
+      <div className={styles.summaryPrice}>
+        £{lesson.price}
+        <small>guide price</small>
+      </div>
+    </div>
   );
+
   if (submitted)
     return (
-      <section
-        className={`${styles.confirmation} ${embedded ? styles.embeddedConfirmation : ""}`}
-        aria-label="Demo request confirmation"
-      >
+      <div className={styles.confirmation} role="status">
         <div className={styles.confirmationIcon}>
-          <Check size={30} />
+          <Check size={26} aria-hidden="true" />
         </div>
-        <span className={styles.eyebrow}>LOCAL DEMO COMPLETE</span>
-        <ConfirmationHeading ref={heading} tabIndex={-1}>
+        {demo && <span className={styles.eyebrow}>Local demo complete</span>}
+        <h2 ref={heading} tabIndex={-1}>
           Your request is ready.
-        </ConfirmationHeading>
+        </h2>
         <p>
-          Thanks, {player.name.split(" ")[0]}. Your demo request is{" "}
+          Thanks, {player.name.split(" ")[0]}. Your request is{" "}
           <strong>pending coach approval</strong>.
         </p>
-        <div className={styles.confirmationNotice}>
-          Nothing has been sent to Kelly-Jane. No lesson or court has been
-          reserved, and no email will be sent. Your details stay in this page’s
-          memory and disappear when you leave or refresh.
-        </div>
-        <aside className={styles.bookingSummary}>{summary}</aside>
+        {summary}
+        <p className={styles.notice}>
+          {demo
+            ? `Nothing has been sent to ${shortName}. No lesson or court has been reserved, and no email will be sent. Your details stay in this page’s memory and disappear when you leave or refresh.`
+            : `${shortName} will reply to confirm. A request does not reserve a court.`}
+        </p>
         <div className={styles.confirmationActions}>
-          <WhatsAppButton
-            label="Preview WhatsApp follow-up"
-            message={`Hi Kelly-Jane, I’d like to request ${lesson.name.toLowerCase()} at ${venue.name} on ${day.day} ${day.number} November 2026 at ${time}. Please could you confirm availability? Thanks, ${player.name.trim()}.`}
-          />
+          {hasWhatsApp(profile.whatsapp) && (
+            <WhatsAppButton
+              label="Preview WhatsApp follow-up"
+              message={`Hi ${shortName}, I’d like to request ${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}. Please could you confirm availability? Thanks, ${player.name.trim()}.`}
+            />
+          )}
           <button
-            className={styles.secondary}
+            type="button"
+            className={`${styles.button} ${styles.ghost}`}
             onClick={() => {
               setSubmitted(false);
               setTime("");
-              setPlayer({
-                name: "",
-                email: "",
-                phone: "",
-                contact: "email",
-                level: "",
-                message: "",
-              });
+              setDayIndex(null);
+              setPlayer(emptyPlayer);
               advance(0);
             }}
           >
-            Try another request
+            Make another request
           </button>
         </div>
-      </section>
+      </div>
     );
+
+  const timeOptions = dayIndex === null ? [] : timesFor(week, dayIndex);
+  const weekStart = sampleDay(week, 0);
+  const weekEnd = sampleDay(week, 6);
+
   return (
-    <section
-      className={`${styles.bookingPage} ${embedded ? styles.embeddedBooking : ""}`}
-      aria-label="Request a session"
-    >
-      {!embedded && (
-        <div className={styles.bookingHeading}>
-          <span className={styles.eyebrow}>A LITTLE TIME FOR YOUR GAME</span>
-          <h1>Find your session.</h1>
-          <p>
-            A few details. A preferred time. Kelly-Jane takes it from there.
-          </p>
-        </div>
-      )}
-      <div className={styles.bookingSteps} aria-label="Request progress">
-        {["Your session", "Your time", "Your details"].map((label, i) => (
-          <span
+    <div className={styles.bookingFlow}>
+      <span className={styles.eyebrow}>Request a session</span>
+      <ol className={styles.steps} aria-label="Request progress">
+        {stepLabels.map((label, i) => (
+          <li
             key={label}
             className={
-              step === i
-                ? styles.currentStep
-                : step > i
-                  ? styles.completedStep
-                  : ""
+              step === i ? styles.stepCurrent : step > i ? styles.stepDone : ""
             }
             aria-current={step === i ? "step" : undefined}
           >
-            <i>{step > i ? <Check size={14} /> : i + 1}</i>
+            {step > i ? <Check size={13} aria-hidden="true" /> : <i>{i + 1}</i>}
             {label}
-          </span>
+          </li>
         ))}
-      </div>
-      <div className={styles.bookingLayout}>
-        <div className={styles.bookingPanel}>
-          <h2 tabIndex={-1} ref={heading}>
-            {["Request a session", "Choose a time", "Your details"][step]}
-          </h2>
-          {step === 0 ? (
-            <>
-              <p className={styles.formLead}>
-                Choose a lesson and your preferred club.
-              </p>
-              <fieldset className={styles.choiceField}>
-                <legend>Lesson type</legend>
-                {publicCoach.lessons.map((l) => (
-                  <label
+      </ol>
+      <h2 className={styles.bookingTitle} tabIndex={-1} ref={heading}>
+        {stepHeadings[step]}
+      </h2>
+      {summary}
+      <div className={styles.stepPanel} key={step}>
+        {step === 0 ? (
+          <>
+            <fieldset className={styles.choiceField}>
+              <legend>Lesson type</legend>
+              <div role="radiogroup" aria-label="Lesson type">
+                {lessons.map((l) => (
+                  <button
                     key={l.id}
-                    className={`${styles.radioCard} ${lessonId === l.id ? styles.radioSelected : ""}`}
+                    type="button"
+                    role="radio"
+                    aria-checked={lesson.id === l.id}
+                    className={styles.option}
+                    onClick={() => {
+                      setLessonId(l.id);
+                      setDayIndex(null);
+                      setTime("");
+                    }}
                   >
-                    <input
-                      type="radio"
-                      name="lesson"
-                      value={l.id}
-                      checked={lessonId === l.id}
-                      onChange={() => setLessonId(l.id)}
-                    />
+                    <span className={styles.optionDot} aria-hidden="true" />
                     <span>
                       <strong>{l.name}</strong>
                       <small>
-                        {l.duration} minutes · {l.tag}
+                        {l.duration} minutes
+                        {l.description && ` · ${l.description}`}
                       </small>
                     </span>
                     <b>£{l.price}</b>
-                  </label>
+                  </button>
                 ))}
-              </fieldset>
-              <label className={styles.formLabel}>
-                Preferred club
-                <select
-                  value={venueId}
-                  onChange={(e) => setVenueId(e.target.value)}
-                >
-                  {publicCoach.venues.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name} (sample)
-                    </option>
-                  ))}
-                </select>
-              </label>
+              </div>
+            </fieldset>
+            <label className={styles.formLabel}>
+              Preferred club
+              <select
+                value={venue.id}
+                onChange={(e) => {
+                  setVenueId(e.target.value);
+                  setDayIndex(null);
+                  setTime("");
+                }}
+              >
+                {clubs.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {demo && (
               <p className={styles.formNote}>
                 Sample sessions and prices for this preview. No payment is
                 taken.
               </p>
-              <div className={styles.formButtons}>
-                <button className={styles.primary} onClick={() => advance(1)}>
-                  Choose a time
+            )}
+            <div className={styles.formButtons}>
+              <button
+                type="button"
+                className={styles.button}
+                onClick={() => advance(1)}
+              >
+                Choose a time <ArrowRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </>
+        ) : step === 1 ? (
+          <>
+            <div className={styles.weekBar}>
+              <span>
+                {formatDay(weekStart, { day: "numeric", month: "short" })} –{" "}
+                {formatDay(weekEnd, { day: "numeric", month: "short" })}
+              </span>
+              <div>
+                <button
+                  type="button"
+                  aria-label="Previous week"
+                  disabled={week === 0}
+                  onClick={() => {
+                    setWeek(week - 1);
+                    setDayIndex(null);
+                    setTime("");
+                  }}
+                >
+                  <ChevronLeft size={16} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next week"
+                  disabled={week >= sampleWeeks - 1}
+                  onClick={() => {
+                    setWeek(week + 1);
+                    setDayIndex(null);
+                    setTime("");
+                  }}
+                >
+                  <ChevronRight size={16} aria-hidden="true" />
                 </button>
               </div>
-            </>
-          ) : step === 1 ? (
-            <>
-              <p className={styles.formLead}>
-                Sample week · 23–28 November 2026 · Europe/London
-              </p>
-              <fieldset className={styles.choiceField}>
-                <legend>Preferred day</legend>
-                <div className={styles.dayChoices}>
-                  {days.map((d) => (
+            </div>
+            <fieldset className={styles.choiceField}>
+              <legend className={styles.srOnly}>Preferred day</legend>
+              <div className={styles.dayChoices}>
+                {[0, 1, 2, 3, 4, 5, 6].map((i) => {
+                  const d = sampleDay(week, i);
+                  const free = timesFor(week, i).length > 0;
+                  return (
                     <button
-                      key={d.date}
-                      aria-pressed={date === d.date}
-                      className={date === d.date ? styles.daySelected : ""}
+                      key={i}
+                      type="button"
+                      disabled={!free}
+                      aria-pressed={dayIndex === i}
+                      aria-label={`${formatDay(d, { weekday: "long", day: "numeric", month: "long" })}${free ? "" : ", no times"}`}
+                      className={dayIndex === i ? styles.daySelected : ""}
                       onClick={() => {
-                        setDate(d.date);
+                        setDayIndex(i);
                         setTime("");
                       }}
                     >
-                      <span>{d.day}</span>
-                      <strong>{d.number}</strong>
-                      <small>Nov</small>
+                      <small>{formatDay(d, { weekday: "short" })}</small>
+                      <strong>{formatDay(d, { day: "numeric" })}</strong>
                     </button>
-                  ))}
-                </div>
-              </fieldset>
-              <fieldset className={styles.choiceField}>
-                <legend>Preferred start time</legend>
-                <div className={styles.timeChoices}>
-                  {times.map((t) => (
-                    <button
-                      key={t}
-                      className={time === t ? styles.timeSelected : ""}
-                      aria-pressed={time === t}
-                      onClick={() => setTime(t)}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-              <p className={styles.formNote}>
-                Illustrative times, not live availability. Choosing a time does
-                not hold a slot or reserve a court.
-              </p>
-              <div className={styles.formButtons}>
-                <button className={styles.secondary} onClick={() => advance(0)}>
-                  Back
-                </button>
-                <button
-                  className={styles.primary}
-                  disabled={!time}
-                  onClick={() => advance(2)}
-                >
-                  Add your details
-                </button>
+                  );
+                })}
               </div>
-            </>
-          ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setSubmitted(true);
-                if (!embedded) window.scrollTo({ top: 0, behavior: "instant" });
-                requestAnimationFrame(() => heading.current?.focus());
-              }}
-            >
-              <p className={styles.formLead}>
-                Try the flow with fictional details. Nothing is sent.
-              </p>
-              <div className={styles.formTwo}>
-                <label className={styles.formLabel}>
-                  Your name
-                  <input
-                    required
-                    autoComplete="name"
-                    pattern=".*\S.*"
-                    maxLength={100}
-                    value={player.name}
-                    onChange={(e) =>
-                      setPlayer({ ...player, name: e.target.value })
-                    }
-                  />
-                </label>
-                <label className={styles.formLabel}>
-                  Email address
-                  <input
-                    required
-                    type="email"
-                    autoComplete="email"
-                    maxLength={200}
-                    value={player.email}
-                    onChange={(e) =>
-                      setPlayer({ ...player, email: e.target.value })
-                    }
-                  />
-                </label>
-              </div>
-              <fieldset className={styles.contactPreference}>
-                <legend>How would you prefer to hear from your coach?</legend>
-                <label>
-                  <input
-                    type="radio"
-                    name="contact"
-                    value="email"
-                    checked={player.contact === "email"}
-                    onChange={() => setPlayer({ ...player, contact: "email" })}
-                  />{" "}
-                  Email
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="contact"
-                    value="whatsapp"
-                    checked={player.contact === "whatsapp"}
-                    onChange={() =>
-                      setPlayer({ ...player, contact: "whatsapp" })
-                    }
-                  />{" "}
-                  WhatsApp
-                </label>
-              </fieldset>
-              <div className={styles.formTwo}>
-                <label className={styles.formLabel}>
-                  {player.contact === "whatsapp"
-                    ? "WhatsApp number"
-                    : "Phone (optional)"}
-                  <input
-                    type="tel"
-                    required={player.contact === "whatsapp"}
-                    pattern={
-                      player.contact === "whatsapp"
-                        ? "\\+?[0-9](?:[0-9]|\\s|\\(|\\)|\\.|-){5,38}[0-9]"
-                        : undefined
-                    }
-                    autoComplete="tel"
-                    maxLength={40}
-                    value={player.phone}
-                    onChange={(e) =>
-                      setPlayer({ ...player, phone: e.target.value })
-                    }
-                  />
-                </label>
-                <label className={styles.formLabel}>
-                  Playing level <span>(optional)</span>
-                  <select
-                    value={player.level}
-                    onChange={(e) =>
-                      setPlayer({ ...player, level: e.target.value })
-                    }
+            </fieldset>
+            <fieldset className={styles.choiceField}>
+              <legend>
+                {dayIndex === null
+                  ? "Pick a day to see times"
+                  : "Preferred start time"}
+              </legend>
+              <div className={styles.timeChoices}>
+                {timeOptions.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={time === t ? styles.timeSelected : ""}
+                    aria-pressed={time === t}
+                    onClick={() => setTime(t)}
                   >
-                    <option value="">Choose your level</option>
-                    <option>New to padel</option>
-                    <option>Beginner</option>
-                    <option>Intermediate</option>
-                    <option>Advanced</option>
-                  </select>
-                </label>
+                    {t}
+                  </button>
+                ))}
               </div>
-              {player.contact === "whatsapp" && (
-                <p className={styles.formNote}>
-                  Include your country code. Choosing WhatsApp records your
-                  preference for messages about this request; this demo sends
-                  nothing.
-                </p>
-              )}
+            </fieldset>
+            <p className={styles.formNote}>
+              Times are in {zoneName(weekStart)}. Greyed days have no
+              availability.
+              {demo &&
+                " Illustrative times, not live availability. Choosing a time does not hold a slot or reserve a court."}
+            </p>
+            <div className={styles.formButtons}>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.ghost}`}
+                onClick={() => advance(0)}
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                className={styles.button}
+                disabled={!time}
+                onClick={() => advance(2)}
+              >
+                Add your details <ArrowRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSubmitted(true);
+              requestAnimationFrame(() => heading.current?.focus());
+            }}
+          >
+            <p className={styles.formLead}>
+              {demo
+                ? "Try the flow with fictional details. Nothing is sent."
+                : `Tell ${shortName} a little about you.`}
+            </p>
+            <div className={styles.formTwo}>
               <label className={styles.formLabel}>
-                What would you like to work on? <span>(optional)</span>
-                <textarea
-                  rows={4}
-                  maxLength={1000}
-                  value={player.message}
+                Your name
+                <input
+                  required
+                  autoComplete="name"
+                  pattern=".*\S.*"
+                  maxLength={100}
+                  value={player.name}
                   onChange={(e) =>
-                    setPlayer({ ...player, message: e.target.value })
+                    setPlayer({ ...player, name: e.target.value })
                   }
                 />
               </label>
+              <label className={styles.formLabel}>
+                Email address
+                <input
+                  required
+                  type="email"
+                  autoComplete="email"
+                  maxLength={200}
+                  value={player.email}
+                  onChange={(e) =>
+                    setPlayer({ ...player, email: e.target.value })
+                  }
+                />
+              </label>
+            </div>
+            {hasWhatsApp(profile.whatsapp) && (
+              <fieldset className={styles.contactPreference}>
+                <legend>How would you prefer to hear from your coach?</legend>
+                {(["email", "whatsapp"] as const).map((method) => (
+                  <label key={method}>
+                    <input
+                      type="radio"
+                      name="contact"
+                      value={method}
+                      checked={player.contact === method}
+                      onChange={() => setPlayer({ ...player, contact: method })}
+                    />{" "}
+                    {method === "email" ? "Email" : "WhatsApp"}
+                  </label>
+                ))}
+              </fieldset>
+            )}
+            <div className={styles.formTwo}>
+              <label className={styles.formLabel}>
+                {player.contact === "whatsapp"
+                  ? "WhatsApp number"
+                  : "Phone (optional)"}
+                <input
+                  type="tel"
+                  required={player.contact === "whatsapp"}
+                  pattern={
+                    player.contact === "whatsapp"
+                      ? "\\+?[0-9](?:[0-9]|\\s|\\(|\\)|\\.|-){5,38}[0-9]"
+                      : undefined
+                  }
+                  autoComplete="tel"
+                  maxLength={40}
+                  value={player.phone}
+                  onChange={(e) =>
+                    setPlayer({ ...player, phone: e.target.value })
+                  }
+                />
+              </label>
+              <label className={styles.formLabel}>
+                Playing level (optional)
+                <select
+                  value={player.level}
+                  onChange={(e) =>
+                    setPlayer({ ...player, level: e.target.value })
+                  }
+                >
+                  <option value="">Choose your level</option>
+                  <option>New to the sport</option>
+                  <option>Beginner</option>
+                  <option>Intermediate</option>
+                  <option>Advanced</option>
+                </select>
+              </label>
+            </div>
+            {player.contact === "whatsapp" && (
+              <p className={styles.formNote}>
+                Include your country code.
+                {demo
+                  ? " Choosing WhatsApp records your preference for messages about this request; this demo sends nothing."
+                  : " Choosing WhatsApp records your preference for messages about this request."}
+              </p>
+            )}
+            <label className={styles.formLabel}>
+              What would you like to work on? (optional)
+              <textarea
+                rows={4}
+                maxLength={1000}
+                value={player.message}
+                onChange={(e) =>
+                  setPlayer({ ...player, message: e.target.value })
+                }
+              />
+            </label>
+            {demo && (
               <label className={styles.acknowledgement}>
                 <input type="checkbox" required />{" "}
                 <span>
@@ -416,29 +455,27 @@ export function BookingForm({
                   will be booked or sent.
                 </span>
               </label>
-              <div className={styles.formButtons}>
-                <button
-                  type="button"
-                  className={styles.secondary}
-                  onClick={() => advance(1)}
-                >
-                  Back
-                </button>
-                <button type="submit" className={styles.primary}>
-                  Create demo request
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-        {step === 2 && (
-          <aside className={styles.bookingSummary}>{summary}</aside>
+            )}
+            <div className={styles.formButtons}>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.ghost}`}
+                onClick={() => advance(1)}
+              >
+                Back
+              </button>
+              <button type="submit" className={styles.button}>
+                {demo ? "Create demo request" : "Send request"}{" "}
+                <ArrowRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </form>
         )}
       </div>
       <p className={styles.approvalNote}>
         Your request needs coach approval. Court availability is arranged
         separately.
       </p>
-    </section>
+    </div>
   );
 }

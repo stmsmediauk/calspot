@@ -1,24 +1,31 @@
 # Calspot
 
-> **Calspot** — *Your coaching. All in one spot.* A premium, minimal, white-label website and booking-request platform for independent padel coaches.
+> **Calspot** — *Your coaching. All in one spot.* A premium, single-page coaching profile and booking-request platform for independent padel coaches.
 
 ## Brand and product identity
 
 - **Product name:** Calspot (working brand; final trademark clearance pending).
 - **Wordmark direction:** lowercase `calspot.` with a restrained, typography-first identity.
 - **Tagline:** Your coaching. All in one spot.
-- **Product descriptor:** Websites · Bookings · Calendar.
+- **Product descriptor:** Profiles · Bookings · Calendar.
 - **Visual language:** bright white, subtle warm-grey surfaces, fine neutral borders, excellent spacing, contemporary sans-serif typography (Geist or Inter), restrained transitions.
-- **White-label rule:** Calspot is the platform brand, not a forced visible brand on coaches’ public websites.
+- **White-label rule:** Calspot is the platform brand, not a forced visible brand on coaches’ public booking pages.
 - **Brand decisions pending:** final logo, accent colour, registered domain and trademark clearance. Do not assume any domain is owned or configured.
 
 ## Project status
 
-**Planning / initial build.** This README is the source of truth for the first Codex session. There is no existing implementation assumed. Build incrementally; do not claim features are complete until implemented and tested.
+**Local prototype (Phase 1 plus an early Phase 4 preview).** A local-only dashboard, a themeable public coach page and a sign-up prototype exist. There is no backend, authentication, email or deployment, and none of it is production-ready. This README is the source of truth. Build incrementally; do not claim features are complete until implemented and tested.
+
+| Area | Status |
+| --- | --- |
+| Dashboard (routes, requests, calendar, availability, clubs, lessons, profile with live preview) | Local prototype, sample data |
+| Public coach page template (three hero layouts, five looks, availability-aware request form) | Local prototype |
+| Sign-up wizard (`/signup`) | Local prototype, no accounts |
+| Supabase, tenant security, real bookings, email, subdomains, exports, legal pages | Not started |
 
 ## Product vision
 
-One centrally maintained application serves multiple independent coaches. Each coach has a branded public website and a simple, mobile-friendly admin dashboard to manage clubs, lessons, availability and booking requests. Players request sessions without creating accounts; **every request must be approved by the coach**. No online lesson payments, club booking integrations, player accounts or complex CRM in the MVP.
+One centrally maintained application serves multiple independent coaches. Each coach has one branded personal booking page and a simple, mobile-friendly dashboard to manage their profile, clubs, lessons, availability and booking requests. Calspot is not a traditional website builder: coaches fill in a few fields rather than create pages or arrange blocks. Players request sessions without creating accounts; **every request must be approved by the coach**. No online lesson payments, club booking integrations, player accounts or complex CRM in the MVP.
 
 Initial commercial hypothesis: approximately **£29/month per coach**, subject to validation. Platform subscription collection can be handled manually at launch; do not implement subscription billing in the MVP.
 
@@ -42,16 +49,18 @@ The initial product supports one coach schedule per tenant. Additional staff and
 
 ## MVP features
 
-### Public website
+### Public coach booking page
 
-- Home: photographic hero, coach introduction, coaching options, venues, testimonials and clear booking CTA.
-- About: coach biography, experience, qualifications, images.
-- Coaching: lesson types, descriptions, durations and optional **indicative** prices.
-- Book: choose club, lesson type, date/time and submit request.
-- Contact: email, WhatsApp link, social links and enquiry form.
-- Legal: privacy, terms and cancellation policy content.
-- Tenant-specific SEO metadata, logo, favicon, imagery, colours and content.
-- Coach-specific subdomains initially; design for custom domains later.
+- One premium, single-page coach profile with an integrated three-step booking request.
+- Oversized coach-name typography with a large editorial photograph immediately below, followed by an open introduction/booking grid.
+- Profile: photograph, name, coaching title, a 2–3 sentence introduction, optional qualifications/experience and clubs/location.
+- Mobile: scaled hero typography, prominent photography, concise introduction and expandable experience/locations, with direct booking anchors.
+- Personalisation: photograph (with focal point), name, tagline, introduction, an optional highlights strip and testimonials, and a whole-page "look" chosen from curated presets. Coaches can fine-tune page style, palette, accent, type pairing and corner style from curated lists. No page builder, raw colour editing or drag-and-drop.
+- Coach-specific clubs, lesson types, durations, indicative prices and availability.
+- Optional WhatsApp contact, displayed only when the coach has supplied a valid number; optional Instagram enquiry link.
+- Every request needs coach approval; a request does not reserve a court.
+- Coach-specific subdomains initially, custom domains later. No domain is assumed to be owned.
+- Appropriate legal disclosures/content are required before production launch; do not add extra public marketing pages.
 
 ### Coach dashboard
 
@@ -61,7 +70,7 @@ The initial product supports one coach schedule per tenant. Additional staff and
 - Lessons: create/edit/deactivate types, durations and indicative prices.
 - Availability: recurring weekly rules, one-off extra slots, blocked dates and holidays.
 - Requests: approve/decline pending bookings and review confirmed bookings.
-- Website: edit biography, text, images, contact links and brand accent.
+- My profile: edit photograph, name, title, short introduction, experience, coaching area, curated palette, optional logo and contact links.
 - Data & Backups: export own records and website content (details below).
 
 ### Booking workflow
@@ -87,7 +96,7 @@ Statuses: `pending`, `confirmed`, `declined`, `cancelled`; reserve `expired` for
 
 ## Visual design direction
 
-**Light, minimal, Apple-inspired.** Public sites are editorial and photography-led; the dashboard is quieter and utility-focused.
+**Premium editorial sports style for public pages; light, minimal, Apple-inspired for the dashboard.** The public page uses oversized tightly tracked coach-name typography, a large photograph, an open grid and an integrated request flow. The dashboard retains its existing quieter design.
 
 - Background: `#FFFFFF`; secondary surface: `#F8F9FA`.
 - Text: `#171717`; borders: `#EAEAEA`.
@@ -96,7 +105,7 @@ Statuses: `pending`, `confirmed`, `declined`, `cancelled`; reserve `expired` for
 - Subtle 1px borders; avoid heavy shadows, gradients, glassmorphism and decorative clutter.
 - Restrained black primary buttons and accessible focus states.
 - Lucide icons, subtle 150–250ms transitions; respect reduced-motion preferences.
-- Public website may use each coach's brand accent and imagery; **dashboard remains consistent** across tenants.
+- Public booking pages use a coach-selected look (hero layout, palette, accent, type pairing, corners) and imagery; **dashboard remains consistent** across tenants.
 - Use selected components from [21st.dev](https://21st.dev/) only after reviewing dependencies, accessibility and licensing. Adapt them to a coherent shared design system; do not assemble mismatched components.
 - Aim for WCAG 2.2 AA and excellent small-screen usability.
 
@@ -176,7 +185,7 @@ An export is for **portability**, not a promise of instant website restoration. 
 - Player accounts and player-facing dashboards.
 - Club court-booking API integrations or guaranteed court reservations.
 - Multi-coach academy scheduling, memberships, packages, player progression and analytics-heavy CRM.
-- Custom visual page builders or fully bespoke layouts per coach.
+- Multi-page coach websites, drag-and-drop page builders or fully bespoke layouts per coach.
 - Native mobile apps.
 
 ## Development roadmap
@@ -199,9 +208,9 @@ Implement recurring rules, exceptions, slot generation, atomic request holds, ap
 
 **Done when:** a player can request and a coach can approve a lesson without double-booking, including concurrent requests.
 
-### Phase 4 — Public white-label website and notifications
+### Phase 4 — Personal booking pages and notifications
 
-Build reusable public pages, branding configuration, SEO, booking form, email outbox and transactional notifications.
+Connect the shared single-page profile template, branding configuration, SEO, request form, email outbox and transactional notifications. No multi-page websites or visual site builder.
 
 **Done when:** two coach sites have distinct branding/content while sharing the same code.
 
@@ -219,7 +228,7 @@ Accessibility, security, email deliverability, DST/concurrency tests, monitoring
 
 ## MVP acceptance tests
 
-- [ ] Coach logs in and edits their own website details.
+- [ ] Coach logs in and edits their own profile.
 - [ ] Coach adds clubs and lesson types.
 - [ ] Coach sets recurring availability and one-off exceptions.
 - [ ] Player requests a lesson without an account.
@@ -238,7 +247,7 @@ Accessibility, security, email deliverability, DST/concurrency tests, monitoring
 
 1. **Read this README first** and treat it as the project brief.
 2. Inspect the repository before proposing changes. Do not assume files or services exist.
-3. **Start with Phase 1 only.** Propose the file structure and implementation steps, then build the dashboard prototype using mock data.
+3. **Keep the current prototype local.** Reuse the dashboard and single-page profile components. Backend phases start only when requested.
 4. Do not connect Supabase, email providers, domains or production services until requested.
 5. Prefer small, reviewable changes with clear component boundaries, strict TypeScript and no unnecessary dependencies.
 6. Run available lint/typecheck/tests after each meaningful implementation step and report results accurately.
@@ -247,16 +256,20 @@ Accessibility, security, email deliverability, DST/concurrency tests, monitoring
 9. Do not implement online lesson payments.
 10. Ask before making irreversible architectural decisions or deploying to production.
 
-## First task for Codex
+## Original kickoff brief (historical)
+
+The public profile and local personalisation were subsequently authorised; the
+current single-page scope above and implementation notes below supersede this
+original dashboard-only brief.
 
 > Read `README.md` in full. This product is **Calspot**, a white-label website and booking-request platform for independent coaches. Implement **Phase 1 only**: set up Next.js App Router, TypeScript and Tailwind, and build a polished, responsive, Apple-inspired coach dashboard prototype. Use a restrained lowercase `calspot.` wordmark for the platform UI. Prioritise overview, calendar, recurring availability, club and lesson management, and pending booking requests with approve/decline interactions. Use clearly labelled mock data and local-only state; do not connect Supabase, implement authentication, send real emails, build the public coach websites, or deploy. First inspect the repository and outline your proposed structure, then implement, run available checks and document local preview instructions. Preserve the white-label principle and do not invent a final logo, domain or trademark status.
 
 ## Local prototype — Phase 1
 
 The coach dashboard now has a local-only implementation. The first pilot coach is **Kelly-Jane Whalley**, as supplied by the project owner.
-All player details, clubs, lessons and sessions are fictional. No authentication, database, court booking,
-email delivery or production services are connected. Changes live in React state
-and reset on refresh. The initial calendar opens on **23–29 November 2026** so the
+Player details, clubs, lessons and sessions are fictional. Kelly-Jane’s photograph and biography were supplied by the project owner. No authentication, database, court booking,
+email delivery or production services are connected. Profile, club, lesson, availability and booking-decision changes are shared across the dashboard and booking page
+and are saved only in this browser tab’s session storage. The initial calendar opens on **23–29 November 2026** so the
 sample schedule is consistent; “Demo week” returns to this period.
 
 ### Run locally
@@ -268,7 +281,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. Stop the development server with Ctrl+C.
+Open `http://localhost:3000`, which redirects to the dashboard. Stop the development server with Ctrl+C.
 
 ```sh
 npm run lint
@@ -281,9 +294,10 @@ These commands do not deploy the application. No environment variables are neede
 
 ### Structure
 
-- `src/app/`: App Router page, metadata, layout and responsive design tokens/styles.
-- `src/components/`: client dashboard, editors and shared UI primitives.
-- `src/lib/mock-data.ts`: typed demo fixtures and local date helpers.
+- `src/app/`: App Router routes (`/dashboard/*`, `/kelly-jane`, `/preview`), metadata, layout and the dashboard's design tokens in `globals.css`.
+- `src/components/admin/`: dashboard shell, page components and shared context.
+- `src/components/`: editors, calendar and shared UI primitives; `coach-site/` is the public template; `profile/` holds the profile editor and live preview.
+- `src/lib/`: `mock-data.ts` (demo fixtures), `coach-workspace.ts` (shared store), `coach-theme.ts`, `availability.ts` (start-time calculation), `platform.ts` (prototype switches), `dates.ts`, `use-media.ts`.
 
 ### Prototype scope
 
@@ -292,11 +306,14 @@ These commands do not deploy the application. No environment variables are neede
 - Create/edit/deactivate clubs and lesson types (60 or 90 minutes, indicative prices).
 - Recurring weekly availability with effective dates; date-specific blocks and extras.
 - Approve/decline requests locally and review status history.
-- Mobile navigation, keyboard focus styling, modal keyboard handling and reduced motion.
+- Mobile bottom tab bar, keyboard focus styling, modal keyboard handling and reduced motion.
 
-Availability editing is a visual prototype, not a production slot generator. It does
-not enforce overlap/concurrency, generate bookable slots, apply booking-window
-constraints, convert appointment instants to UTC, or send notifications. The default
+See **Dashboard (admin)** below for the current routes, shell and editing flows.
+
+Availability editing is a prototype, not a production slot generator. The public
+form now derives illustrative start times from the coach's rules, exceptions and
+bookings (see `src/lib/availability.ts`), but it does not enforce database-level
+concurrency, apply booking-window constraints, convert appointment instants to UTC, or send notifications. The default
 booking window and minimum notice are informational. Production scheduling, DST,
 security, authentication and event logs remain later-phase work. Month view shows
 bookings; availability shading is in week view. Blocking availability preserves
@@ -341,98 +358,168 @@ segmented controls use quieter neutral selection surfaces.
 ### First pilot coach
 
 Kelly-Jane Whalley is the first real coach who will test Calspot. Her name is shared
-through `coachProfile` in `src/lib/mock-data.ts`. Demo players, venues, lessons and
+through the local workspace in `src/lib/coach-workspace.ts`. Demo players, venues, lessons and
 bookings are fictional and are not claims about her business. Use her identity for
-the public mini-site prototype; her biography, qualifications, photography,
-contact details, venues and personal branding still need to be supplied or verified.
+the public mini-site prototype; her supplied biography and photograph are now used. Contact details, real coaching
+venues and final branding still need approval.
 
-## Booking-focused coach mini-site
+## Personal coach booking page — local prototype
 
-The public design has been simplified to a one-page mini-site at the owner's
-request, before backend integration. Backend phases remain pending.
+The current direction is **professional coach profile + simple booking requests,
+all on one page**. There is no full website builder, extra marketing pages or
+custom layout editor.
 
-- Mini-site and inline request flow: `http://localhost:3000/kelly-jane`
-- Dashboard: `http://localhost:3000/`
-- Existing `/kelly-jane/book` links redirect to the mini-site's booking section;
-  valid `?lesson=private`, `duo` or `group` selections are preserved.
+- Public booking page: `http://localhost:3000/kelly-jane`
+- Dashboard: `http://localhost:3000/dashboard` → **My profile**, **Clubs**, **Lessons**, **Availability**
+- Legacy `/kelly-jane/book` URLs redirect to the same page's booking section.
+  Old `private`, `duo`, `group` links still select their matching lessons.
 
-Run `npm run dev` as above. The dashboard includes a “View coach site” link.
+### Profile and photograph
 
-### One-page experience
+The existing three-step booking logic is preserved. The public presentation now follows the supplied fashion-editorial reference: dominant name typography, a wide photograph directly beneath, minimal navigation and an open introduction/booking grid. There are no ecommerce features, extra pages or site-building controls.
+Kelly-Jane's real photograph was supplied as `KellyJane.jpg`, and an optimised,
+orientation-correct WebP copy lives at `public/coach/kelly-jane.webp`. The source is
+preserved. CSS frames her face and racket in the large hero photograph, with a responsive crop on mobile. Removing a photograph shows a neutral portrait placeholder.
+The earlier generated court asset remains in the repository but is no longer used
+for Kelly-Jane's profile.
 
-The mini-site now contains a short introduction, a small coach card and the
-three-step request form directly on the page. On mobile the request form comes
-first, with WhatsApp accessible in the header. The longer about, lesson marketing,
-venue, how-it-works and FAQ sections have been removed. Lesson formats, duration,
-indicative prices and club choices are contained in the request flow. Coach approval
-and separate court arrangements are explained beside it.
+Her three-sentence introduction, UK Top 50/Lancashire experience and tennis
+background are based on the owner's supplied biography, not independently
+verified rankings. Her supplied Instagram enquiry link is
+https://www.instagram.com/kellyjayne_padel/. Do not invent additional credentials,
+venues, testimonials or personal contact details. The current clubs, players,
+lessons, prices, dates and bookings remain explicitly sample records.
 
-Kelly-Jane's name is real and supplied by the owner. Her portrait, short biography,
-branding, venues and commercial details still need her approval. Sessions, prices,
-dates and venues remain explicitly fictional sample content. No credentials or
-testimonials have been invented. The mini-site uses a proposed muted blue-grey
-accent and coach identity, without requiring Calspot branding.
+On mobile the hero name wraps at smaller sizes, followed by the photograph and a concise introduction. Experience and locations expand in a native disclosure. Header and photo-caption booking links jump directly to the integrated flow. Contact options remain optional.
 
-### WhatsApp in the prototype
+### Personalisation: looks and appearance
 
-- “Ask on WhatsApp” previews a short enquiry before choosing a session.
-- Players can select email or WhatsApp as their preferred request contact method.
-  Email remains required; choosing WhatsApp additionally requires a phone number.
-- The local confirmation includes a WhatsApp follow-up draft with the selected
-  lesson, venue, date, time and player name.
-- Message drafts can be copied manually. Native dialogs support Escape, keyboard
-  focus and closing back to their trigger.
+The public page is one template. Each coach's identity comes from configuration, never forked code. In the dashboard, **My profile → Page look** offers five whole-page looks (Studio, Journal, Clay split, Fresh court, Midnight bold). Each look bundles a hero layout, palette, accent, type pairing and corner style, with a small live preview of the coach's own name. A collapsed **Fine-tune** panel exposes the individual options:
 
-**No WhatsApp number has been supplied.** These are clearly labelled previews, with
-no external messaging links, WhatsApp API, outgoing messages or automatic
-notifications. Contact preferences and player details stay in component memory.
-A chat or enquiry does not create an approved lesson or reserve a court. A real
-coach contact field and user-initiated chat link can be added once contact details
-are provided; automated messaging is not part of this prototype.
+| Option | Choices |
+| --- | --- |
+| Page style (hero) | Editorial (stacked name over a wide photo), Split (name beside a portrait), Full-bleed (name over the photo) |
+| Colours | Studio, Clay, Court, Midnight, Sand |
+| Accent | Match the palette, or one of ten vetted swatches |
+| Type | Modern sans (Geist), Editorial serif (Instrument Serif + Geist), Bold condensed (Barlow Condensed + Geist) |
+| Corners | Sharp, Soft, Rounded |
 
-### Local request behaviour
+Accent text colour is chosen automatically for contrast. If an accent is too light to use for small text, it is used only as a fill and text stays in the palette's ink. Coaches see the button contrast ratio while choosing.
 
-Sample dates are fixed to 23–28 November 2026 in Europe/London. The form requires a
-time before continuing, validates name/email and conditionally requires a WhatsApp
-number, then displays a local pending-approval confirmation. The flow can be reset.
-Nothing is persisted or sent, and the public demo does not sync with dashboard
-state. Details disappear on refresh or navigation away. No authentication, real
-availability, slot holds, payments or court reservations are implemented. Both
-public routes remain non-indexable via the destination page's no-index metadata.
+**Page content** (all optional): tagline, up to three highlights (headline plus detail) shown under the hero, up to two testimonials, a generic "Before you ask" FAQ and a "Powered by calspot." footer line (off by default, respecting the white-label rule). The testimonials section renders only when the coach has entered one, and the app never supplies testimonials. A photograph focus control keeps the face in frame when the image is cropped. An optional logo replaces the text header wordmark on the public page only.
 
-The reusable shell, inline request form, WhatsApp preview and content configuration
-live in `src/components/coach-site/`, with scoped styles. A coach setup editor,
-approved contact/legal content and backend integration remain future work.
+Image inputs accept JPEG, PNG and WebP files up to 1 MB. Images are decoded before acceptance and kept as local data URLs; nothing is uploaded to a server. The Calspot dashboard retains its platform branding.
 
-### Concept image
+Existing club and lesson editors are reused. Active records appear on the profile and in booking choices; deactivated records disappear. If no active clubs or lessons remain, the page displays a helpful empty state.
 
-Final web asset: `public/coach/court-editorial.webp` (1536 × 1024, approximately
-336 KB). Created with the built-in ImageGen tool, then encoded as WebP for local
-use. It is labelled concept imagery and does not depict a verified coaching venue.
-No portrait of Kelly-Jane has been generated.
+All appearance values resolve to CSS tokens (`--coach-*`) in `src/lib/coach-theme.ts`. Fonts are bundled locally (`geist` and `@fontsource` packages); no external font requests are made. Public content, highlights, FAQ and the sample week live in `src/components/coach-site/content.ts`. A single `publicCoach.demoMode` flag controls the prototype wording ("sample", "demo request", the preview bar and its dashboard link). Turning it off removes that wording once real availability and email are connected.
 
-Final image-generation prompt:
+### Public page structure
 
-> Use case: photorealistic-natural. Asset type: premium padel coaching website hero,
-> wide landscape editorial photograph, 3:2 aspect. Subject: an empty real-looking
-> outdoor padel court with deep muted blue playing surface, crisp white lines, black
-> fine mesh and glass walls, a padel racket and two yellow balls resting near the net
-> in the foreground. Composition: low courtside angle, net receding diagonally to
-> upper right, restrained architectural geometry, distant trees softly out of focus.
-> Natural late-afternoon sunlight and beautiful soft shadows. Premium understated
-> sports magazine photography, tactile realistic surfaces, calm and inviting, subtle
-> film grain. No people, no text, no logos, no watermark, no invented venue signage.
-> This is illustrative concept imagery, not a specific real venue.
+- `site-shell.tsx`: theme tokens, header, footer, optional preview bar.
+- `coach-hero.tsx`: the three hero layouts and the stacked name lockup, sized to fit the longest word.
+- `sections.tsx`: highlights strip, testimonials and FAQ.
+- `coach-profile-card.tsx`: biography, experience and clubs, with a native disclosure on narrow screens.
+- `booking-form.tsx`: the three-step request flow with a persistent session summary, week navigation and per-day availability. Sample times are illustrative. Dates and the timezone label (GMT or BST) are formatted with `Intl`.
 
-### Mini-site verification
+Responsive breakpoints are 820px and 560px. Headline entry and step transitions are subtle and are disabled under reduced-motion preferences.
 
-Lint, strict TypeScript and production build pass. Local headless Chrome checks
-covered desktop and 390px mobile layouts, inline requests, WhatsApp preview and
-Escape/close, required number validation for WhatsApp, email requests without a
-phone, follow-up message content, reset, old booking-link redirects and the
-existing dashboard. No browser page errors, external requests or page-wide mobile
-overflow were reported. Desktop, mobile and WhatsApp dialog screenshots were
-visually inspected. No services were connected or deployed.
+### Local state and privacy
+
+`src/lib/coach-workspace.ts` provides the shared, typed local demo workspace for
+the profile, clubs, lessons, bookings, recurring availability and exceptions. Saved edits survive navigation and refresh in the
+same tab via `sessionStorage` under `calspot:coach-workspace:v1`. They are not shared
+with another browser/device, published, authenticated or stored in a database.
+Malformed saved data falls back to defaults. If storage is unavailable/full,
+edits still work in memory and the profile form reports that refresh will reset
+them. This is prototype continuity, not a tenant/security boundary.
+
+Player names, emails, phone numbers and request details typed into the public form
+are **not** saved in this store. Demo requests still live only in the form's component
+memory. They do not sync into the dashboard, reserve slots/courts, take payments or
+send notifications. The fictional demo bookings, availability rules, exceptions and
+approve/decline decisions in the dashboard are saved in the same per-tab store, so
+availability changes show on the public page immediately and reset when the tab closes.
+
+To reset profile, club, lesson and availability customisations, close the tab or remove
+`calspot:coach-workspace:v1` from this origin's session storage and reload.
+
+### Dashboard (admin)
+
+The dashboard follows the same principles as the public template: fewer decisions, clearer hierarchy and the same readable sizes.
+
+- **Routes:** `/` redirects to `/dashboard`, which opens on **Requests** when something is pending and **Overview** otherwise. Each section has a real URL: `/dashboard/overview`, `requests`, `calendar`, `availability`, `clubs`, `lessons`, `profile` (`?tab=appearance` opens a tab). Browser Back, refresh and deep links work.
+- **Shell:** one identity card (coach photo as avatar, current look name), one demo indicator driven by `platform.demoMode`, a prominent **View my page** button and **Copy link**. On phones the hamburger is replaced by a bottom tab bar (Requests with a pending count, Calendar, Availability, My profile, More).
+- **Overview:** one "needs attention" card, confirmed sessions this week, a booking-page card (link, look, copy) and a "Finish setting up" checklist that disappears when complete.
+- **Requests:** requested-ago text and a warning when approving would overlap a confirmed session.
+- **Calendar:** phones default to a day-by-day **Agenda** view; Week and Month remain. The zone label comes from the date (GMT or BST).
+- **Availability:** a weekly editor (one row per day with time chips, **Add time**, **Copy to…** other days), **Block a date**, and a **What players see** panel that shows the start times the public form will offer, for a chosen lesson. Availability rules can apply to **All lessons**.
+- **Clubs and Lessons:** compact lists with an "On my page" switch and, for lessons, up/down ordering. Lesson descriptions and club notes now appear on the public page.
+- **My profile:** **Profile**, **Appearance** and **Contact** tabs, a live preview of the unsaved draft (an iframe of the real page at `/preview`, with Desktop and Phone widths; on narrow screens a full-screen Preview sheet), and a sticky save bar with Discard and an unsaved-changes browser warning.
+
+**Design tokens.** `globals.css` defines shared tokens (`--text-2`, `--border-strong`, `--surface-2`, radius, spacing and `--tap`). Readable text is at least 13px; the calendar's compact meta text is 12px. Interactive control borders use `--border-strong` for non-text contrast. Primary actions are 44px high on phones. Small switches and reorder arrows have enlarged hit areas.
+
+### Coach sign-up (prototype)
+
+`/signup` is a guided six-step flow that creates a coach's page in about three minutes: **You** (photo, name, what you coach, area), **Your story** (tagline, introduction, experience), **Your look** (the five look presets with the coach's own name), **Clubs & lessons** (one club and starter lessons with editable length and guide price), **Your week** (days and hours, applied to the club and all lessons) and **Review**. A live preview of the real public page, in Desktop and Phone widths or a full-screen sheet on narrow screens, updates as the coach answers. Each step validates inline, moves focus to the step heading and has Back and Continue. **Create my page** replaces the tab's workspace with the new coach's data (no demo bookings), saves it in session storage and opens the dashboard Overview, where the setup checklist shows what is left.
+
+It is prototype-only: no account, email or hosting is created, and the public page still lives at the single pilot route. The dashboard sidebar links to it ("Preview the sign-up flow") while `platform.demoMode` is on. The wizard reuses the look presets, `AssetInput`, `PreviewFrame` and the availability model.
+
+### Optional WhatsApp
+
+No WhatsApp number has been supplied for Kelly-Jane, so WhatsApp buttons, contact
+preferences and follow-up controls are hidden by default. Saving a valid number
+in My profile enables the existing, clearly labelled message previews. Removing
+the number hides them again. The same guard is applied inside the reusable contact
+button, not just its parent.
+
+When enabled, players can preview an enquiry, select WhatsApp as their preferred
+contact method (requiring a player phone number), and preview/copy a contextual
+follow-up draft. These remain **unsent local previews**, with no WhatsApp API,
+external chat launches or automated messages. Instagram is a normal external
+profile link, opened only by the visitor.
+
+### Curated public-page palettes
+
+| Palette | Direction |
+| --- | --- |
+| Studio (default) | Off-white, charcoal, electric blue |
+| Clay | Warm cream, dark brown, terracotta |
+| Court | Muted sage, deep green, lime |
+| Midnight | Dark charcoal, warm white, ice blue |
+| Sand | Beige, dark brown, muted bronze |
+
+Palettes, accents, type pairings, corner styles and looks are defined in `src/lib/coach-theme.ts`. The saved profile stores only validated IDs. Older drafts without appearance fields, or with a legacy palette ID or arbitrary accent, keep their content and migrate to valid defaults (an old palette is preserved when valid). Interactive controls use a stronger border colour than decorative hairlines so they meet non-text contrast guidance. Uploaded photographs retain their original colours.
+
+### Verification
+
+Lint, strict TypeScript and the production build pass. Local headless-Chrome checks covered:
+
+- Four looks (Studio, Midnight bold, Clay split, Journal) at 1440px and 390px, with no page errors and no horizontal overflow.
+- The full request flow: lesson, week navigation, day and time, details, confirmation.
+- Choosing a look in My profile, saving, and seeing it applied on the public page.
+
+Findings from that pass were fixed: the dashboard's global `main` offset leaked into the public page, and button text colour was overridden by link styles. Screenshots were inspected visually. A mobile sticky "Request a session" bar was prototyped and removed because the mobile layout leaves no scroll range where it would be useful; the header button covers that need. This is prototype verification, not a full accessibility audit. Player details remain outside session storage. No services were connected or deployed.
+
+### Not yet built
+
+- Request inbox as a list-and-detail layout, one-line replies and "suggest another time". Approve and decline only, for now.
+- Drag-and-drop ordering of lessons (up/down buttons are used) and a warning when navigating away inside the app with unsaved profile changes (only the browser's unload warning exists).
+- Production slot generation, booking window and minimum notice. The availability the public page shows is illustrative.
+- Real sign-up: accounts, email verification, authentication, subdomains and publishing. The wizard below is a local prototype only.
+- Server-rendering the public page from tenant data. It currently reads the local per-tab workspace on the client, so it can briefly paint defaults.
+- Real legal links (privacy, terms) in the footer. They are required before launch and are not added as dead links.
+- Light and dark logo variants. A dark logo can be hard to see on the Midnight palette.
+
+## Next steps
+
+Suggested order. Backend work needs explicit go-ahead before connecting any service (see the instructions above).
+
+1. **Commit and keep the prototype safe.** Source is committed locally; push when ready (pushing does not deploy).
+2. **Close prototype gaps.** Server-render the public page from tenant data, add real privacy and terms pages and footer links, support light and dark logo variants, and finish the request inbox (replies, "suggest another time", list-and-detail layout, in-app unsaved-changes warning).
+3. **Phase 2: Supabase and tenant security.** Accounts, tenant membership, row-level security and tests proving two coaches cannot see each other's data. Turn the sign-up prototype into real sign-up with email verification and coach subdomains. Confirm hosting and domain first; no domain is assumed to be owned.
+4. **Phase 3: booking logic and notifications.** Slot generation with timezone and daylight-saving tests, booking window and minimum notice, concurrency-safe holds, and transactional email through Resend or Postmark.
+5. **Pilot.** Replace sample content with Kelly-Jane's approved photo, clubs, prices and contact details, test on her phone and gather feedback before onboarding more coaches.
 
 ## Source control
 
