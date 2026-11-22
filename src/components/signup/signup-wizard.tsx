@@ -15,6 +15,7 @@ import {
   type CoachWorkspace,
 } from "@/lib/coach-workspace";
 import { platform } from "@/lib/platform";
+import { defaultTemplates } from "@/lib/whatsapp";
 import { useMediaQuery } from "@/lib/use-media";
 import { Logo } from "../logo";
 import { LookPreview } from "../profile/appearance-editor";
@@ -121,7 +122,9 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
     photoFocusX: 50,
     photoFocusY: 25,
     logo: null,
+    logoDark: null,
     whatsapp: "",
+    whatsappTemplates: defaultTemplates,
     instagram: "",
   };
   const clubName = d.clubName.trim() || (placeholders ? "Your club" : "");

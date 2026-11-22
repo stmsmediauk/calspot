@@ -20,12 +20,17 @@ const emptyPlayer = {
   name: "",
   email: "",
   phone: "",
-  contact: "email",
+  /** Empty until the player chooses; defaults to WhatsApp when the coach has it. */
+  contact: "",
   level: "",
   message: "",
 };
 
-export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }) {
+export function BookingForm({
+  initialLesson = "l1",
+}: {
+  initialLesson?: string;
+}) {
   const workspace = useCoachWorkspace();
   const { profile } = workspace;
   const lessons = workspace.lessons.filter((l) => l.active);
@@ -37,8 +42,13 @@ export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }
     [dayIndex, setDayIndex] = useState<number | null>(null),
     [time, setTime] = useState(""),
     [submitted, setSubmitted] = useState(false),
-    [player, setPlayer] = useState(emptyPlayer);
+    [player, setPlayer] = useState({
+      ...emptyPlayer,
+      contact: "",
+    });
   const heading = useRef<HTMLHeadingElement>(null);
+  const contact =
+    player.contact || (hasWhatsApp(profile.whatsapp) ? "whatsapp" : "email");
   const lesson = lessons.find((l) => l.id === lessonId) ?? lessons[0];
   const venue = clubs.find((c) => c.id === venueId) ?? clubs[0];
   const shortName = profile.name.split(" ")[0];
@@ -67,7 +77,9 @@ export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }
   if (!lesson || !venue)
     return (
       <div className={styles.bookingEmpty}>
-        <h2 className={styles.sectionTitle}>Sessions will be available soon.</h2>
+        <h2 className={styles.sectionTitle}>
+          Sessions will be available soon.
+        </h2>
         <p>
           The coach is updating their clubs and lessons. Please check back
           later.
@@ -110,6 +122,12 @@ export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }
           <strong>pending coach approval</strong>.
         </p>
         {summary}
+        {hasWhatsApp(profile.whatsapp) && (
+          <p className={styles.whatsappHint}>
+            Tap the WhatsApp button to open a chat with your request ready to
+            send. It is sent when you press Send in WhatsApp.
+          </p>
+        )}
         <p className={styles.notice}>
           {demo
             ? `Nothing has been sent to ${shortName}. No lesson or court has been reserved, and no email will be sent. Your details stay in this page’s memory and disappear when you leave or refresh.`
@@ -118,8 +136,9 @@ export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }
         <div className={styles.confirmationActions}>
           {hasWhatsApp(profile.whatsapp) && (
             <WhatsAppButton
-              label="Preview WhatsApp follow-up"
-              message={`Hi ${shortName}, I’d like to request ${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}. Please could you confirm availability? Thanks, ${player.name.trim()}.`}
+              variant="solid"
+              label={`Send to ${shortName} on WhatsApp`}
+              message={`Hi ${shortName}, I’d like to request ${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}.${player.message.trim() ? ` ${player.message.trim()}` : ""} Please could you confirm availability? Thanks, ${player.name.trim()}.`}
             />
           )}
           <button
@@ -129,7 +148,10 @@ export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }
               setSubmitted(false);
               setTime("");
               setDayIndex(null);
-              setPlayer(emptyPlayer);
+              setPlayer({
+                ...emptyPlayer,
+                contact: "",
+              });
               advance(0);
             }}
           >
@@ -383,7 +405,7 @@ export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }
                       type="radio"
                       name="contact"
                       value={method}
-                      checked={player.contact === method}
+                      checked={contact === method}
                       onChange={() => setPlayer({ ...player, contact: method })}
                     />{" "}
                     {method === "email" ? "Email" : "WhatsApp"}
@@ -393,14 +415,14 @@ export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }
             )}
             <div className={styles.formTwo}>
               <label className={styles.formLabel}>
-                {player.contact === "whatsapp"
+                {contact === "whatsapp"
                   ? "WhatsApp number"
                   : "Phone (optional)"}
                 <input
                   type="tel"
-                  required={player.contact === "whatsapp"}
+                  required={contact === "whatsapp"}
                   pattern={
-                    player.contact === "whatsapp"
+                    contact === "whatsapp"
                       ? "\\+?[0-9](?:[0-9]|\\s|\\(|\\)|\\.|-){5,38}[0-9]"
                       : undefined
                   }
@@ -428,12 +450,12 @@ export function BookingForm({ initialLesson = "l1" }: { initialLesson?: string }
                 </select>
               </label>
             </div>
-            {player.contact === "whatsapp" && (
+            {contact === "whatsapp" && (
               <p className={styles.formNote}>
                 Include your country code.
                 {demo
-                  ? " Choosing WhatsApp records your preference for messages about this request; this demo sends nothing."
-                  : " Choosing WhatsApp records your preference for messages about this request."}
+                  ? " Choosing WhatsApp records your preference. This demo sends nothing."
+                  : " Your coach will reply on WhatsApp."}
               </p>
             )}
             <label className={styles.formLabel}>

@@ -57,7 +57,7 @@ The initial product supports one coach schedule per tenant. Additional staff and
 - Mobile: scaled hero typography, prominent photography, concise introduction and expandable experience/locations, with direct booking anchors.
 - Personalisation: photograph (with focal point), name, tagline, introduction, an optional highlights strip and testimonials, and a whole-page "look" chosen from curated presets. Coaches can fine-tune page style, palette, accent, type pairing and corner style from curated lists. No page builder, raw colour editing or drag-and-drop.
 - Coach-specific clubs, lesson types, durations, indicative prices and availability.
-- Optional WhatsApp contact, displayed only when the coach has supplied a valid number; optional Instagram enquiry link.
+- Optional WhatsApp click-to-chat, displayed only when the coach has supplied a valid number; optional Instagram enquiry link.
 - Every request needs coach approval; a request does not reserve a court.
 - Coach-specific subdomains initially, custom domains later. No domain is assumed to be owned.
 - Appropriate legal disclosures/content are required before production launch; do not add extra public marketing pages.
@@ -465,19 +465,32 @@ The dashboard follows the same principles as the public template: fewer decision
 
 It is prototype-only: no account, email or hosting is created, and the public page still lives at the single pilot route. The dashboard sidebar links to it ("Preview the sign-up flow") while `platform.demoMode` is on. The wizard reuses the look presets, `AssetInput`, `PreviewFrame` and the availability model.
 
-### Optional WhatsApp
+### Prototype gap fixes
 
-No WhatsApp number has been supplied for Kelly-Jane, so WhatsApp buttons, contact
-preferences and follow-up controls are hidden by default. Saving a valid number
-in My profile enables the existing, clearly labelled message previews. Removing
-the number hides them again. The same guard is applied inside the reusable contact
-button, not just its parent.
+- **Server rendering seam.** `src/lib/tenant.ts` (`getTenantWorkspace`) is where Supabase will resolve a coach from the hostname. For now it returns the bundled pilot workspace. The public page uses it for `generateMetadata` (title, description, Open Graph image) and Person structured data, so the HTML is meaningful before JavaScript runs. Pages stay `noindex` while the app is a prototype. Pure model, defaults and validation moved to `src/lib/workspace-model.ts` so server code can import them; `coach-workspace.ts` keeps the client store and re-exports the model.
+- **Legal pages.** Draft `/kelly-jane/privacy` and `/kelly-jane/terms`, linked from the page footer, in the coach's chosen look. They carry a visible "Draft for legal review" notice and `[bracketed]` placeholders. They are not legal advice and must be completed and reviewed before launch.
+- **Logo variants.** An optional "Logo for dark looks" is used on the Midnight look. Without one, the coach's name is shown as text so a dark logo never disappears.
+- **Request inbox.** Requests use a list-and-detail layout on wide screens (cards on narrow ones). The detail view has an optional note to the player, a **Suggest another time** menu built from the coach's real availability (approve is disabled while a suggestion is chosen, so the action is decline and suggest), an overlap badge and warning, and the offered time in booking history. Nothing is emailed.
+- **Unsaved changes.** Leaving My profile through any in-app link (sidebar, tab bar, View my page, sign-up) asks to stay or discard. A browser warning covers reload and close.
 
-When enabled, players can preview an enquiry, select WhatsApp as their preferred
-contact method (requiring a player phone number), and preview/copy a contextual
-follow-up draft. These remain **unsent local previews**, with no WhatsApp API,
-external chat launches or automated messages. Instagram is a normal external
-profile link, opened only by the visitor.
+### WhatsApp (click-to-chat)
+
+Coaches mostly talk to their clients on WhatsApp, so it is the primary way to follow up, with email as a fallback and record. This uses **click-to-chat `wa.me` links only**: a link opens a chat with the message already typed in, and the person presses Send in their own WhatsApp. Calspot sends nothing, uses no WhatsApp API and stores no chats. This replaces the earlier "unsent preview, no external chat launches" decision.
+
+**Player to coach** (only when the coach has saved a valid number in My profile → Contact):
+- A **Message on WhatsApp** button beside the main call to action in every hero layout, and in the coach's contact links.
+- The request form defaults to WhatsApp as the contact preference and asks for the player's number.
+- After a request, **Send to {coach} on WhatsApp** opens a chat with the lesson, club, time and the player's note ready to send.
+
+**Coach to player** (needs the player's number, which sample bookings now carry as fictional numbers in the reserved UK drama range):
+- On a pending request, **Open WhatsApp with a draft message** is ticked by default. **Approve**, **Decline** and **Decline and suggest time** record the decision in the dashboard and open the right draft. A personal line can be added and appears under the template text.
+- On decided requests: **Send a reminder** and **Resend confirmation** (confirmed), or **Message** about a decline or suggested time.
+- Overview shows a **Tomorrow** list with a one-tap **Send reminder** for each session.
+- Drafts come from four editable templates (approved, declined, suggest another time, reminder) in My profile → Contact, with {first}, {name}, {lesson}, {club}, {date}, {time}, {suggestion} and {coach} and a live example. Coaches can still edit any draft inside WhatsApp before sending.
+
+**Limits.** Calspot cannot see replies typed in WhatsApp, so the dashboard stays the record and **approve and message** is a single action. A coach's number is public once saved. UK-style numbers starting 0 are treated as +44. Helpers are in `src/lib/whatsapp.ts` and `src/components/admin/whatsapp-drafts.ts`.
+
+**Later (Phase B).** Automated messages, such as an alert to the coach when a request arrives, would need the WhatsApp Business API: Meta business verification, approved message templates, per-message costs and explicit opt-in, sent from a platform number. Replies inside Calspot would be a larger two-way inbox build. Neither is planned for the MVP; check Meta's current pricing and policies first.
 
 ### Curated public-page palettes
 
@@ -503,20 +516,18 @@ Findings from that pass were fixed: the dashboard's global `main` offset leaked 
 
 ### Not yet built
 
-- Request inbox as a list-and-detail layout, one-line replies and "suggest another time". Approve and decline only, for now.
-- Drag-and-drop ordering of lessons (up/down buttons are used) and a warning when navigating away inside the app with unsaved profile changes (only the browser's unload warning exists).
+- Drag-and-drop ordering of lessons (up/down buttons are used). The unsaved-changes prompt covers in-app links and reloads, not the browser Back button.
 - Production slot generation, booking window and minimum notice. The availability the public page shows is illustrative.
 - Real sign-up: accounts, email verification, authentication, subdomains and publishing. The wizard below is a local prototype only.
-- Server-rendering the public page from tenant data. It currently reads the local per-tab workspace on the client, so it can briefly paint defaults.
-- Real legal links (privacy, terms) in the footer. They are required before launch and are not added as dead links.
-- Light and dark logo variants. A dark logo can be hard to see on the Midnight palette.
+- Real tenant data on the server. The public page is server-rendered from the bundled pilot data (see below), but dashboard edits live in the browser tab, so an edited page can briefly show the pilot defaults first.
+- Solicitor-reviewed legal text. Draft Privacy and Terms pages exist but are placeholders.
 
 ## Next steps
 
 Suggested order. Backend work needs explicit go-ahead before connecting any service (see the instructions above).
 
 1. **Commit and keep the prototype safe.** Source is committed locally; push when ready (pushing does not deploy).
-2. **Close prototype gaps.** Server-render the public page from tenant data, add real privacy and terms pages and footer links, support light and dark logo variants, and finish the request inbox (replies, "suggest another time", list-and-detail layout, in-app unsaved-changes warning).
+2. **Close prototype gaps.** Done in the local prototype (see below). Remaining: wire the public page to real tenant data (Phase 2) and have the legal drafts reviewed by a solicitor.
 3. **Phase 2: Supabase and tenant security.** Accounts, tenant membership, row-level security and tests proving two coaches cannot see each other's data. Turn the sign-up prototype into real sign-up with email verification and coach subdomains. Confirm hosting and domain first; no domain is assumed to be owned.
 4. **Phase 3: booking logic and notifications.** Slot generation with timezone and daylight-saving tests, booking window and minimum notice, concurrency-safe holds, and transactional email through Resend or Postmark.
 5. **Pilot.** Replace sample content with Kelly-Jane's approved photo, clubs, prices and contact details, test on her phone and gather feedback before onboarding more coaches.

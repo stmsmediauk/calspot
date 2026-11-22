@@ -30,8 +30,14 @@ export type Booking = {
   hour: number;
   status: "pending" | "confirmed" | "declined" | "cancelled";
   message: string;
+  /** Player phone in international format (fictional Ofcom drama range). */
+  phone?: string;
   /** Date the request arrived, for "requested 2 days ago". */
   requestedAt?: string;
+  /** Note the coach added when deciding. */
+  reply?: string;
+  /** Another time the coach offered when declining. */
+  suggested?: { date: string; hour: number };
 };
 export type Rule = {
   id: string;
@@ -100,6 +106,7 @@ export const bookings: Booking[] = [
     id: "b1",
     player: "Oliver James",
     email: "oliver@example.com",
+    phone: "+447700900101",
     lessonId: "l1",
     clubId: "c1",
     date: "2026-11-23",
@@ -111,6 +118,7 @@ export const bookings: Booking[] = [
     id: "b2",
     player: "Sophie & Ben",
     email: "sophie@example.com",
+    phone: "+447700900102",
     lessonId: "l2",
     clubId: "c1",
     date: "2026-11-23",
@@ -122,6 +130,7 @@ export const bookings: Booking[] = [
     id: "b3",
     player: "Emma Wilson",
     email: "emma@example.com",
+    phone: "+447700900103",
     lessonId: "l1",
     clubId: "c2",
     date: "2026-11-24",
@@ -134,6 +143,7 @@ export const bookings: Booking[] = [
     id: "b4",
     player: "Alex Morgan",
     email: "alex@example.com",
+    phone: "+447700900104",
     lessonId: "l3",
     clubId: "c1",
     date: "2026-11-25",
@@ -145,6 +155,7 @@ export const bookings: Booking[] = [
     id: "b5",
     player: "James Taylor",
     email: "james@example.com",
+    phone: "+447700900105",
     lessonId: "l1",
     clubId: "c2",
     date: "2026-11-26",
@@ -157,6 +168,7 @@ export const bookings: Booking[] = [
     id: "b6",
     player: "Isabella Chen",
     email: "isabella@example.com",
+    phone: "+447700900106",
     lessonId: "l1",
     clubId: "c1",
     date: "2026-11-27",
@@ -168,6 +180,7 @@ export const bookings: Booking[] = [
     id: "b7",
     player: "Daniel Brooks",
     email: "daniel@example.com",
+    phone: "+447700900107",
     lessonId: "l2",
     clubId: "c1",
     date: "2026-11-28",
@@ -202,7 +215,9 @@ export const time = (hour: number) =>
 export const demoToday = "2026-11-22";
 export const demoWeek = "2026-11-23";
 export const lessonName = (list: Lesson[], id: string) =>
-  id === "all" ? "All lessons" : (list.find((l) => l.id === id)?.name ?? "Lesson");
+  id === "all"
+    ? "All lessons"
+    : (list.find((l) => l.id === id)?.name ?? "Lesson");
 export function daysAgo(key: string, from = demoToday) {
   const diff = Math.round(
     (parseDate(from).getTime() - parseDate(key).getTime()) / 864e5,

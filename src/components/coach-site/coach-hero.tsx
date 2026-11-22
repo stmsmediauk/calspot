@@ -6,6 +6,7 @@ import { useCoachWorkspace } from "@/lib/coach-workspace";
 import { nameFontSize } from "@/lib/coach-theme";
 import { nameLines } from "./content";
 import { Highlights } from "./sections";
+import { WhatsAppButton } from "./whatsapp-button";
 import styles from "./site.module.css";
 
 export function CoachHero() {
@@ -18,7 +19,11 @@ export function CoachHero() {
     <h1
       id="coach-name"
       className={styles.heroName}
-      style={{ "--name-size": nameFontSize(profile.name, appearance) } as CSSProperties}
+      style={
+        {
+          "--name-size": nameFontSize(profile.name, appearance),
+        } as CSSProperties
+      }
     >
       {lines.map((line) => (
         <span key={line}>
@@ -61,7 +66,10 @@ export function CoachHero() {
               {profile.tagline && ` · ${profile.tagline}`}
             </p>
           </div>
-          {cta}
+          <div className={styles.heroActions}>
+            <WhatsAppButton />
+            {cta}
+          </div>
         </div>
       )}
     </figure>
@@ -81,7 +89,10 @@ export function CoachHero() {
               <b>{profile.title}</b>
               {profile.tagline && <> &nbsp;·&nbsp; {profile.tagline}</>}
             </p>
-            {cta}
+            <div className={styles.heroActions}>
+              <WhatsAppButton />
+              {cta}
+            </div>
           </div>
           {photo}
         </>
@@ -96,6 +107,7 @@ export function CoachHero() {
             <p className={styles.splitTitle}>{profile.title}</p>
             <div className={styles.heroActions}>
               {cta}
+              <WhatsAppButton />
               <a className={`${styles.button} ${styles.ghost}`} href="#about">
                 Meet {profile.name.split(" ")[0]}
               </a>

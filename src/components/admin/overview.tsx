@@ -10,6 +10,7 @@ import {
   Copy,
   ExternalLink,
   Inbox,
+  MessageCircle,
 } from "lucide-react";
 import { useCoachWorkspace } from "@/lib/coach-workspace";
 import { matchingLook } from "@/lib/coach-theme";
@@ -19,6 +20,7 @@ import { Badge, Empty } from "../ui";
 import { useAdmin } from "./context";
 import { PageHeader } from "./page-header";
 import { RequestCard } from "./request-card";
+import { whatsappLink } from "./whatsapp-drafts";
 
 export function OverviewPage() {
   const { profile, clubs, lessons, bookings, rules } = useCoachWorkspace();
@@ -32,12 +34,39 @@ export function OverviewPage() {
     (b) => b.date >= mock.demoWeek && b.date <= "2026-11-29",
   ).length;
   const look = matchingLook(profile.appearance);
+  const workspace = useCoachWorkspace();
+  const tomorrowDate = mock.parseDate(
+    platform.demoMode ? mock.demoToday : mock.dateKey(new Date()),
+  );
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowKey = mock.dateKey(tomorrowDate);
+  const tomorrow = confirmed.filter((b) => b.date === tomorrowKey);
   const checklist = [
-    { done: !!profile.photograph, label: "Add your photograph", href: "/dashboard/profile" },
-    { done: clubs.some((c) => c.active), label: "Add a club", href: "/dashboard/clubs" },
-    { done: lessons.some((l) => l.active), label: "Add a lesson", href: "/dashboard/lessons" },
-    { done: rules.length > 0, label: "Set your weekly availability", href: "/dashboard/availability" },
-    { done: !!profile.tagline || profile.highlights.length > 0, label: "Add a tagline or highlights", href: "/dashboard/profile?tab=appearance" },
+    {
+      done: !!profile.photograph,
+      label: "Add your photograph",
+      href: "/dashboard/profile",
+    },
+    {
+      done: clubs.some((c) => c.active),
+      label: "Add a club",
+      href: "/dashboard/clubs",
+    },
+    {
+      done: lessons.some((l) => l.active),
+      label: "Add a lesson",
+      href: "/dashboard/lessons",
+    },
+    {
+      done: rules.length > 0,
+      label: "Set your weekly availability",
+      href: "/dashboard/availability",
+    },
+    {
+      done: !!profile.tagline || profile.highlights.length > 0,
+      label: "Add a tagline or highlights",
+      href: "/dashboard/profile?tab=appearance",
+    },
   ];
   const remaining = checklist.filter((c) => !c.done);
   const copy = async () => {
@@ -57,7 +86,9 @@ export function OverviewPage() {
         description="What needs you today, and how your page looks to players."
       />
       <div className="overview-cards">
-        <section className={`panel attention ${pending.length ? "has-work" : ""}`}>
+        <section
+          className={`panel attention ${pending.length ? "has-work" : ""}`}
+        >
           <Inbox aria-hidden="true" />
           <div>
             <h2>
@@ -97,12 +128,56 @@ export function OverviewPage() {
               {copied ? <Check size={14} /> : <Copy size={14} />}
               {copied ? "Copied" : "Copy link"}
             </button>
-            <Link className="text-button" href="/dashboard/profile?tab=appearance">
+            <Link
+              className="text-button"
+              href="/dashboard/profile?tab=appearance"
+            >
               Edit look
             </Link>
           </div>
         </section>
       </div>
+      {tomorrow.length > 0 && (
+        <section className="panel tomorrow" aria-label="Tomorrow">
+          <div className="section-heading">
+            <h2>Tomorrow · {mock.formatDate(tomorrowKey)}</h2>
+            <span className="muted">
+              Remind players on WhatsApp. You send each message yourself.
+            </span>
+          </div>
+          {tomorrow.map((b) => {
+            const href = whatsappLink(workspace, b, "reminder");
+            return (
+              <div className="reminder-row" key={b.id}>
+                <span className="reminder-time">{mock.time(b.hour)}</span>
+                <div className="grow">
+                  <strong>{b.player}</strong>
+                  <small>
+                    {lessons.find((l) => l.id === b.lessonId)?.name} ·{" "}
+                    {clubs.find((c) => c.id === b.clubId)?.name}
+                  </small>
+                </div>
+                {href ? (
+                  <a
+                    className="button small"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle size={14} aria-hidden="true" /> Send reminder
+                    <span className="sr-only">
+                      {" "}
+                      to {b.player} (opens WhatsApp)
+                    </span>
+                  </a>
+                ) : (
+                  <span className="muted">No phone number</span>
+                )}
+              </div>
+            );
+          })}
+        </section>
+      )}
       {remaining.length > 0 && (
         <section className="panel checklist">
           <div className="section-heading">

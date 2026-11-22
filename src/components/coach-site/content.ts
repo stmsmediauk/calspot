@@ -43,9 +43,10 @@ export function formatDay(
   date: Date,
   options: Intl.DateTimeFormatOptions,
 ): string {
-  return new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...options }).format(
-    date,
-  );
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    ...options,
+  }).format(date);
 }
 /** Short zone name for a date, e.g. GMT in winter and BST in summer. */
 export function zoneName(date: Date) {

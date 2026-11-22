@@ -112,3 +112,23 @@
 - Prototype only: no accounts, email, authentication or hosting. The public page remains at the single pilot route.
 - Verified lint, strict types, production build, validation errors, a full run-through at 1440px and 390px, the resulting dashboard and public page, and no horizontal overflow.
 
+## 0.9.0 — Prototype gap fixes
+
+- Added a server-side tenant lookup seam (`getTenantWorkspace`); the public page now has `generateMetadata`, Open Graph data and Person structured data. Split pure workspace model and validation into `workspace-model.ts`.
+- Added draft Privacy and Terms pages with footer links, a visible draft notice and placeholders for legal review.
+- Added an optional logo for dark looks; dark looks fall back to a text wordmark without one.
+- Requests: list-and-detail inbox on wide screens, optional notes, "suggest another time" from real availability, overlap badges and history of offered times.
+- Added an unsaved-changes prompt for in-app navigation away from My profile.
+- Removed duplicate component `<title>` tags in favour of page metadata.
+- Verified lint, strict types, production build, server HTML metadata, legal pages and footer links, inbox note and suggestion flow, overlap warning, the unsaved guard (stay, discard, clean) and logo fallback.
+
+## 0.10.0 — WhatsApp click-to-chat
+
+- Replaced the unsent WhatsApp preview dialog with real `wa.me` click-to-chat links. Nothing is sent by Calspot; people press Send in their own WhatsApp. No WhatsApp API is used.
+- Public page: **Message on WhatsApp** beside the main call to action in all hero layouts, WhatsApp as the default contact preference when the coach has a number, and **Send to {coach} on WhatsApp** after a request with the details ready to send.
+- Dashboard: approve, decline and suggest-another-time open a draft message to the player (opt-out tick box, optional personal line); follow-up buttons on decided requests; a **Tomorrow** reminders list on Overview.
+- Added four editable message templates with placeholders and a live example in My profile → Contact.
+- Added fictional player phone numbers to sample bookings and a shared helper for number normalisation (UK 0-numbers become +44), template rendering and link building.
+- Fixed the request form choosing its contact default before saved data loaded.
+- Verified lint, strict types, production build, hero and confirmation links, the approve and suggest flows opening the right drafts, custom templates, reminders, the no-phone case and earlier flows.
+

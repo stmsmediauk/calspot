@@ -88,7 +88,8 @@ export const accentSwatches = [
 export type CoachAccent = "palette" | (typeof accentSwatches)[number]["value"];
 export function isCoachAccent(value: unknown): value is CoachAccent {
   return (
-    value === "palette" || accentSwatches.some((swatch) => swatch.value === value)
+    value === "palette" ||
+    accentSwatches.some((swatch) => swatch.value === value)
   );
 }
 
@@ -193,53 +194,94 @@ export const lookPresets = [
     id: "studio",
     name: "Studio",
     description: "Clean editorial, soft corners",
-    appearance: { hero: "editorial", palette: "studio", accent: "palette", font: "geist", corners: "soft" },
+    appearance: {
+      hero: "editorial",
+      palette: "studio",
+      accent: "palette",
+      font: "geist",
+      corners: "soft",
+    },
   },
   {
     id: "journal",
     name: "Journal",
     description: "Serif headline, warm sand",
-    appearance: { hero: "editorial", palette: "sand", accent: "palette", font: "serif", corners: "sharp" },
+    appearance: {
+      hero: "editorial",
+      palette: "sand",
+      accent: "palette",
+      font: "serif",
+      corners: "sharp",
+    },
   },
   {
     id: "clay",
     name: "Clay split",
     description: "Portrait beside the name",
-    appearance: { hero: "split", palette: "clay", accent: "palette", font: "geist", corners: "soft" },
+    appearance: {
+      hero: "split",
+      palette: "clay",
+      accent: "palette",
+      font: "geist",
+      corners: "soft",
+    },
   },
   {
     id: "court",
     name: "Fresh court",
     description: "Sage and lime, rounded",
-    appearance: { hero: "split", palette: "court", accent: "palette", font: "geist", corners: "pill" },
+    appearance: {
+      hero: "split",
+      palette: "court",
+      accent: "palette",
+      font: "geist",
+      corners: "pill",
+    },
   },
   {
     id: "midnight",
     name: "Midnight bold",
     description: "Dark, full-bleed, condensed",
-    appearance: { hero: "overlay", palette: "midnight", accent: "palette", font: "condensed", corners: "sharp" },
+    appearance: {
+      hero: "overlay",
+      palette: "midnight",
+      accent: "palette",
+      font: "condensed",
+      corners: "sharp",
+    },
   },
 ] as const satisfies readonly {
   id: string;
   name: string;
   description: string;
-  appearance: Pick<CoachAppearance, "hero" | "palette" | "accent" | "font" | "corners">;
+  appearance: Pick<
+    CoachAppearance,
+    "hero" | "palette" | "accent" | "font" | "corners"
+  >;
 }[];
 
 /** Returns the preset whose look fields all match, if any. */
 export function matchingLook(appearance: CoachAppearance) {
   return lookPresets.find((preset) =>
-    (Object.keys(preset.appearance) as (keyof typeof preset.appearance)[]).every(
-      (key) => preset.appearance[key] === appearance[key],
-    ),
+    (
+      Object.keys(preset.appearance) as (keyof typeof preset.appearance)[]
+    ).every((key) => preset.appearance[key] === appearance[key]),
   );
 }
 
 /** Validates unknown saved data, falling back per field. */
-export function sanitiseAppearance(value: unknown, legacyPalette?: unknown): CoachAppearance {
-  const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+export function sanitiseAppearance(
+  value: unknown,
+  legacyPalette?: unknown,
+): CoachAppearance {
+  const raw = (value && typeof value === "object" ? value : {}) as Record<
+    string,
+    unknown
+  >;
   const flag = (key: keyof CoachAppearance) =>
-    typeof raw[key] === "boolean" ? (raw[key] as boolean) : (defaultAppearance[key] as boolean);
+    typeof raw[key] === "boolean"
+      ? (raw[key] as boolean)
+      : (defaultAppearance[key] as boolean);
   return {
     hero: isHeroLayout(raw.hero) ? raw.hero : defaultAppearance.hero,
     palette: isCoachPalette(raw.palette)
@@ -249,7 +291,9 @@ export function sanitiseAppearance(value: unknown, legacyPalette?: unknown): Coa
         : defaultAppearance.palette,
     accent: isCoachAccent(raw.accent) ? raw.accent : defaultAppearance.accent,
     font: isTypePairing(raw.font) ? raw.font : defaultAppearance.font,
-    corners: isCornerStyle(raw.corners) ? raw.corners : defaultAppearance.corners,
+    corners: isCornerStyle(raw.corners)
+      ? raw.corners
+      : defaultAppearance.corners,
     showHighlights: flag("showHighlights"),
     showTestimonials: flag("showTestimonials"),
     showFaq: flag("showFaq"),
@@ -270,7 +314,8 @@ export function contrastRatio(a: string, b: string) {
 }
 /** Picks black or white text for a filled background, whichever reads better. */
 export function readableOn(background: string) {
-  return contrastRatio("#ffffff", background) >= contrastRatio("#141414", background)
+  return contrastRatio("#ffffff", background) >=
+    contrastRatio("#141414", background)
     ? "#ffffff"
     : "#141414";
 }
@@ -278,8 +323,10 @@ export function readableOn(background: string) {
 /** Resolves an appearance to concrete colours, including derived contrast values. */
 export function resolveColours(appearance: CoachAppearance) {
   const palette = coachPalettes[appearance.palette];
-  const accent = appearance.accent === "palette" ? palette.accent : appearance.accent;
-  const onAccent = appearance.accent === "palette" ? palette.onAccent : readableOn(accent);
+  const accent =
+    appearance.accent === "palette" ? palette.accent : appearance.accent;
+  const onAccent =
+    appearance.accent === "palette" ? palette.onAccent : readableOn(accent);
   const accentOnPage = contrastRatio(accent, palette.background);
   return {
     palette,
@@ -298,7 +345,11 @@ export function nameFontSize(name: string, appearance: CoachAppearance) {
   const longest = Math.max(...words.map((w) => w.length), 4);
   const width = typePairings[appearance.font].nameWidth;
   const column =
-    appearance.hero === "split" ? 0.5 : appearance.hero === "overlay" ? 0.62 : 1;
+    appearance.hero === "split"
+      ? 0.5
+      : appearance.hero === "overlay"
+        ? 0.62
+        : 1;
   const vw = Math.min(14.5, 90 / (longest * width)) * column;
   const px = Math.min(210, 1290 / (longest * width)) * column;
   return `clamp(${appearance.hero === "split" ? 44 : 52}px, ${vw.toFixed(2)}vw, ${px.toFixed(0)}px)`;

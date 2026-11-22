@@ -29,7 +29,13 @@ type Props = {
 };
 
 /** Small themed card showing how the chosen look treats the coach's name. */
-export function LookPreview({ appearance, name }: { appearance: CoachAppearance; name: string }) {
+export function LookPreview({
+  appearance,
+  name,
+}: {
+  appearance: CoachAppearance;
+  name: string;
+}) {
   const lines = nameLines(name);
   return (
     <div
@@ -73,7 +79,11 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
       <small>{hint}</small>
     </label>
   );
-  const setHighlight = (index: number, key: "value" | "label", text: string) => {
+  const setHighlight = (
+    index: number,
+    key: "value" | "label",
+    text: string,
+  ) => {
     const list = [0, 1, 2].map(
       (i) => draft.highlights[i] ?? { value: "", label: "" },
     );
@@ -105,7 +115,10 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
           <div className={styles.lookGrid}>
             {lookPresets.map((preset) => {
               const selected = current?.id === preset.id;
-              const preview: CoachAppearance = { ...appearance, ...preset.appearance };
+              const preview: CoachAppearance = {
+                ...appearance,
+                ...preset.appearance,
+              };
               return (
                 <label
                   key={preset.id}
@@ -140,7 +153,14 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
             <legend>Page style</legend>
             <div className={styles.choiceRow}>
               {(Object.keys(heroLayouts) as HeroLayoutId[]).map((id) =>
-                radio("hero", id, appearance.hero === id, heroLayouts[id].name, heroLayouts[id].description, (hero) => onAppearance({ hero })),
+                radio(
+                  "hero",
+                  id,
+                  appearance.hero === id,
+                  heroLayouts[id].name,
+                  heroLayouts[id].description,
+                  (hero) => onAppearance({ hero }),
+                ),
               )}
             </div>
           </fieldset>
@@ -148,7 +168,14 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
             <legend>Colours</legend>
             <div className={styles.choiceRow}>
               {(Object.keys(coachPalettes) as CoachPaletteId[]).map((id) =>
-                radio("palette", id, appearance.palette === id, coachPalettes[id].name, coachPalettes[id].description, (palette) => onAppearance({ palette })),
+                radio(
+                  "palette",
+                  id,
+                  appearance.palette === id,
+                  coachPalettes[id].name,
+                  coachPalettes[id].description,
+                  (palette) => onAppearance({ palette }),
+                ),
               )}
             </div>
           </fieldset>
@@ -186,7 +213,14 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
             <legend>Type</legend>
             <div className={styles.choiceRow}>
               {(Object.keys(typePairings) as TypePairingId[]).map((id) =>
-                radio("font", id, appearance.font === id, typePairings[id].name, typePairings[id].description, (font) => onAppearance({ font })),
+                radio(
+                  "font",
+                  id,
+                  appearance.font === id,
+                  typePairings[id].name,
+                  typePairings[id].description,
+                  (font) => onAppearance({ font }),
+                ),
               )}
             </div>
           </fieldset>
@@ -194,7 +228,14 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
             <legend>Corners</legend>
             <div className={styles.choiceRow}>
               {(Object.keys(cornerStyles) as CornerStyleId[]).map((id) =>
-                radio("corners", id, appearance.corners === id, cornerStyles[id].name, "", (corners) => onAppearance({ corners })),
+                radio(
+                  "corners",
+                  id,
+                  appearance.corners === id,
+                  cornerStyles[id].name,
+                  "",
+                  (corners) => onAppearance({ corners }),
+                ),
               )}
             </div>
           </fieldset>
@@ -219,7 +260,9 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
             <input
               type="checkbox"
               checked={appearance.showHighlights}
-              onChange={(e) => onAppearance({ showHighlights: e.target.checked })}
+              onChange={(e) =>
+                onAppearance({ showHighlights: e.target.checked })
+              }
             />
             Show highlights under the photograph
           </label>
@@ -248,7 +291,9 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
             <input
               type="checkbox"
               checked={appearance.showTestimonials}
-              onChange={(e) => onAppearance({ showTestimonials: e.target.checked })}
+              onChange={(e) =>
+                onAppearance({ showTestimonials: e.target.checked })
+              }
             />
             Show testimonials. The section appears only when you add one.
           </label>
@@ -267,7 +312,9 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
                 value={draft.testimonials[i]?.attribution ?? ""}
                 maxLength={60}
                 placeholder="e.g. Club player, Preston"
-                onChange={(e) => setTestimonial(i, "attribution", e.target.value)}
+                onChange={(e) =>
+                  setTestimonial(i, "attribution", e.target.value)
+                }
               />
             </div>
           ))}
@@ -312,7 +359,9 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
                     min={0}
                     max={100}
                     value={draft.photoFocusX}
-                    onChange={(e) => onPatch({ photoFocusX: Number(e.target.value) })}
+                    onChange={(e) =>
+                      onPatch({ photoFocusX: Number(e.target.value) })
+                    }
                   />
                 </label>
                 <label>
@@ -322,7 +371,9 @@ export function AppearanceEditor({ draft, onAppearance, onPatch }: Props) {
                     min={0}
                     max={100}
                     value={draft.photoFocusY}
-                    onChange={(e) => onPatch({ photoFocusY: Number(e.target.value) })}
+                    onChange={(e) =>
+                      onPatch({ photoFocusY: Number(e.target.value) })
+                    }
                   />
                 </label>
               </div>

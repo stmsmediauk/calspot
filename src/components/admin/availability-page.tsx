@@ -46,7 +46,9 @@ function CopyDay({ from, name }: { from: number; name: string }) {
                   checked={targets.includes(d.day)}
                   onChange={(e) =>
                     setTargets((t) =>
-                      e.target.checked ? [...t, d.day] : t.filter((x) => x !== d.day),
+                      e.target.checked
+                        ? [...t, d.day]
+                        : t.filter((x) => x !== d.day),
                     )
                   }
                 />
@@ -66,12 +68,18 @@ function CopyDay({ from, name }: { from: number; name: string }) {
                   rules: [
                     ...c.rules.filter((r) => !targets.includes(r.day)),
                     ...targets.flatMap((day) =>
-                      source.map((r) => ({ ...r, id: crypto.randomUUID(), day })),
+                      source.map((r) => ({
+                        ...r,
+                        id: crypto.randomUUID(),
+                        day,
+                      })),
                     ),
                   ],
                 };
               });
-              notify(`Copied ${name}’s times to ${targets.length} other day${targets.length > 1 ? "s" : ""}.`);
+              notify(
+                `Copied ${name}’s times to ${targets.length} other day${targets.length > 1 ? "s" : ""}.`,
+              );
               setTargets([]);
               setOpen(false);
             }}
@@ -89,8 +97,10 @@ export function AvailabilityPage() {
   const { openModal } = useAdmin();
   const activeLessons = lessons.filter((l) => l.active);
   const [previewLesson, setPreviewLesson] = useState("");
-  const lesson = activeLessons.find((l) => l.id === previewLesson) ?? activeLessons[0];
-  const club = (id: string) => clubs.find((c) => c.id === id)?.name ?? "Unknown club";
+  const lesson =
+    activeLessons.find((l) => l.id === previewLesson) ?? activeLessons[0];
+  const club = (id: string) =>
+    clubs.find((c) => c.id === id)?.name ?? "Unknown club";
   const previewDays = Array.from({ length: 7 }, (_, i) => {
     const d = mock.parseDate(mock.demoWeek);
     d.setDate(d.getDate() + i);
@@ -115,9 +125,7 @@ export function AvailabilityPage() {
           <div className="section-heading">
             <div>
               <h2>Your regular week</h2>
-              <p>
-                Local times · {platform.timeZone} · 60 or 90 minute lessons
-              </p>
+              <p>Local times · {platform.timeZone} · 60 or 90 minute lessons</p>
             </div>
           </div>
           {week.map(({ day, name }) => {
@@ -128,7 +136,9 @@ export function AvailabilityPage() {
               <div className="day-row" key={day}>
                 <h3>{name}</h3>
                 <div className="day-slots">
-                  {dayRules.length === 0 && <span className="muted">Day off</span>}
+                  {dayRules.length === 0 && (
+                    <span className="muted">Day off</span>
+                  )}
                   {dayRules.map((r) => (
                     <span className="slot-chip" key={r.id}>
                       <button
@@ -140,7 +150,8 @@ export function AvailabilityPage() {
                           {mock.time(r.start)}–{mock.time(r.end)}
                         </strong>
                         <small>
-                          {club(r.clubId)} · {mock.lessonName(lessons, r.lessonId)}
+                          {club(r.clubId)} ·{" "}
+                          {mock.lessonName(lessons, r.lessonId)}
                         </small>
                       </button>
                       <button

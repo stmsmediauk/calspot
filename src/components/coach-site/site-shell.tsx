@@ -15,6 +15,9 @@ export function SiteShell({
 }) {
   const { profile } = useCoachWorkspace();
   const { appearance } = profile;
+  /** A dark logo vanishes on a dark look, so use the dark-look logo or fall back to text. */
+  const logo =
+    appearance.palette === "midnight" ? profile.logoDark : profile.logo;
   return (
     <div
       className={styles.site}
@@ -38,9 +41,9 @@ export function SiteShell({
           href={publicCoach.basePath}
           aria-label={`${profile.name} home`}
         >
-          {profile.logo ? (
+          {logo ? (
             <Image
-              src={profile.logo}
+              src={logo}
               alt={`${profile.name} logo`}
               width={180}
               height={55}
@@ -75,7 +78,11 @@ export function SiteShell({
         <span>
           © {profile.name} · {profile.title}
         </span>
-        {appearance.poweredBy && <span>Powered by calspot.</span>}
+        <nav className={styles.footerLinks} aria-label="Legal">
+          <Link href={`${publicCoach.basePath}/privacy`}>Privacy</Link>
+          <Link href={`${publicCoach.basePath}/terms`}>Terms</Link>
+          {appearance.poweredBy && <span>Powered by calspot.</span>}
+        </nav>
       </footer>
     </div>
   );

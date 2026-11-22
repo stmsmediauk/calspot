@@ -37,8 +37,7 @@ export function Testimonials() {
         <div className={styles.quoteGrid}>
           {items.map((t) => (
             <blockquote key={t.quote}>
-              “{t.quote}”
-              {t.attribution && <cite>{t.attribution}</cite>}
+              “{t.quote}”{t.attribution && <cite>{t.attribution}</cite>}
             </blockquote>
           ))}
         </div>

@@ -36,14 +36,20 @@ export function ClubsPage() {
         title="Clubs"
         description="Where you coach. Active clubs appear on your page and in the request form."
         action={
-          <button className="button" onClick={() => openModal({ kind: "club" })}>
+          <button
+            className="button"
+            onClick={() => openModal({ kind: "club" })}
+          >
             <Plus size={16} aria-hidden="true" /> Add club
           </button>
         }
       />
       <section className="panel list-panel">
         {clubs.map((club) => (
-          <article className={`list-row ${club.active ? "" : "off"}`} key={club.id}>
+          <article
+            className={`list-row ${club.active ? "" : "off"}`}
+            key={club.id}
+          >
             <MapPin size={18} aria-hidden="true" />
             <div className="grow">
               <h2>{club.name}</h2>
@@ -95,14 +101,20 @@ export function LessonsPage() {
         title="Lessons"
         description="What players can request. Active lessons appear on your page in this order."
         action={
-          <button className="button" onClick={() => openModal({ kind: "lesson" })}>
+          <button
+            className="button"
+            onClick={() => openModal({ kind: "lesson" })}
+          >
             <Plus size={16} aria-hidden="true" /> Add lesson
           </button>
         }
       />
       <section className="panel list-panel">
         {lessons.map((lesson, index) => (
-          <article className={`list-row ${lesson.active ? "" : "off"}`} key={lesson.id}>
+          <article
+            className={`list-row ${lesson.active ? "" : "off"}`}
+            key={lesson.id}
+          >
             <div className="reorder">
               <button
                 type="button"
@@ -127,8 +139,8 @@ export function LessonsPage() {
               <h2>{lesson.name}</h2>
               <p>{lesson.description}</p>
               <small>
-                <Clock3 size={13} aria-hidden="true" /> {lesson.duration} minutes
-                · £{lesson.price} guide price
+                <Clock3 size={13} aria-hidden="true" /> {lesson.duration}{" "}
+                minutes · £{lesson.price} guide price
               </small>
             </div>
             <label className="visibility">
@@ -155,7 +167,9 @@ export function LessonsPage() {
           </article>
         ))}
       </section>
-      <p className="footnote">Descriptions and club notes are shown to players on your page.</p>
+      <p className="footnote">
+        Descriptions and club notes are shown to players on your page.
+      </p>
     </>
   );
 }

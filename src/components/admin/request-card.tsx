@@ -5,23 +5,12 @@ import * as mock from "@/lib/mock-data";
 import type { Booking } from "@/lib/mock-data";
 import { Badge } from "../ui";
 import { useAdmin } from "./context";
+import { useClash } from "./reply-actions";
 
 export function RequestCard({ b }: { b: Booking }) {
-  const { clubs, lessons, bookings } = useCoachWorkspace();
+  const { clubs, lessons } = useCoachWorkspace();
   const { decide, openModal } = useAdmin();
-  const length = (id: string) =>
-    (lessons.find((l) => l.id === id)?.duration ?? 60) / 60;
-  const clash =
-    b.status === "pending"
-      ? bookings.find(
-          (o) =>
-            o.id !== b.id &&
-            o.status === "confirmed" &&
-            o.date === b.date &&
-            b.hour < o.hour + length(o.lessonId) &&
-            o.hour < b.hour + length(b.lessonId),
-        )
-      : undefined;
+  const clash = useClash(b);
   return (
     <article className="request-card">
       <div className="person-avatar">

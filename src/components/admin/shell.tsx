@@ -1,8 +1,8 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
   Check,
@@ -30,7 +30,8 @@ import { Logo } from "../logo";
 import { Modal } from "../ui";
 import { Badge } from "../ui";
 import { BookingDetail } from "./booking-detail";
-import { AdminContext, type ModalState } from "./context";
+import { AdminContext, type DecisionExtras, type ModalState } from "./context";
+import * as mock from "@/lib/mock-data";
 
 export const navItems = [
   { name: "Overview", href: "/dashboard/overview", icon: LayoutDashboard },
@@ -54,7 +55,9 @@ export function CoachAvatar({ size = 36 }: { size?: number }) {
       width={size}
       height={size}
       unoptimized
-      style={{ objectPosition: `${profile.photoFocusX}% ${profile.photoFocusY}%` }}
+      style={{
+        objectPosition: `${profile.photoFocusX}% ${profile.photoFocusY}%`,
+      }}
     />
   ) : (
     <span className="coach-mark" style={{ width: size, height: size }}>
@@ -70,24 +73,46 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [notice, setNotice] = useState("");
   const [modal, setModal] = useState<ModalState | null>(null);
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
+  const dirty = useRef(false);
+  const [leaving, setLeaving] = useState<string | null>(null);
+  const setDirty = useCallback((value: boolean) => {
+    dirty.current = value;
+  }, []);
+  /** Link click handler that asks before leaving a page with unsaved edits. */
+  const guard =
+    (href: string, then?: () => void) => (event: React.MouseEvent) => {
+      if (dirty.current) {
+        event.preventDefault();
+        setLeaving(href);
+      } else then?.();
+    };
   const pending = bookings.filter((b) => b.status === "pending").length;
   const look = matchingLook(profile.appearance);
 
-  const decide = useCallback((id: string, status: Booking["status"]) => {
-    updateCoachWorkspace((current) => ({
-      ...current,
-      bookings: current.bookings.map((b) => (b.id === id ? { ...b, status } : b)),
-    }));
-    setNotice(
-      platform.demoMode
-        ? `Demo request ${status}. No email was sent.`
-        : `Request ${status}.`,
-    );
-    setModal(null);
-  }, []);
+  const decide = useCallback(
+    (id: string, status: Booking["status"], extras?: DecisionExtras) => {
+      updateCoachWorkspace((current) => ({
+        ...current,
+        bookings: current.bookings.map((b) =>
+          b.id === id ? { ...b, status, ...extras } : b,
+        ),
+      }));
+      const offer = extras?.suggested
+        ? ` and suggested ${mock.formatDate(extras.suggested.date)} at ${mock.time(extras.suggested.hour)}`
+        : "";
+      setNotice(
+        platform.demoMode
+          ? `Demo request ${status}${offer}. No email was sent.`
+          : `Request ${status}${offer}.`,
+      );
+      setModal(null);
+    },
+    [],
+  );
   const context = useMemo(
-    () => ({ openModal: setModal, notify: setNotice, decide }),
-    [decide],
+    () => ({ openModal: setModal, notify: setNotice, decide, setDirty }),
+    [decide, setDirty],
   );
   const current =
     navItems.find((item) => pathname.startsWith(item.href))?.name ?? "";
@@ -99,7 +124,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      setNotice(`Your page link is ${window.location.origin}${platform.publicBasePath}`);
+      setNotice(
+        `Your page link is ${window.location.origin}${platform.publicBasePath}`,
+      );
     }
   };
 
@@ -111,7 +138,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         href={item.href}
         className={active ? "active" : ""}
         aria-current={active ? "page" : undefined}
-        onClick={onNavigate}
+        onClick={guard(item.href, onNavigate)}
       >
         <item.icon size={18} aria-hidden="true" />
         {item.name}
@@ -149,7 +176,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {navItems.map((item) => link(item, () => setDrawer(false)))}
           </nav>
           {platform.demoMode && (
-            <Link href="/signup" className="signup-link">
+            <Link
+              href="/signup"
+              className="signup-link"
+              onClick={guard("/signup")}
+            >
               Preview the sign-up flow
             </Link>
           )}
@@ -181,7 +212,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 {copied ? <Check size={15} /> : <Copy size={15} />}
                 {copied ? "Link copied" : "Copy link"}
               </button>
-              <Link className="button small" href={platform.publicBasePath}>
+              <Link
+                className="button small"
+                href={platform.publicBasePath}
+                onClick={guard(platform.publicBasePath)}
+              >
                 <ExternalLink size={15} aria-hidden="true" />
                 View my page
               </Link>
@@ -219,6 +254,34 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             More
           </button>
         </nav>
+        {leaving && (
+          <Modal title="Leave without saving?" onClose={() => setLeaving(null)}>
+            <p className="footnote">
+              You have unsaved changes on this page. If you leave now they will
+              be lost.
+            </p>
+            <div className="form-actions">
+              <button
+                className="button secondary"
+                onClick={() => setLeaving(null)}
+              >
+                Stay on this page
+              </button>
+              <button
+                className="button"
+                onClick={() => {
+                  dirty.current = false;
+                  const target = leaving;
+                  setLeaving(null);
+                  setDrawer(false);
+                  router.push(target);
+                }}
+              >
+                Discard and leave
+              </button>
+            </div>
+          </Modal>
+        )}
         {modal && (
           <Modal
             title={
@@ -231,7 +294,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {modal.kind === "booking" ? (
               <BookingDetail id={modal.id!} />
             ) : (
-              <ModalEditor modal={modal} close={() => setModal(null)} notify={setNotice} />
+              <ModalEditor
+                modal={modal}
+                close={() => setModal(null)}
+                notify={setNotice}
+              />
             )}
           </Modal>
         )}
@@ -266,7 +333,9 @@ function ModalEditor({
       onSave={(value) => {
         const id = modal.id ?? crypto.randomUUID();
         const upsert = <T extends { id: string }>(list: T[], next: T) =>
-          modal.id ? list.map((x) => (x.id === id ? next : x)) : [...list, next];
+          modal.id
+            ? list.map((x) => (x.id === id ? next : x))
+            : [...list, next];
         updateCoachWorkspace((c) => ({
           ...c,
           ...(modal.kind === "club"

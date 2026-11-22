@@ -8,10 +8,20 @@ export type ModalState = {
   /** Pre-filled values for a new record, such as the weekday for a rule. */
   defaults?: Record<string, unknown>;
 };
+export type DecisionExtras = {
+  reply?: string;
+  suggested?: { date: string; hour: number };
+};
 export type AdminContextValue = {
   openModal: (modal: ModalState) => void;
   notify: (message: string) => void;
-  decide: (id: string, status: Booking["status"]) => void;
+  decide: (
+    id: string,
+    status: Booking["status"],
+    extras?: DecisionExtras,
+  ) => void;
+  /** Tells the shell a page has unsaved edits, so navigation asks first. */
+  setDirty: (dirty: boolean) => void;
 };
 export const AdminContext = createContext<AdminContextValue | null>(null);
 export function useAdmin() {

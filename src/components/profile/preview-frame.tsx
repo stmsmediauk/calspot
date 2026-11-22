@@ -128,7 +128,12 @@ export function PreviewSheet({
           <X size={20} />
         </button>
       </header>
-      <iframe ref={frame} title="Booking page preview" src="/preview" onLoad={onLoad} />
+      <iframe
+        ref={frame}
+        title="Booking page preview"
+        src="/preview"
+        onLoad={onLoad}
+      />
     </div>
   );
 }

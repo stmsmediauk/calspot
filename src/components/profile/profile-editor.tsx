@@ -12,8 +12,16 @@ import {
 } from "@/lib/coach-workspace";
 import { type CoachAppearance } from "@/lib/coach-theme";
 import { useMediaQuery } from "@/lib/use-media";
+import {
+  defaultTemplates,
+  renderTemplate,
+  templateFields,
+  templateLabels,
+  type WhatsAppTemplates,
+} from "@/lib/whatsapp";
 import { AppearanceEditor } from "./appearance-editor";
 import { PreviewFrame, PreviewSheet } from "./preview-frame";
+import { useAdmin } from "../admin/context";
 import styles from "./profile-editor.module.css";
 
 export function AssetInput({
@@ -127,6 +135,11 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
     () => ({ ...workspace, profile: draft }),
     [workspace, draft],
   );
+  const { setDirty } = useAdmin();
+  useEffect(() => {
+    setDirty(dirty);
+    return () => setDirty(false);
+  }, [dirty, setDirty]);
   useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => event.preventDefault();
@@ -151,7 +164,11 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
   const save = () => {
     setError("");
     setStatus("");
-    if (!draft.name.trim() || !draft.title.trim() || !draft.introduction.trim()) {
+    if (
+      !draft.name.trim() ||
+      !draft.title.trim() ||
+      !draft.introduction.trim()
+    ) {
       setTab("profile");
       setError("Add your name, coaching title and short introduction.");
       return;
@@ -187,6 +204,14 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
           attribution: t.attribution.trim(),
         }))
         .filter((t) => t.quote),
+      whatsappTemplates: Object.fromEntries(
+        (Object.keys(defaultTemplates) as (keyof WhatsAppTemplates)[]).map(
+          (key) => [
+            key,
+            draft.whatsappTemplates[key].trim() || defaultTemplates[key],
+          ],
+        ),
+      ) as WhatsAppTemplates,
       introduction: draft.introduction.trim(),
       experience: draft.experience.trim(),
       location: draft.location.trim(),
@@ -220,7 +245,10 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
         <div className="page-header">
           <div>
             <h1>My profile</h1>
-            <p>Your details and how your booking page looks. Changes show in the preview.</p>
+            <p>
+              Your details and how your booking page looks. Changes show in the
+              preview.
+            </p>
           </div>
         </div>
         <div className="tabs" role="tablist" aria-label="Profile sections">
@@ -313,6 +341,16 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
                   onChange={(value) => change("logo", value)}
                   {...assetProps}
                 />
+                <AssetInput
+                  label="Logo for dark looks"
+                  value={draft.logoDark}
+                  onChange={(value) => change("logoDark", value)}
+                  {...assetProps}
+                />
+                <p className={styles.hint}>
+                  Dark looks such as Midnight use this light version. Without
+                  one, your name is shown as text so it stays readable.
+                </p>
               </section>
             </>
           )}
@@ -327,7 +365,10 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
             <>
               <section className={`panel ${styles.section}`}>
                 <h3>Contact options</h3>
-                <p>WhatsApp is shown only when you provide a valid number.</p>
+                <p>
+                  Add your WhatsApp number to let players message you. It
+                  appears on your page, and WhatsApp opens in their own app.
+                </p>
                 <label>
                   WhatsApp number <span>(optional)</span>
                   <input
@@ -340,7 +381,6 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
                   />
                   <small>
                     Include the country code. Leave blank to hide WhatsApp.
-                    Messages remain a demo preview.
                   </small>
                 </label>
                 <label>
@@ -352,6 +392,57 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
                   />
                 </label>
               </section>
+              <section className={`panel ${styles.section}`}>
+                <h3>WhatsApp messages</h3>
+                <p>
+                  Drafts that open in WhatsApp when you approve, decline or
+                  remind a player. You can edit each one in WhatsApp before you
+                  send it.
+                </p>
+                {(
+                  Object.keys(defaultTemplates) as (keyof WhatsAppTemplates)[]
+                ).map((key) => (
+                  <label key={key}>
+                    {templateLabels[key]}
+                    <textarea
+                      rows={3}
+                      maxLength={600}
+                      value={draft.whatsappTemplates[key]}
+                      onChange={(e) =>
+                        patch({
+                          whatsappTemplates: {
+                            ...draft.whatsappTemplates,
+                            [key]: e.target.value,
+                          },
+                        })
+                      }
+                    />
+                    <small>
+                      Example:{" "}
+                      {renderTemplate(draft.whatsappTemplates[key], {
+                        first: "Sam",
+                        name: "Sam Player",
+                        lesson: "Private lesson",
+                        club: "Riverside",
+                        date: "Tue 24 Nov",
+                        time: "10:00",
+                        suggestion: "Wed 25 Nov at 11:00",
+                        coach: draft.name.split(" ")[0],
+                      })}
+                    </small>
+                  </label>
+                ))}
+                <p className={styles.hint}>
+                  You can use {templateFields.join(" ")}.
+                </p>
+                <button
+                  type="button"
+                  className="button secondary small"
+                  onClick={() => patch({ whatsappTemplates: defaultTemplates })}
+                >
+                  Reset to defaults
+                </button>
+              </section>
               <div className={styles.management}>
                 <p>
                   <strong>Clubs, lessons and availability</strong> are managed
@@ -362,7 +453,10 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
           )}
         </div>
         <div className="save-bar">
-          <p role={error ? "alert" : "status"} className={error ? "form-error" : ""}>
+          <p
+            role={error ? "alert" : "status"}
+            className={error ? "form-error" : ""}
+          >
             {error ||
               status ||
               (reading > 0
