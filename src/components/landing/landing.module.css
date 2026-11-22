@@ -1,0 +1,222 @@
+.page {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text);
+}
+.header,
+.main,
+.footer {
+  max-width: 1040px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 20px;
+}
+.header nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.login {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--text);
+  text-decoration: none;
+}
+.button {
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.button:hover {
+  background: var(--accent-hover);
+}
+/* The dashboard styles give every <main> a sidebar offset; this page has none. */
+.main {
+  margin-left: auto;
+  width: 100%;
+  background: transparent;
+  padding-bottom: 56px;
+}
+.hero {
+  padding: 72px 0 80px;
+  max-width: 720px;
+}
+.eyebrow {
+  margin: 0 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.hero h1 {
+  font-size: clamp(40px, 7vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -2.4px;
+}
+.lead {
+  margin: 24px 0 32px;
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.price {
+  font-size: 16px;
+  font-weight: 600;
+}
+.features,
+.steps,
+.pricing {
+  padding: 56px 0;
+  border-top: 1px solid var(--border);
+}
+.features h2,
+.steps h2,
+.pricing h2 {
+  font-size: 28px;
+  letter-spacing: -0.8px;
+  margin-bottom: 28px;
+}
+.features ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.features li {
+  padding: 24px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+}
+.features h3 {
+  font-size: 18px;
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+}
+.features p {
+  font-size: 16px;
+  color: var(--text-2);
+}
+.steps ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.steps li {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  font-size: 17px;
+  line-height: 1.5;
+}
+.steps li span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.card {
+  max-width: 440px;
+  padding: 32px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+.amount {
+  margin: 0 0 20px;
+  font-size: 48px;
+  font-weight: 600;
+  letter-spacing: -1.6px;
+  color: var(--text);
+  line-height: 1.1;
+}
+.amount span {
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.card ul {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.card li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 16px;
+  line-height: 1.45;
+}
+.card li svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--accent);
+}
+.card .button {
+  width: 100%;
+}
+.footer {
+  display: flex;
+  justify-content: space-between;
+  width: min(992px, calc(100% - 48px));
+  padding-inline: 0;
+  padding-block: 28px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--muted);
+}
+.footer a {
+  color: var(--text-2);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 720px) {
+  .header,
+  .main {
+    padding-inline: 16px;
+  }
+  .footer {
+    width: calc(100% - 32px);
+  }
+  .hero {
+    padding: 40px 0 56px;
+  }
+  .features ul,
+  .steps ol {
+    grid-template-columns: 1fr;
+  }
+  .steps ol {
+    gap: 24px;
+  }
+}
