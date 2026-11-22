@@ -100,7 +100,8 @@
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     "who actions"
-    "counts counts";
+    "counts counts"
+    "support support";
   gap: 16px 24px;
   align-items: start;
   padding: 16px 20px;
@@ -205,7 +206,7 @@
   }
   .list li {
     grid-template-columns: 1fr;
-    grid-template-areas: "who" "counts" "actions";
+    grid-template-areas: "who" "counts" "actions" "support";
     gap: 12px;
   }
   .actions {
@@ -268,4 +269,53 @@
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
   padding: 0 8px;
+}
+
+.supportWrap {
+  grid-column: 1 / -1;
+  grid-area: support;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.support {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+.support h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.support > p {
+  grid-column: 1 / -1;
+}
+.plain,
+.checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+.plain li,
+.checks li {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  grid-template-columns: none;
+}
+.checks li[data-ok="true"] {
+  color: #1a7f37;
+}
+.checks li[data-ok="false"] {
+  color: #b3261e;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }

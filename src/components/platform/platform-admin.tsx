@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { LogoutButton } from "../auth/logout-button";
 import { Logo } from "../logo";
+import { SupportView } from "./support-view";
 import styles from "./platform-admin.module.css";
 
 type CoachRow = {
@@ -55,6 +56,7 @@ export function PlatformAdmin() {
   const [message, setMessage] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [tools, setTools] = useState(true);
+  const [open, setOpen] = useState<string | null>(null);
   const [now] = useState(() => Date.now());
 
   useEffect(() => {
@@ -96,7 +98,9 @@ export function PlatformAdmin() {
   };
 
   const patch = (row: CoachRow, change: Partial<CoachRow>) =>
-    setRows((list) => list.map((r) => (r.id === row.id ? { ...r, ...change } : r)));
+    setRows((list) =>
+      list.map((r) => (r.id === row.id ? { ...r, ...change } : r)),
+    );
   const suspend = async (row: CoachRow) => {
     setMessage("");
     const next = !row.suspended;
@@ -141,12 +145,45 @@ export function PlatformAdmin() {
     });
   };
   const exportCsv = () => {
-    const head = ["Name","Title","Page address","Email","Published","Suspended","Plan","Joined","Last sign in","Clubs","Lessons","Requests","Waiting","Last request"];
-    const lines = [head, ...shown.map((r) => [
-      r.name, r.title, r.slug, r.owner_email, r.published, r.suspended ?? "", r.billing_status ?? "",
-      r.created_at, r.last_sign_in_at ?? "", r.clubs, r.lessons, r.bookings_total, r.bookings_pending, r.last_request_at ?? "",
-    ])];
-    const blob = new Blob([lines.map((l) => l.map(csvCell).join(",")).join("\n")], { type: "text/csv" });
+    const head = [
+      "Name",
+      "Title",
+      "Page address",
+      "Email",
+      "Published",
+      "Suspended",
+      "Plan",
+      "Joined",
+      "Last sign in",
+      "Clubs",
+      "Lessons",
+      "Requests",
+      "Waiting",
+      "Last request",
+    ];
+    const lines = [
+      head,
+      ...shown.map((r) => [
+        r.name,
+        r.title,
+        r.slug,
+        r.owner_email,
+        r.published,
+        r.suspended ?? "",
+        r.billing_status ?? "",
+        r.created_at,
+        r.last_sign_in_at ?? "",
+        r.clubs,
+        r.lessons,
+        r.bookings_total,
+        r.bookings_pending,
+        r.last_request_at ?? "",
+      ]),
+    ];
+    const blob = new Blob(
+      [lines.map((l) => l.map(csvCell).join(",")).join("\n")],
+      { type: "text/csv" },
+    );
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `calspot-coaches-${new Date().toISOString().slice(0, 10)}.csv`;
@@ -183,9 +220,11 @@ export function PlatformAdmin() {
         : filter === "suspended"
           ? r.suspended
           : filter === "busy"
-            ? Number(r.requests_24h ?? 0) >= 10 || Number(r.bookings_pending) >= 10
+            ? Number(r.requests_24h ?? 0) >= 10 ||
+              Number(r.bookings_pending) >= 10
             : filter === "inactive"
-              ? !r.last_sign_in_at || new Date(r.last_sign_in_at).getTime() < cutoff
+              ? !r.last_sign_in_at ||
+                new Date(r.last_sign_in_at).getTime() < cutoff
               : true,
     );
     return q
@@ -260,7 +299,11 @@ export function PlatformAdmin() {
             supabase/admin_tools.sql in the Supabase SQL editor.
           </p>
         )}
-        <div className={styles.filters} role="group" aria-label="Filter coaches">
+        <div
+          className={styles.filters}
+          role="group"
+          aria-label="Filter coaches"
+        >
           {filters.map((f) => (
             <button
               key={f.id}
@@ -282,7 +325,9 @@ export function PlatformAdmin() {
         )}
         {shown.length === 0 ? (
           <p className={styles.empty}>
-            {rows.length ? "No coaches match that search." : "No coaches have signed up yet."}
+            {rows.length
+              ? "No coaches match that search."
+              : "No coaches have signed up yet."}
           </p>
         ) : (
           <ul className={styles.list}>
@@ -327,6 +372,14 @@ export function PlatformAdmin() {
                   </div>
                 </dl>
                 <div className={styles.actions}>
+                  <button
+                    type="button"
+                    className={styles.view}
+                    aria-expanded={open === r.id}
+                    onClick={() => setOpen(open === r.id ? null : r.id)}
+                  >
+                    Support view
+                  </button>
                   {tools && (
                     <label className={styles.plan}>
                       <span>Plan</span>
@@ -351,32 +404,47 @@ export function PlatformAdmin() {
                       View page
                     </Link>
                   )}
-                <button
-                  type="button"
-                  className={r.published ? styles.on : styles.off}
-                  aria-pressed={r.published}
-                  onClick={() => setPublished(r, !r.published)}
-                >
-                  {r.published ? "Published · Unpublish" : "Private · Publish"}
-                </button>
-                {tools && (
-                  <button type="button" className={styles.view} onClick={() => suspend(r)}>
-                    {r.suspended ? "Unsuspend" : "Suspend"}
+                  <button
+                    type="button"
+                    className={r.published ? styles.on : styles.off}
+                    aria-pressed={r.published}
+                    onClick={() => setPublished(r, !r.published)}
+                  >
+                    {r.published
+                      ? "Published · Unpublish"
+                      : "Private · Publish"}
                   </button>
-                )}
-                {tools && Number(r.bookings_pending) > 0 && (
-                  <button type="button" className={styles.view} onClick={() => clearPending(r)}>
-                    Clear waiting requests
+                  {tools && (
+                    <button
+                      type="button"
+                      className={styles.view}
+                      onClick={() => suspend(r)}
+                    >
+                      {r.suspended ? "Unsuspend" : "Suspend"}
+                    </button>
+                  )}
+                  {tools && Number(r.bookings_pending) > 0 && (
+                    <button
+                      type="button"
+                      className={styles.view}
+                      onClick={() => clearPending(r)}
+                    >
+                      Clear waiting requests
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.delete}
+                    onClick={() => remove(r)}
+                  >
+                    Delete
                   </button>
-                )}
-                <button
-                  type="button"
-                  className={styles.delete}
-                  onClick={() => remove(r)}
-                >
-                  Delete
-                </button>
                 </div>
+                {open === r.id && (
+                  <div className={styles.supportWrap}>
+                    <SupportView coachId={r.id} />
+                  </div>
+                )}
               </li>
             ))}
           </ul>
