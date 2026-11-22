@@ -229,6 +229,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 <ExternalLink size={15} aria-hidden="true" />
                 View my page
               </Link>
+              <button
+                type="button"
+                className="button secondary small mobile-only"
+                onClick={async () => {
+                  await signOutCoach();
+                  router.replace("/login");
+                }}
+              >
+                Log out
+              </button>
             </div>
           </div>
           <div className="content">
