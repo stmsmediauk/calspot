@@ -224,7 +224,11 @@ export function Landing() {
 
       <footer className={styles.footer}>
         <span>© Calspot</span>
-        <Link href="/login">Log in</Link>
+        <nav aria-label="Footer">
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/login">Log in</Link>
+        </nav>
       </footer>
     </div>
   );

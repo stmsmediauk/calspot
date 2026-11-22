@@ -551,3 +551,8 @@
     padding-bottom: 0;
   }
 }
+
+.footer nav {
+  display: flex;
+  gap: 20px;
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CoachBookingPage } from "@/components/coach-site/coach-booking-page";
+import { siteUrl } from "@/lib/site";
 import { getTenantWorkspace } from "@/lib/tenant";
 
 const firstSentence = (text: string) =>
@@ -13,21 +14,27 @@ export async function generateMetadata({
   const tenant = await getTenantWorkspace((await params).slug);
   if (!tenant) return {};
   const { profile } = tenant;
-  const title = `${profile.name} · ${profile.title}`;
-  const description = firstSentence(profile.introduction);
+  const where = profile.location ? ` in ${profile.location}` : "";
+  const title = `${profile.name} · ${profile.title}${where}`;
+  const description =
+    profile.tagline.trim() ||
+    firstSentence(profile.introduction) ||
+    `Request a lesson with ${profile.name}.`;
+  const url = `/${(await params).slug}`;
   return {
     title,
     description,
+    alternates: { canonical: url },
     openGraph: {
       title,
       description,
+      url,
       type: "profile",
-      images: profile.photograph
-        ? [{ url: profile.photograph, alt: profile.name }]
-        : undefined,
+      siteName: "Calspot",
+      locale: "en_GB",
     },
-    // Not searchable yet; switch this on when pages are ready for discovery.
-    robots: { index: false, follow: false },
+    twitter: { card: "summary_large_image", title, description },
+    robots: { index: true, follow: true },
   };
 }
 
@@ -41,14 +48,39 @@ export default async function CoachHome({
   const tenant = await getTenantWorkspace((await params).slug);
   const selected = (await searchParams).lesson;
   const profile = tenant?.profile;
+  const slug = (await params).slug;
+  const base = siteUrl();
+  const lessons = tenant?.lessons.filter((l) => l.active) ?? [];
   const structured = profile && {
     "@context": "https://schema.org",
     "@type": "Person",
     name: profile.name,
     jobTitle: profile.title,
     description: profile.introduction,
+    url: `${base}/${slug}`,
+    ...(profile.photograph?.startsWith("http")
+      ? { image: profile.photograph }
+      : {}),
+    ...(profile.location
+      ? { workLocation: { "@type": "Place", name: profile.location } }
+      : {}),
     ...(profile.instagram
       ? { sameAs: [`https://www.instagram.com/${profile.instagram}/`] }
+      : {}),
+    ...(lessons.length
+      ? {
+          makesOffer: lessons.map((l) => ({
+            "@type": "Offer",
+            priceCurrency: "GBP",
+            price: l.price,
+            itemOffered: {
+              "@type": "Service",
+              name: l.name,
+              description: l.description,
+              provider: { "@type": "Person", name: profile.name },
+            },
+          })),
+        }
       : {}),
   };
   return (

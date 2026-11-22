@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Calspot — less admin, more court time</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;800;900&amp;display=swap">
+<style>
+body{margin:0;background:#0B1030}
+a{color:inherit}a:hover{opacity:.85}
+input::placeholder{color:#8A909B}
+.hero-photo{background-image:linear-gradient(90deg,rgba(11,16,48,.55) 0%,rgba(11,16,48,0) 55%),url(/_blob/dccaa4911ce73440c8123077da3be353);background-size:cover;background-position:right center}
+@media (max-width:767px){.hero-photo{background-image:linear-gradient(180deg,rgba(11,16,48,.85) 0%,rgba(11,16,48,.35) 55%,rgba(11,16,48,.1) 100%),url(/_blob/12c407cd68fb11dddd23d14e3797112e);background-position:center bottom}}
+.final-photo{background-image:linear-gradient(180deg,rgba(11,16,48,.35),rgba(11,16,48,.55)),url(/_blob/435e899859de6b8aeeefebcc643fa4de);background-size:cover;background-position:center}
+</style>
+</helmet>
+<div style="font-family: Geist, -apple-system, system-ui, 'Segoe UI', sans-serif; color: #1D1D1F; background: #F5F5F7; letter-spacing: -0.01em; min-height: 100vh">
+
+<header style="background: #0B1030; color: #F5F5F7">
+<div style="max-width: 1240px; margin: 0 auto; padding: 18px 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+<a href="#top" style="text-decoration: none; font-weight: 900; font-size: 26px; letter-spacing: -0.04em">calspot</a>
+<nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center; font-size: 15px">
+<a href="#how" style="text-decoration: none; opacity: .8">How it works</a>
+<a href="#pricing" style="text-decoration: none; opacity: .8">Pricing</a>
+<a href="#faq" style="text-decoration: none; opacity: .8">FAQ</a>
+<a href="#login" style="text-decoration: none; opacity: .8">Log in</a>
+<a href="#claim" style="text-decoration: none; background: #0038FC; color: #FFFFFF; font-weight: 600; padding: 12px 18px; border-radius: 4px; min-height: 20px">Start free trial</a>
+</nav>
+</div>
+</header>
+
+<section id="top" style="position: relative; background: {{ heroBg }}; color: #F5F5F7; overflow: hidden">
+<div class="hero-photo" role="img" aria-label="Padel coach feeding a ball at the net under floodlights" style="position: absolute; inset: 0"></div>
+<div style="position: relative; max-width: 1240px; margin: 0 auto; padding: 120px 24px 140px; min-height: 560px">
+<p style="margin: 0 0 24px; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #DCE4FF">For independent coaches</p>
+<h1 style="margin: 0 0 28px; font-weight: 900; font-size: clamp(56px, 9vw, 132px); line-height: .86; letter-spacing: -0.045em; text-transform: uppercase">Less admin.<br><span style="display: inline-block; background: {{ stripBg }}; padding: 0 .12em .04em; margin-top: .06em">More court time.</span></h1>
+<p style="margin: 0 0 40px; font-size: 20px; line-height: 1.5; max-width: 560px; color: rgba(255,255,255,.85)">Your own booking page in minutes. Players pick a time, you tap approve, and the chat carries on in WhatsApp. No more back-and-forth.</p>
+<form id="claim" onSubmit="{{ claim }}" style="display: flex; flex-wrap: wrap; gap: 8px; max-width: 620px">
+<label for="slug1" style="display: flex; align-items: center; flex: 1 1 320px; background: #F5F5F7; color: #1D1D1F; border-radius: 4px; padding: 0 16px; min-height: 60px; font-size: 18px">
+<span style="color: #6E6E73">calspot.com/</span>
+<input id="slug1" value="{{ name }}" onChange="{{ setName }}" placeholder="your-name" aria-label="Your page name" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-weight: 600; color: #1D1D1F; outline: none; padding: 0">
+</label>
+<a href="#looks" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #FFFFFF; color: #0038FC; font-weight: 800; font-size: 17px; padding: 0 28px; min-height: 60px; border-radius: 4px; text-transform: uppercase; letter-spacing: .01em">Claim my page</a>
+</form>
+<p style="margin: 16px 0 0; font-size: 14px; color: rgba(255,255,255,.7)">14-day free trial · No card needed · Cancel anytime</p>
+</div>
+</section>
+
+<section aria-labelledby="pain" style="background: #F5F5F7">
+<div style="max-width: 1240px; margin: 0 auto; padding: 120px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 64px; align-items: center">
+<div>
+<p style="margin: 0 0 16px; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #0038FC">Sound familiar?</p>
+<h2 id="pain" style="margin: 0 0 24px; font-weight: 900; font-size: clamp(40px, 5vw, 72px); line-height: .9; letter-spacing: -0.04em; text-transform: uppercase">Ten messages to book one lesson.</h2>
+<p style="margin: 0 0 16px; font-size: 19px; line-height: 1.6; color: #4A4F5A; max-width: 480px">Every booking turns into a thread. Which day, what time, which club, how much. Then someone cancels and it starts again, usually at 11pm.</p>
+<p style="margin: 0 0 32px; font-size: 19px; line-height: 1.6; color: #1D1D1F; font-weight: 600; max-width: 480px">Calspot turns all of that into one tap.</p>
+<img src="/_blob/7df06341caabd7614b209a0e4ef914bb" alt="Coach checking their phone courtside next to a padel racket and balls" style="display: block; width: 100%; max-width: 480px; height: 340px; object-fit: cover; object-position: center 40%; border-radius: 10px">
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 20px; align-items: start">
+<div style="background: #E8E8ED; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 14px">
+<p style="margin: 0 0 6px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #6E6E73">Before · WhatsApp</p>
+<span style="align-self: flex-start; background: #fff; padding: 8px 12px; border-radius: 12px; max-width: 85%">Hey, are you free Tues?</span>
+<span style="align-self: flex-end; background: #D9FDD3; padding: 8px 12px; border-radius: 12px; max-width: 85%">Only 6pm, any good?</span>
+<span style="align-self: flex-start; background: #fff; padding: 8px 12px; border-radius: 12px; max-width: 85%">What about 4?</span>
+<span style="align-self: flex-start; background: #fff; padding: 8px 12px; border-radius: 12px; max-width: 85%">Actually could we do Weds</span>
+<span style="align-self: flex-start; background: #fff; padding: 8px 12px; border-radius: 12px; max-width: 85%">Can I bring my mate?</span>
+<span style="align-self: flex-end; background: #D9FDD3; padding: 8px 12px; border-radius: 12px; max-width: 85%">Which club are you at?</span>
+<span style="align-self: flex-start; background: #fff; padding: 8px 12px; border-radius: 12px; max-width: 85%">Is it still the same price?</span>
+<span style="align-self: center; font-size: 12px; color: #6E6E73; margin-top: 4px">23:14</span>
+</div>
+<div style="background: #0B1030; color: #F5F5F7; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<p style="margin: 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #DCE4FF">After · Calspot</p>
+<div style="background: #F5F5F7; color: #1D1D1F; border-radius: 10px; padding: 16px">
+<p style="margin: 0 0 4px; font-size: 12px; color: #0038FC; font-weight: 600">New request</p>
+<p style="margin: 0 0 2px; font-weight: 700; font-size: 16px">Emma W. · Duo session</p>
+<p style="margin: 0 0 14px; font-size: 14px; color: #6E6E73">Wed 16:00 · Riverside Club · 2 players</p>
+<div style="display: flex; gap: 8px">
+<button type="button" style="flex: 1; min-height: 44px; border: 0; border-radius: 6px; background: #0B1030; color: #F5F5F7; font: inherit; font-weight: 600">Approve</button>
+<button type="button" style="flex: 1; min-height: 44px; border: 1px solid #D3D4DA; border-radius: 6px; background: transparent; color: #1D1D1F; font: inherit">Suggest time</button>
+</div>
+</div>
+<span style="align-self: flex-end; background: #D9FDD3; color: #1D1D1F; padding: 8px 12px; border-radius: 12px; font-size: 14px; max-width: 90%">You're booked in for Wed at 4. See you on court!</span>
+</div>
+</div>
+</div>
+</section>
+
+<section id="how" aria-labelledby="how-h" style="background: #FFFFFF; color: #1D1D1F">
+<div style="max-width: 1240px; margin: 0 auto; padding: 120px 24px">
+<h2 id="how-h" style="margin: 0 0 64px; font-weight: 900; font-size: clamp(40px, 5vw, 72px); line-height: .9; letter-spacing: -0.04em; text-transform: uppercase">Live in three steps.</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 32px">
+<div style="border-top: 3px solid #0038FC; padding-top: 24px">
+<p style="margin: 0 0 20px; font-weight: 900; font-size: 88px; line-height: .8; letter-spacing: -0.05em; color: #0038FC">01</p>
+<h3 style="margin: 0 0 10px; font-size: 24px; font-weight: 700">Build your page</h3>
+<p style="margin: 0 0 24px; font-size: 17px; line-height: 1.6; color: #4A4F5A">Add your lessons, prices, clubs and weekly hours. Pick a look. About ten minutes.</p>
+<img src="/_blob/f894814aac5433db0422e2de403f11cc" alt="Coach setting up their page on a laptop courtside" style="display: block; width: 100%; height: 240px; object-fit: cover; border-radius: 8px">
+</div>
+<div style="border-top: 3px solid #0038FC; padding-top: 24px">
+<p style="margin: 0 0 20px; font-weight: 900; font-size: 88px; line-height: .8; letter-spacing: -0.05em; color: #0038FC">02</p>
+<h3 style="margin: 0 0 10px; font-size: 24px; font-weight: 700">Share your link</h3>
+<p style="margin: 0 0 24px; font-size: 17px; line-height: 1.6; color: #4A4F5A">Drop it in your Instagram bio, your club group chat, or send it straight to players.</p>
+<div style="height: 240px; border-radius: 8px; background: #F0F3FF; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #4A4F5A; text-align: center; padding: 16px">Image to come: player booking on their phone</div>
+</div>
+<div style="border-top: 3px solid #0038FC; padding-top: 24px">
+<p style="margin: 0 0 20px; font-weight: 900; font-size: 88px; line-height: .8; letter-spacing: -0.05em; color: #0038FC">03</p>
+<h3 style="margin: 0 0 10px; font-size: 24px; font-weight: 700">Tap approve</h3>
+<p style="margin: 0 0 24px; font-size: 17px; line-height: 1.6; color: #4A4F5A">Requests land in your dashboard. Approve, decline or suggest another time. You stay in charge.</p>
+<img src="/_blob/578e463c3c482164cf609c11546016c9" alt="Coach waving a player onto a floodlit padel court" style="display: block; width: 100%; height: 240px; object-fit: cover; object-position: 60% center; border-radius: 8px">
+</div>
+</div>
+</div>
+</section>
+
+<section id="looks" aria-labelledby="looks-h" style="background: #F5F5F7">
+<div style="max-width: 1240px; margin: 0 auto; padding: 120px 24px">
+<div style="display: flex; flex-wrap: wrap; gap: 32px; justify-content: space-between; align-items: flex-end; margin-bottom: 48px">
+<div style="max-width: 640px">
+<p style="margin: 0 0 16px; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #0038FC">Make it look like you</p>
+<h2 id="looks-h" style="margin: 0; font-weight: 900; font-size: clamp(40px, 5vw, 72px); line-height: .9; letter-spacing: -0.04em; text-transform: uppercase">Here's {{ possessive }} page.</h2>
+</div>
+<label for="slug2" style="display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #D3D4DA; border-radius: 4px; padding: 0 16px; min-height: 52px; font-size: 16px; flex: 0 1 340px">
+<span style="color: #6E6E73">Your name</span>
+<input id="slug2" value="{{ name }}" onChange="{{ setName }}" placeholder="Sam Taylor" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-weight: 600; outline: none; padding: 0">
+</label>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px">
+<sc-for list="{{ looks }}" as="look" hint-placeholder-count="5">
+<div style="background: {{ look.bg }}; color: {{ look.fg }}; border-radius: 10px; padding: 28px 20px; min-height: 260px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px">
+<div>
+<div style="width: 56px; height: 56px; border-radius: 50%; background: {{ look.chip }}; margin-bottom: 18px"></div>
+<p style="margin: 0 0 6px; font-family: {{ look.font }}; font-size: 24px; font-weight: 700; line-height: 1.1">{{ display }}</p>
+<p style="margin: 0; font-size: 13px; opacity: .7">Padel coach · Riverside Club</p>
+</div>
+<div>
+<p style="margin: 0 0 12px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; opacity: .6">{{ look.label }}</p>
+<span style="display: inline-block; background: {{ look.btn }}; color: {{ look.btnFg }}; font-size: 14px; font-weight: 600; padding: 10px 16px; border-radius: 20px">Request a session</span>
+</div>
+</div>
+</sc-for>
+</div>
+<p style="margin: 28px 0 0; font-size: 16px; color: #4A4F5A">Start from a look, then change colours, fonts and layout. Your page lives at <strong style="color: #1D1D1F">calspot.com/{{ slug }}</strong>.</p>
+</div>
+</section>
+
+<section aria-labelledby="why-h" style="background: #0B1030; color: #F5F5F7">
+<div style="max-width: 1240px; margin: 0 auto; padding: 120px 24px">
+<h2 id="why-h" style="margin: 0 0 64px; font-weight: 900; font-size: clamp(40px, 5vw, 72px); line-height: .9; letter-spacing: -0.04em; text-transform: uppercase; max-width: 900px">Built for coaches who'd rather be <span style="text-decoration: underline; text-decoration-color: #0038FC; text-decoration-thickness: 10px; text-underline-offset: 8px">on court.</span></h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 48px">
+<div>
+<h3 style="margin: 0 0 12px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em">Fill the gaps in your week</h3>
+<p style="margin: 0; font-size: 17px; line-height: 1.6; color: rgba(255,255,255,.75)">Players see your open slots and request them straight away, so empty hours get booked without you chasing.</p>
+</div>
+<div>
+<h3 style="margin: 0 0 12px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em">Look pro to new players</h3>
+<p style="margin: 0; font-size: 17px; line-height: 1.6; color: rgba(255,255,255,.75)">A proper page with your photo, story, lessons and prices. First impressions sorted before they've even messaged.</p>
+</div>
+<div>
+<h3 style="margin: 0 0 12px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em">Get your evenings back</h3>
+<p style="margin: 0; font-size: 17px; line-height: 1.6; color: rgba(255,255,255,.75)">No more late-night scheduling threads. Approve with a tap, and ready-made WhatsApp replies do the rest.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="proof-h" style="background: #FFFFFF">
+<div style="max-width: 1240px; margin: 0 auto; padding: 120px 24px">
+<p style="margin: 0 0 16px; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #0038FC">Coaches on Calspot</p>
+<h2 id="proof-h" style="margin: 0 0 48px; font-weight: 900; font-size: clamp(40px, 5vw, 72px); line-height: .9; letter-spacing: -0.04em; text-transform: uppercase">Don't take our word for it.</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px">
+<sc-for list="{{ quotes }}" as="q" hint-placeholder-count="3">
+<figure style="margin: 0; border: 2px dashed #D3D4DA; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 240px; background: #E8E8ED; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #6E6E73; text-align: center; padding: 16px">{{ q.photo }}</div>
+<div style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+<blockquote style="margin: 0; font-size: 20px; line-height: 1.4; font-weight: 600; letter-spacing: -0.01em">“[Coach quote: one line on what changed since using Calspot]”</blockquote>
+<figcaption style="font-size: 14px; color: #6E6E73">[Coach name] · {{ q.sport }} · <a href="#">calspot.com/[name]</a></figcaption>
+</div>
+</figure>
+</sc-for>
+</div>
+</div>
+</section>
+
+<section id="pricing" aria-labelledby="price-h" style="background-color: #0B1030; background-image: radial-gradient(60% 90% at 90% 0, rgba(0,56,252,.45), rgba(0,0,0,0) 70%); color: #F5F5F7">
+<div style="max-width: 1240px; margin: 0 auto; padding: 120px 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 64px; align-items: center">
+<div>
+<p style="margin: 0 0 16px; font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #DCE4FF">One plan. Everything in.</p>
+<h2 id="price-h" style="margin: 0 0 24px; font-weight: 900; font-size: clamp(40px, 5vw, 72px); line-height: .9; letter-spacing: -0.04em; text-transform: uppercase">Less than one lesson a month.</h2>
+<p style="margin: 0; font-size: 19px; line-height: 1.6; color: rgba(255,255,255,.75); max-width: 460px">If Calspot books you one extra session a month, it's paid for itself. Try it free first.</p>
+</div>
+<div style="background: #F5F5F7; color: #1D1D1F; border-radius: 12px; padding: 40px">
+<p style="margin: 0 0 4px; display: flex; align-items: baseline; gap: 8px"><span style="font-weight: 900; font-size: 80px; letter-spacing: -0.05em; line-height: 1">£29</span><span style="font-size: 17px; color: #6E6E73">a month</span></p>
+<p style="margin: 0 0 28px; font-size: 15px; color: #0038FC; font-weight: 600">First 14 days free</p>
+<ul style="margin: 0 0 32px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px; font-size: 17px">
+<sc-for list="{{ features }}" as="f" hint-placeholder-count="5">
+<li style="display: flex; gap: 12px; align-items: flex-start"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0038FC" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M5 12l5 5L20 7"></path></svg><span>{{ f }}</span></li>
+</sc-for>
+</ul>
+<a href="#claim" style="display: flex; align-items: center; justify-content: center; text-decoration: none; background: #0038FC; color: #FFFFFF; font-weight: 800; font-size: 17px; min-height: 60px; border-radius: 4px; text-transform: uppercase">Start my free trial</a>
+<p style="margin: 14px 0 0; text-align: center; font-size: 14px; color: #6E6E73">No card needed · Cancel anytime</p>
+</div>
+</div>
+</section>
+
+<section id="faq" aria-labelledby="faq-h" style="background: #F5F5F7">
+<div style="max-width: 880px; margin: 0 auto; padding: 120px 24px">
+<h2 id="faq-h" style="margin: 0 0 40px; font-weight: 900; font-size: clamp(40px, 5vw, 72px); line-height: .9; letter-spacing: -0.04em; text-transform: uppercase">Questions.</h2>
+<sc-for list="{{ faqs }}" as="item" hint-placeholder-count="5">
+<details style="border-top: 1px solid #D3D4DA; padding: 22px 0">
+<summary style="cursor: pointer; font-size: 21px; font-weight: 700; letter-spacing: -0.01em; min-height: 28px">{{ item.q }}</summary>
+<p style="margin: 14px 0 0; font-size: 17px; line-height: 1.6; color: #4A4F5A">{{ item.a }}</p>
+</details>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="final-h" class="final-photo" style="position: relative; background-color: #0B1030; color: #F5F5F7; overflow: hidden">
+<div style="position: relative; max-width: 1240px; margin: 0 auto; padding: 160px 24px; text-align: center; display: flex; flex-direction: column; align-items: center">
+<h2 id="final-h" style="margin: 0 0 32px; font-weight: 900; font-size: clamp(48px, 7vw, 104px); line-height: .88; letter-spacing: -0.045em; text-transform: uppercase">Your page is<br><span style="display: inline-block; background: #0038FC; padding: 0 .12em .04em; margin-top: .06em">one tap away.</span></h2>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 620px; justify-content: center">
+<div style="display: flex; align-items: center; flex: 1 1 320px; background: #F5F5F7; color: #1D1D1F; border-radius: 4px; padding: 0 16px; min-height: 60px; font-size: 18px; text-align: left"><span style="color: #6E6E73">calspot.com/</span><span style="font-weight: 600">{{ slug }}</span></div>
+<a href="#claim" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: #FFFFFF; color: #0038FC; font-weight: 800; font-size: 17px; padding: 0 28px; min-height: 60px; border-radius: 4px; text-transform: uppercase">Claim it free</a>
+</div>
+<p style="margin: 16px 0 0; font-size: 14px; color: rgba(255,255,255,.7)">14-day free trial · No card needed · Cancel anytime</p>
+</div>
+</section>
+
+<footer style="background: #0B1030; color: rgba(255,255,255,.7)">
+<div style="max-width: 1240px; margin: 0 auto; padding: 32px 24px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; font-size: 14px">
+<span style="font-weight: 900; font-size: 20px; letter-spacing: -0.04em; color: #F5F5F7">calspot</span>
+<nav aria-label="Footer" style="display: flex; flex-wrap: wrap; gap: 20px"><a href="#login">Log in</a><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a><span>© Calspot</span></nav>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"heroBg":{"editor":"enum","default":"blue","options":["blue","navy"]},"$preview":{"width":1440,"height":7000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { name: '' };
+  }
+  renderVals() {
+    const raw = (this.state.name || '').trim();
+    const display = raw || 'Your Name';
+    const slug = raw ? raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') : 'your-name';
+    const possessive = raw ? (raw + (/s$/i.test(raw) ? '’' : '’s')) : 'your';
+    return {
+      heroBg: (this.props.heroBg ?? 'blue') === 'navy' ? '#0B1030' : '#0038FC',
+      stripBg: (this.props.heroBg ?? 'blue') === 'navy' ? '#0038FC' : '#0B1030',
+      name: this.state.name,
+      display: display,
+      slug: slug || 'your-name',
+      possessive: possessive,
+      setName: (e) => this.setState({ name: e.target.value }),
+      claim: (e) => { e.preventDefault(); },
+      looks: [
+        { label: 'Studio', bg: '#FFFFFF', fg: '#111111', chip: '#E6E6E6', btn: '#0038FC', btnFg: '#FFFFFF', font: 'Geist, system-ui, sans-serif' },
+        { label: 'Journal', bg: '#EFE6D8', fg: '#3B2A1E', chip: '#D9C9B2', btn: '#7A5236', btnFg: '#FFFFFF', font: 'Georgia, serif' },
+        { label: 'Clay', bg: '#F6E3D9', fg: '#4A1F12', chip: '#E9C3B1', btn: '#A3402A', btnFg: '#FFFFFF', font: 'Geist, system-ui, sans-serif' },
+        { label: 'Court', bg: '#E3EBE2', fg: '#173B2B', chip: '#C6D6C4', btn: '#D9F24B', btnFg: '#173B2B', font: 'Geist, system-ui, sans-serif' },
+        { label: 'Midnight', bg: '#15171C', fg: '#F2F2F2', chip: '#2A2E36', btn: '#BFD8F5', btnFg: '#15171C', font: 'Geist, system-ui, sans-serif' }
+      ],
+      quotes: [
+        { photo: 'Photo: coach portrait on court', sport: 'Padel' },
+        { photo: 'Photo: coach feeding balls, mid-session', sport: 'Tennis' },
+        { photo: 'Photo: coach with a group', sport: 'Padel' }
+      ],
+      features: [
+        'Your own coaching page and link',
+        'Booking requests: approve, decline or suggest a time',
+        'Clubs, lessons, prices and weekly availability',
+        'WhatsApp click-to-chat with ready-made replies',
+        'Customisable look and layout'
+      ],
+      faqs: [
+        { q: 'Do my players need to download an app?', a: 'No. They open your link in their browser, pick a time and send a request.' },
+        { q: 'I coach at more than one club. Does that work?', a: 'Yes. Add each club with its own lessons, prices and availability, and players choose where they want to play.' },
+        { q: 'What happens after my free trial?', a: '[Confirm: what happens when the trial ends, e.g. you choose whether to continue at £29 a month and nothing is charged automatically.]' },
+        { q: 'How do players pay?', a: '[Confirm: how payment works today, e.g. players pay you directly as they do now.]' },
+        { q: 'Can I cancel anytime?', a: 'Yes. No contract. Cancel from your dashboard whenever you like.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -30,7 +30,10 @@ async function prepareImage(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file);
   const max = 1800;
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-  const small = file.size <= 900_000 && scale === 1;
+  const small =
+    file.size <= 900_000 &&
+    scale === 1 &&
+    (file.type === "image/jpeg" || file.type === "image/png");
   if (small) {
     bitmap.close();
     return new Promise<string>((resolve, reject) => {

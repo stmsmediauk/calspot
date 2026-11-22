@@ -102,6 +102,13 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
                 {error}
               </p>
             )}
+            {signup && (
+              <p className={styles.legal}>
+                By creating an account you agree to our{" "}
+                <Link href="/terms">Terms</Link> and{" "}
+                <Link href="/privacy">Privacy notice</Link>.
+              </p>
+            )}
             <button type="submit" className={styles.primary} disabled={busy}>
               {busy ? "Please wait…" : signup ? "Create account" : "Log in"}
             </button>

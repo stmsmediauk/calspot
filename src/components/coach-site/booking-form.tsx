@@ -1,9 +1,9 @@
 "use client";
+import Script from "next/script";
 import { useRef, useState } from "react";
 import { ArrowRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { hasWhatsApp, useCoachWorkspace } from "@/lib/coach-workspace";
 import { startTimes } from "@/lib/availability";
-import { createClient } from "@/lib/supabase/client";
 import { londonHour, today } from "@/lib/mock-data";
 import {
   formatDay,
@@ -37,6 +37,8 @@ export function BookingForm({
   const { profile } = workspace;
   const lessons = workspace.lessons.filter((l) => l.active);
   const clubs = workspace.clubs.filter((c) => c.active);
+  const formShown = useRef(0);
+  const turnstileKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const [step, setStep] = useState(0),
     [lessonId, setLessonId] = useState(initialLesson),
     [venueId, setVenueId] = useState(""),
@@ -81,6 +83,7 @@ export function BookingForm({
   };
 
   const advance = (next: number) => {
+    formShown.current = Date.now();
     setStep(next);
     requestAnimationFrame(() => heading.current?.focus());
   };
@@ -381,33 +384,53 @@ export function BookingForm({
                 ]
                   .filter(Boolean)
                   .join(" ");
-                const { error } = await createClient().rpc("request_booking", {
-                  p_slug: slug,
-                  p_club: venue.id,
-                  p_lesson: lesson.id,
-                  p_date: chosenDay.toISOString().slice(0, 10),
-                  p_hour: h + m / 60,
-                  p_name: player.name.trim(),
-                  p_email: player.email.trim(),
-                  p_phone: player.phone.trim(),
-                  p_message: notes.slice(0, 1000),
-                });
-                setSending(false);
-                if (error) {
-                  const taken = /taken|not available/i.test(error.message);
-                  return setSendError(
-                    taken
-                      ? "Sorry, that time is no longer available. Please go back and choose another."
-                      : error.message.includes("several requests")
-                        ? error.message
-                        : "Your request couldn’t be sent. Please try again.",
-                  );
+                const form = new FormData(e.currentTarget);
+                let failure = "";
+                try {
+                  const res = await fetch("/api/book", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({
+                      slug,
+                      club: venue.id,
+                      lesson: lesson.id,
+                      date: chosenDay.toISOString().slice(0, 10),
+                      hour: h + m / 60,
+                      name: player.name.trim(),
+                      email: player.email.trim(),
+                      phone: player.phone.trim(),
+                      message: notes.slice(0, 1000),
+                      website: form.get("website"),
+                      token: form.get("cf-turnstile-response"),
+                      elapsed: Date.now() - formShown.current,
+                    }),
+                  });
+                  if (!res.ok)
+                    failure =
+                      (await res.json().catch(() => null))?.error ??
+                      "Your request couldn’t be sent. Please try again.";
+                } catch {
+                  failure = "Your request couldn’t be sent. Please try again.";
                 }
+                setSending(false);
+                if (failure) return setSendError(failure);
               }
               setSubmitted(true);
               requestAnimationFrame(() => heading.current?.focus());
             }}
           >
+            <div aria-hidden="true" className={styles.hp}>
+              <label>
+                Website
+                <input type="text" name="website" tabIndex={-1} autoComplete="off" />
+              </label>
+            </div>
+            {!demo && turnstileKey && (
+              <>
+                <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+                <div className="cf-turnstile" data-sitekey={turnstileKey} />
+              </>
+            )}
             <p className={styles.formLead}>
               {demo
                 ? "Try the flow with fictional details. Nothing is sent."
