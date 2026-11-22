@@ -2187,3 +2187,19 @@ a.button {
   cursor: pointer;
   font: inherit;
 }
+/* Log out is a clear button in the phone menu, clear of the home indicator. */
+@media (max-width: 760px) {
+  .account {
+    padding: 12px 0 calc(20px + env(safe-area-inset-bottom));
+  }
+  .account .signup-link {
+    justify-self: stretch;
+    justify-content: center;
+    margin: 4px 0 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+  }
+}
