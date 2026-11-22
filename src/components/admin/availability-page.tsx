@@ -190,7 +190,7 @@ export function AvailabilityPage() {
           <div className="section-heading">
             <div>
               <h2>What players see</h2>
-              <p>Start times on your page for the sample week.</p>
+              <p>Start times on your page for the week shown.</p>
             </div>
           </div>
           {lesson ? (
@@ -294,7 +294,7 @@ export function AvailabilityPage() {
         Changing availability keeps existing bookings intact. Times already
         booked or requested are hidden from players.
         {platform.demoMode &&
-          " Booking window and minimum notice are preview defaults."}
+          " Booking window and minimum notice can’t be changed yet."}
       </p>
     </>
   );

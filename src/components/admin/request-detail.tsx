@@ -55,7 +55,7 @@ export function RequestDetail({ b }: { b: Booking }) {
         )}
       </dl>
       <p className="footnote">
-        {platform.demoMode ? "Mock request. " : ""}Approving confirms the lesson
+        Approving confirms the lesson
         only. Court availability must be verified separately.
       </p>
       {b.status === "pending" ? (

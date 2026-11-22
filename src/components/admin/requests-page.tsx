@@ -69,7 +69,7 @@ export function RequestsPage() {
           Waiting for you <span className="muted">{pending.length}</span>
         </h2>
         {platform.demoMode && (
-          <span className="muted">No emails are sent in this demo</span>
+          <span className="muted">No emails are sent yet</span>
         )}
       </div>
       {pending.length === 0 ? (

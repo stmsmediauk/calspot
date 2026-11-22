@@ -71,7 +71,7 @@ export function CalendarPanel({
             className="button secondary small"
             onClick={() => setWeek(mock.demoWeek)}
           >
-            {platform.demoMode ? "Demo week" : "Today"}
+            This week
           </button>
         </div>
         <div className="row">
@@ -290,7 +290,6 @@ export function CalendarPanel({
         </div>
         <span>
           {platform.timeZone}
-          {platform.demoMode ? " · Demo schedule" : ""}
         </span>
       </footer>
     </section>

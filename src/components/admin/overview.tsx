@@ -118,7 +118,7 @@ export function OverviewPage() {
           <strong>{platform.publicBasePath}</strong>
           <small>
             {look ? `${look.name} look` : "Custom look"}
-            {platform.demoMode ? " · Preview only, not published" : ""}
+            {platform.demoMode ? " · Private, not published yet" : ""}
           </small>
           <div className="row">
             <Link className="button small" href={platform.publicBasePath}>

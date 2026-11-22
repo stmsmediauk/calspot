@@ -107,9 +107,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         ? ` and suggested ${mock.formatDate(extras.suggested.date)} at ${mock.time(extras.suggested.hour)}`
         : "";
       setNotice(
-        platform.demoMode
-          ? `Demo request ${status}${offer}. No email was sent.`
-          : `Request ${status}${offer}.`,
+        `Request ${status}${offer}. No email is sent yet, so let the player know directly.`,
       );
       setModal(null);
     },
@@ -209,7 +207,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </span>
               {platform.demoMode && (
                 <span className="demo-indicator">
-                  <i /> Demo · Sample data
+                  <i /> Early access · Booking requests not live yet
                 </span>
               )}
             </div>
