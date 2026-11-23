@@ -132,3 +132,9 @@
 - Fixed the request form choosing its contact default before saved data loaded.
 - Verified lint, strict types, production build, hero and confirmation links, the approve and suggest flows opening the right drafts, custom templates, reminders, the no-phone case and earlier flows.
 
+
+## Group sessions
+
+- Lessons have a number of spaces (capacity) and a per-person price; lengths of 120 minutes are allowed.
+- Booking requests can take several spaces; players share a session until it is full. `supabase/group_sessions.sql` must be run first.
+- The booking form shows spaces left, the dashboard shows spaces per request, and clashes between players in one session are no longer flagged.

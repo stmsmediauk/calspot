@@ -49,6 +49,7 @@ const starterLessons = [
     description: "One-to-one coaching built around your game.",
     duration: 60,
     price: 55,
+    capacity: 1,
     on: true,
   },
   {
@@ -56,6 +57,7 @@ const starterLessons = [
     description: "Train with a partner and share the session.",
     duration: 60,
     price: 70,
+    capacity: 2,
     on: false,
   },
   {
@@ -63,6 +65,7 @@ const starterLessons = [
     description: "Fun, focused coaching for up to four players.",
     duration: 90,
     price: 90,
+    capacity: 4,
     on: false,
   },
 ];
@@ -173,6 +176,7 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
       description: l.description,
       duration: l.duration,
       price: Number.isFinite(l.price) ? l.price : 0,
+      capacity: l.capacity,
       active: true,
     })),
     bookings: [],
@@ -534,6 +538,7 @@ export function SignupWizard() {
                         >
                           <option value={60}>60 min</option>
                           <option value={90}>90 min</option>
+                          <option value={120}>120 min</option>
                         </select>
                         <span className={styles.price}>
                           £

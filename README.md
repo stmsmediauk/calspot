@@ -540,6 +540,7 @@ Tables, row-level security and the booking function were applied as migrations. 
 3. `supabase/admin_support_view.sql` adds the admin support view (setup and counts, no player details).
 4. `supabase/spam_limits.sql` adds database-level limits on booking requests.
 5. `supabase/trial.sql` adds the 14-day free trial.
+6. `supabase/group_sessions.sql` adds lesson capacity and group booking. **Run it before deploying the code that saves `capacity` on lessons**, or saving lessons will fail.
 
 The app tolerates a missing file (the related feature just stays off), so deploys do not break if one has not been run yet.
 
@@ -564,6 +565,16 @@ The app tolerates a missing file (the related feature just stays off), so deploy
 - Requests appear in the coach's Requests screen. **No emails are sent yet**; coaches reply by WhatsApp or their own email.
 - Spam protection, in layers: a hidden field, a minimum fill-in time, a per-IP limit, an optional Turnstile CAPTCHA, and database limits (30 an hour per coach, 5 a day per email and per phone number).
 - Reserved page addresses (such as `admin`, `login`, `privacy`) are blocked at sign-up by `slug_available`.
+
+### Group sessions
+
+- A lesson has **Players per session** (`capacity`): 1 private, 2 duo, 4 small group, 12 americano. Price is per person. Lesson length can be 60, 90 or 120 minutes.
+- A request takes one or more **spaces** (`bookings.spaces`). Players share a session only when the lesson, club, date and start time match. Any other overlap with a pending or confirmed request still blocks the time. A session closes when its spaces are used.
+- `request_booking` takes a per-coach, per-date advisory lock and counts spaces itself, so two players cannot take the last space. This replaces the old unique index `bookings_one_live_per_slot`, which `group_sessions.sql` drops.
+- `booked_times` also returns the lesson and spaces so the public page can show "5 left". It still returns no player details.
+- The booking form offers "How many spaces?" for group lessons. The dashboard shows spaces on each request and "N of M confirmed", and no longer warns about a clash between players in the same session.
+- **Not built yet:** fixed-date sessions (one-off or weekly events such as an americano night), attendee lists and a message-everyone action, a minimum number of players, and a waiting list. For now a group lesson uses the coach's normal availability windows.
+- The app sends `p_spaces` only for group bookings, so one-to-one requests keep working before the SQL has been run.
 
 ### SEO and share images
 
@@ -600,3 +611,4 @@ Overview with totals and a Needs attention list, a coach list with search, CSV e
 - Calspot's legal pages contain placeholders and are drafts.
 - Coach pages live at `calspot.../<address>`; per-coach subdomains and custom domains are not built.
 - The old `taken_slots` database function is unused and can be dropped.
+- Group sessions use the coach's availability windows. Fixed-date events, attendee lists and a waiting list are not built.

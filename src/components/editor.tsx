@@ -35,8 +35,8 @@ export function Editor({
         type={type}
         defaultValue={String(values[name] ?? fallback)}
         required={name !== "notes" && name !== "description"}
-        min={type === "number" ? 0 : undefined}
-        max={name === "duration" ? 90 : undefined}
+        min={type === "number" ? (name === "capacity" ? 1 : 0) : undefined}
+        max={name === "capacity" ? 40 : undefined}
         step={
           name === "price" ? "0.01" : name === "duration" ? "30" : undefined
         }
@@ -58,7 +58,14 @@ export function Editor({
             ...data,
             active: values.active ?? true,
             ...(kind === "lesson"
-              ? { duration: Number(data.duration), price: Number(data.price) }
+              ? {
+                  duration: Number(data.duration),
+                  price: Number(data.price),
+                  capacity: Math.min(
+                    40,
+                    Math.max(1, Math.round(Number(data.capacity)) || 1),
+                  ),
+                }
               : {}),
           });
           return;
@@ -99,9 +106,16 @@ export function Editor({
             >
               <option value="60">60 minutes</option>
               <option value="90">90 minutes</option>
+              <option value="120">120 minutes</option>
             </select>
           </label>
-          {field("price", "Indicative price (£)", "number", 65)}
+          {field("capacity", "Players per session", "number", 1)}
+          <p className="footnote">
+            1 for a private lesson, 2 for a duo, 4 for a small group, 12 for an
+            americano. Players book spaces, and the session closes when it is
+            full.
+          </p>
+          {field("price", "Indicative price per person (£)", "number", 65)}
           <p className="footnote">
             For information only. No payments are collected.
           </p>

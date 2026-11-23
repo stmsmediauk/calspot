@@ -172,9 +172,13 @@ function restore(raw: string): CoachWorkspace | null {
       (l) =>
         l &&
         [l.id, l.name, l.description].every((x) => typeof x === "string") &&
-        [60, 90].includes(l.duration) &&
+        [60, 90, 120].includes(l.duration) &&
         Number.isFinite(l.price) &&
         l.price >= 0 &&
+        (l.capacity === undefined ||
+          (Number.isInteger(l.capacity) &&
+            l.capacity >= 1 &&
+            l.capacity <= 40)) &&
         typeof l.active === "boolean",
     )
   )
@@ -248,7 +252,8 @@ function restore(raw: string): CoachWorkspace | null {
   return {
     profile: migrated,
     clubs: savedClubs,
-    lessons: savedLessons,
+    // Older saves have no capacity: those lessons are one-to-one.
+    lessons: savedLessons.map((l) => ({ ...l, capacity: l.capacity ?? 1 })),
     bookings: list<Booking>(
       extras.bookings,
       (b) =>

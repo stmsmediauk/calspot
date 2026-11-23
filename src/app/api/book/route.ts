@@ -72,6 +72,7 @@ export async function POST(request: Request) {
   });
   if (!liveError && live === false)
     return bad("This coach isn’t taking requests right now.", 403);
+  const spaces = Math.min(40, Math.max(1, Math.floor(Number(body.spaces)) || 1));
   const { error } = await supabase.rpc("request_booking", {
     p_slug: slug,
     p_club: str(body.club, 60),
@@ -82,6 +83,9 @@ export async function POST(request: Request) {
     p_email: str(body.email, 200),
     p_phone: str(body.phone, 40),
     p_message: str(body.message, 1000),
+    // Only sent for group bookings, so one-to-one requests keep working even
+    // before supabase/group_sessions.sql has been run.
+    ...(spaces > 1 ? { p_spaces: spaces } : {}),
   });
   if (error) {
     const m = error.message;

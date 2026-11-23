@@ -875,6 +875,12 @@
   cursor: pointer;
   transition: background 0.18s ease;
 }
+.timeChoices button small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  opacity: 0.75;
+}
 .timeChoices button:hover {
   background: var(--coach-surface);
 }

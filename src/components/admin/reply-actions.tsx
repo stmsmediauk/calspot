@@ -36,11 +36,36 @@ function useSuggestions(b: Booking) {
   }, [b, lessons, rules, exceptions, bookings]);
 }
 
+/** Spaces taken in the session a booking belongs to, counting the given statuses. */
+export function sessionSpaces(
+  bookings: Booking[],
+  b: Booking,
+  statuses: Booking["status"][],
+) {
+  return bookings
+    .filter(
+      (o) =>
+        o.id !== b.id &&
+        statuses.includes(o.status) &&
+        o.date === b.date &&
+        o.lessonId === b.lessonId &&
+        o.clubId === b.clubId &&
+        o.hour === b.hour,
+    )
+    .reduce((sum, o) => sum + (o.spaces ?? 1), 0);
+}
+
 /** Overlap with a confirmed session, if approving would double-book the coach. */
 export function useClash(b: Booking) {
   const { lessons, bookings } = useCoachWorkspace();
   const length = (id: string) =>
     (lessons.find((l) => l.id === id)?.duration ?? 60) / 60;
+  const capacity = lessons.find((l) => l.id === b.lessonId)?.capacity ?? 1;
+  const sameSession = (o: Booking) =>
+    o.lessonId === b.lessonId && o.clubId === b.clubId && o.hour === b.hour;
+  // Players joining the same group session do not clash while spaces remain.
+  const confirmedHere =
+    sessionSpaces(bookings, b, ["confirmed"]) + (b.spaces ?? 1);
   return b.status === "pending"
     ? bookings.find(
         (o) =>
@@ -48,7 +73,8 @@ export function useClash(b: Booking) {
           o.status === "confirmed" &&
           o.date === b.date &&
           b.hour < o.hour + length(o.lessonId) &&
-          o.hour < b.hour + length(b.lessonId),
+          o.hour < b.hour + length(b.lessonId) &&
+          !(capacity > 1 && sameSession(o) && confirmedHere <= capacity),
       )
     : undefined;
 }

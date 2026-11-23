@@ -5,10 +5,10 @@ import * as mock from "@/lib/mock-data";
 import type { Booking } from "@/lib/mock-data";
 import { platform } from "@/lib/platform";
 import { Badge } from "../ui";
-import { ReplyActions, WhatsAppFollowUps } from "./reply-actions";
+import { ReplyActions, sessionSpaces, WhatsAppFollowUps } from "./reply-actions";
 
 export function RequestDetail({ b }: { b: Booking }) {
-  const { clubs, lessons } = useCoachWorkspace();
+  const { clubs, lessons, bookings } = useCoachWorkspace();
   const lesson = lessons.find((l) => l.id === b.lessonId);
   return (
     <div className="booking-detail">
@@ -28,6 +28,17 @@ export function RequestDetail({ b }: { b: Booking }) {
           {mock.formatDate(b.date)} at {mock.time(b.hour)}{" "}
           {zoneName(mock.parseDate(b.date), platform.timeZone)}
         </dd>
+        {lesson && lesson.capacity > 1 && (
+          <>
+            <dt>Spaces</dt>
+            <dd>
+              {b.spaces ?? 1} requested ·{" "}
+              {sessionSpaces(bookings, b, ["confirmed"]) +
+                (b.status === "confirmed" ? (b.spaces ?? 1) : 0)}{" "}
+              of {lesson.capacity} confirmed
+            </dd>
+          </>
+        )}
         <dt>Club</dt>
         <dd>{clubs.find((c) => c.id === b.clubId)?.name ?? "Unknown club"}</dd>
         <dt>Player’s note</dt>

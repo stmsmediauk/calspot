@@ -140,7 +140,10 @@ export function LessonsPage() {
               <p>{lesson.description}</p>
               <small>
                 <Clock3 size={13} aria-hidden="true" /> {lesson.duration}{" "}
-                minutes · £{lesson.price} guide price
+                minutes ·{" "}
+                {lesson.capacity > 1
+                  ? `up to ${lesson.capacity} players · £${lesson.price} per person`
+                  : `£${lesson.price} guide price`}
               </small>
             </div>
             <label className="visibility">

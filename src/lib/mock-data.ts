@@ -9,7 +9,10 @@ export type Lesson = {
   id: string;
   name: string;
   duration: number;
+  /** Guide price per person. */
   price: number;
+  /** Players per session: 1 private, 2 duo, 4 small group, 12 americano. */
+  capacity: number;
   description: string;
   active: boolean;
 };
@@ -22,6 +25,8 @@ export type Booking = {
   date: string;
   hour: number;
   status: "pending" | "confirmed" | "declined" | "cancelled";
+  /** Spaces this request takes in a group session (default 1). */
+  spaces?: number;
   message: string;
   /** Player phone in international format (fictional Ofcom drama range). */
   phone?: string;

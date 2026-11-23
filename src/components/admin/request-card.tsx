@@ -28,6 +28,7 @@ export function RequestCard({ b }: { b: Booking }) {
         <p>
           {lessons.find((l) => l.id === b.lessonId)?.name} ·{" "}
           {mock.formatDate(b.date)} at {mock.time(b.hour)}
+          {(b.spaces ?? 1) > 1 && ` · ${b.spaces} spaces`}
         </p>
         <p>
           {clubs.find((c) => c.id === b.clubId)?.name ?? "Unknown club"}

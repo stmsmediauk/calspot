@@ -3,7 +3,7 @@ import Script from "next/script";
 import { useRef, useState } from "react";
 import { ArrowRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { hasWhatsApp, useCoachWorkspace } from "@/lib/coach-workspace";
-import { startTimes } from "@/lib/availability";
+import { spacesTaken, startTimes } from "@/lib/availability";
 import { londonHour, today } from "@/lib/mock-data";
 import {
   formatDay,
@@ -45,6 +45,7 @@ export function BookingForm({
     [week, setWeek] = useState(0),
     [dayIndex, setDayIndex] = useState<number | null>(null),
     [time, setTime] = useState(""),
+    [spaces, setSpaces] = useState(1),
     [submitted, setSubmitted] = useState(false),
     [sending, setSending] = useState(false),
     [sendError, setSendError] = useState(""),
@@ -82,6 +83,22 @@ export function BookingForm({
     );
   };
 
+  /** Spaces still open in a group session at a chosen day and time. */
+  const spacesLeft = (weekIndex: number, index: number, t: string) => {
+    if (!lesson || !venue) return 0;
+    const [h, m] = t.split(":").map(Number);
+    return (
+      lesson.capacity -
+      spacesTaken(
+        workspace.bookings,
+        lesson.id,
+        venue.id,
+        sampleDay(weekIndex, index).toISOString().slice(0, 10),
+        h + m / 60,
+      )
+    );
+  };
+
   const advance = (next: number) => {
     formShown.current = Date.now();
     setStep(next);
@@ -111,12 +128,23 @@ export function BookingForm({
       <div className={styles.summaryWhat}>
         <b>{lesson.name}</b>
         <span>{lesson.duration} min</span>
+        {lesson.capacity > 1 && (
+          <span>
+            {spaces} {spaces === 1 ? "space" : "spaces"}
+          </span>
+        )}
         <span>{venue.name}</span>
         <span>{whenText || "Time not chosen yet"}</span>
       </div>
       <div className={styles.summaryPrice}>
-        £{lesson.price}
-        <small>guide price</small>
+        £{lesson.price * (lesson.capacity > 1 ? spaces : 1)}
+        <small>
+          {lesson.capacity > 1
+            ? spaces > 1
+              ? `guide, £${lesson.price} × ${spaces}`
+              : "guide, per person"
+            : "guide price"}
+        </small>
       </div>
     </div>
   );
@@ -152,7 +180,7 @@ export function BookingForm({
             <WhatsAppButton
               variant="solid"
               label={`Send to ${shortName} on WhatsApp`}
-              message={`Hi ${shortName}, I’d like to request ${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}.${player.message.trim() ? ` ${player.message.trim()}` : ""} Please could you confirm availability? Thanks, ${player.name.trim()}.`}
+              message={`Hi ${shortName}, I’d like to request ${lesson.capacity > 1 && spaces > 1 ? `${spaces} spaces in ` : ""}${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}.${player.message.trim() ? ` ${player.message.trim()}` : ""} Please could you confirm availability? Thanks, ${player.name.trim()}.`}
             />
           )}
           <button
@@ -217,6 +245,7 @@ export function BookingForm({
                       setLessonId(l.id);
                       setDayIndex(null);
                       setTime("");
+                      setSpaces(1);
                     }}
                   >
                     <span className={styles.optionDot} aria-hidden="true" />
@@ -224,10 +253,14 @@ export function BookingForm({
                       <strong>{l.name}</strong>
                       <small>
                         {l.duration} minutes
+                        {l.capacity > 1 && ` · up to ${l.capacity} players`}
                         {l.description && ` · ${l.description}`}
                       </small>
                     </span>
-                    <b>£{l.price}</b>
+                    <b>
+                      £{l.price}
+                      {l.capacity > 1 && <small> per person</small>}
+                    </b>
                   </button>
                 ))}
               </div>
@@ -338,13 +371,46 @@ export function BookingForm({
                     type="button"
                     className={time === t ? styles.timeSelected : ""}
                     aria-pressed={time === t}
-                    onClick={() => setTime(t)}
+                    onClick={() => {
+                      setTime(t);
+                      setSpaces((s) =>
+                        Math.max(
+                          1,
+                          Math.min(s, spacesLeft(week, dayIndex ?? 0, t)),
+                        ),
+                      );
+                    }}
                   >
                     {t}
+                    {lesson.capacity > 1 && dayIndex !== null && (
+                      <small>{spacesLeft(week, dayIndex, t)} left</small>
+                    )}
                   </button>
                 ))}
               </div>
             </fieldset>
+            {lesson.capacity > 1 && time && dayIndex !== null && (
+              <label className={styles.formLabel}>
+                How many spaces?
+                <select
+                  value={spaces}
+                  onChange={(e) => setSpaces(Number(e.target.value))}
+                >
+                  {Array.from(
+                    { length: Math.max(1, spacesLeft(week, dayIndex, time)) },
+                    (_, i) => i + 1,
+                  ).map((n) => (
+                    <option key={n} value={n}>
+                      {n} {n === 1 ? "space" : "spaces"}
+                      {n > 1 && ` · about £${lesson.price * n}`}
+                    </option>
+                  ))}
+                </select>
+                <small>
+                  Book spaces for friends too. Give their names in your message.
+                </small>
+              </label>
+            )}
             <p className={styles.formNote}>
               Times are in {zoneName(weekStart)}. Greyed days have no
               availability.
@@ -396,6 +462,7 @@ export function BookingForm({
                       lesson: lesson.id,
                       date: chosenDay.toISOString().slice(0, 10),
                       hour: h + m / 60,
+                      spaces: lesson.capacity > 1 ? spaces : 1,
                       name: player.name.trim(),
                       email: player.email.trim(),
                       phone: player.phone.trim(),
