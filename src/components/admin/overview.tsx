@@ -22,6 +22,7 @@ import * as mock from "@/lib/mock-data";
 import { Badge, Empty } from "../ui";
 import { useAdmin } from "./context";
 import { PageHeader } from "./page-header";
+import { InstallTip } from "./install-tip";
 import { RequestCard } from "./request-card";
 import { whatsappLink } from "./whatsapp-drafts";
 
@@ -111,6 +112,7 @@ export function OverviewPage() {
         title="Overview"
         description="What needs you today, and how your page looks to players."
       />
+      <InstallTip />
       <div className="overview-cards">
         <section
           className={`panel attention ${pending.length ? "has-work" : ""}`}

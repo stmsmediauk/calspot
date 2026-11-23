@@ -1,0 +1,45 @@
+/* Phones only: the tip is irrelevant on a laptop. */
+.tip {
+  display: none;
+}
+@media (max-width: 860px) {
+  .tip {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--cs-navy);
+    color: #fff;
+  }
+  .tip strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--cs-lime);
+    font-size: 15px;
+  }
+  .tip p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .tip button {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: -10px -10px 0 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+  }
+  .tip button:focus-visible {
+    outline: 3px solid var(--cs-lime);
+  }
+}
