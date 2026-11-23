@@ -55,6 +55,57 @@ const benefits = [
   },
 ];
 
+const features = [
+  {
+    title: "Your own booking page",
+    text: "A personal link like calspot.co.uk/yourname with your photo, story, experience and highlights. Players need no app or account, and it looks great when shared.",
+  },
+  {
+    title: "A look that’s yours",
+    text: "Choose from five complete looks, three hero layouts, your accent colour, type pairing and corner style. Preview changes live before you save.",
+  },
+  {
+    title: "Private and group lessons",
+    text: "Set a price per person and the number of spaces. Players share a session until it’s full, and you see spaces left at a glance.",
+  },
+  {
+    title: "Book with friends",
+    text: "Players can request several spaces in one go and add their friends’ names, so you know exactly who’s turning up.",
+  },
+  {
+    title: "Every club in one place",
+    text: "Add each club you coach at with its own lessons, prices and notes. Players choose where they want to play.",
+  },
+  {
+    title: "Weekly hours that run themselves",
+    text: "Set your recurring availability, copy it across days and block out dates. Players only ever see times you can really do.",
+  },
+  {
+    title: "Approve, decline or suggest",
+    text: "Every request lands in your inbox with notes and how long ago it arrived. Overlaps are flagged, and you can offer another time from your real availability.",
+  },
+  {
+    title: "Your whole week at a glance",
+    text: "See bookings in week, month or agenda view, filter by club, and open any session for full details.",
+  },
+  {
+    title: "WhatsApp, ready to send",
+    text: "Approve a request and a reply opens in your WhatsApp, ready to send. Edit your message templates, follow up on decisions and see tomorrow’s reminders.",
+  },
+  {
+    title: "Show off your coaching",
+    text: "Add a highlights strip, real player testimonials and a coach profile, then turn each section on or off whenever you like.",
+  },
+  {
+    title: "Know what needs doing",
+    text: "Your dashboard overview shows what needs attention, links to your page and walks you through setup. Copy your link in one tap.",
+  },
+  {
+    title: "Works on your phone",
+    text: "Run everything from your phone with a mobile-friendly dashboard, so you can approve a request between lessons.",
+  },
+];
+
 /**
  * Real coach quotes go here. The section stays hidden until there is at least
  * one, so no placeholder or invented testimonial is ever published.
@@ -69,10 +120,14 @@ const quotes: {
 
 const included = [
   "Your own coaching page and link",
+  "Five looks with colours, fonts and layouts",
+  "Private and group lessons with spaces",
   "Booking requests: approve, decline or suggest a time",
-  "Clubs, lessons, prices and weekly availability",
-  "WhatsApp click-to-chat with ready-made replies",
-  "Customisable look and layout",
+  "Unlimited clubs, lessons and prices",
+  "Weekly availability and blocked dates",
+  "Calendar with week, month and agenda views",
+  "WhatsApp click-to-chat with editable replies",
+  "Tomorrow’s reminders and setup checklist",
 ];
 
 const faqs = [
@@ -136,6 +191,7 @@ export function Landing() {
             </Link>
             <nav aria-label="Main" className={styles.nav}>
               <a href="#how">How it works</a>
+              <a href="#features">Features</a>
               <a href="#pricing">Pricing</a>
               <a href="#faq">FAQ</a>
               <Link href="/login">Log in</Link>
@@ -157,7 +213,8 @@ export function Landing() {
               <h1 className={styles.h1}>
                 Less admin.
                 <br />
-                <span className={styles.strip}>More court time.</span>
+                <span className={`${styles.strip} ${styles.stripLime}`}>
+                  More court time.</span>
               </h1>
               <p className={styles.heroCopy}>
                 Your own booking page in minutes. Players pick a time, you tap
@@ -286,6 +343,35 @@ export function Landing() {
                   </div>
                 ))}
               </div>
+            </div>
+          </section>
+
+          <section
+            id="features"
+            aria-labelledby="features-h"
+            className={styles.light}
+          >
+            <div className={styles.container}>
+              <div className={styles.featuresHead}>
+                <p className={`${styles.eyebrow} ${styles.eyebrowBlue}`}>
+                  Everything in one plan
+                </p>
+                <h2 id="features-h" className={styles.h2}>
+                  Everything you need to run your bookings.
+                </h2>
+                <p className={styles.lead}>
+                  From your first page to your last lesson of the day, Calspot
+                  handles the admin so you don’t have to.
+                </p>
+              </div>
+              <ul className={styles.features}>
+                {features.map((f) => (
+                  <li key={f.title} className={styles.feature}>
+                    <h3 className={styles.featureTitle}>{f.title}</h3>
+                    <p className={styles.featureText}>{f.text}</p>
+                  </li>
+                ))}
+              </ul>
             </div>
           </section>
 
