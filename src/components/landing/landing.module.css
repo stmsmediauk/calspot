@@ -109,6 +109,11 @@
   font-family: var(--cs-font-display);
   text-transform: uppercase;
 }
+/* H1-level headlines are Title Case; H2 section headings stay uppercase. */
+.h1,
+.h1Final {
+  text-transform: capitalize;
+}
 .h1 {
   font-size: clamp(52px, 7.8vw, 112px);
   line-height: 0.86;
