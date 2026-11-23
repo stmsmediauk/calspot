@@ -8,12 +8,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  cornerStyles,
-  lookPresets,
-  resolveColours,
-  typePairings,
-} from "@/lib/coach-theme";
 import { slugPattern, slugify } from "@/lib/slug";
 import styles from "./landing.module.css";
 
@@ -27,7 +21,7 @@ type Claim = {
   href: string;
 };
 const Context = createContext<Claim | null>(null);
-const useClaim = () => {
+export const useClaim = () => {
   const claim = useContext(Context);
   if (!claim) throw new Error("Claim components must sit inside ClaimProvider");
   return claim;
@@ -100,97 +94,6 @@ export function ClaimLink({
 
 export function Slug() {
   return <>{useClaim().slug}</>;
-}
-
-/** "Make it look like you": the name field and five real looks. */
-export function Looks() {
-  const { name, setName, display, possessive, slug } = useClaim();
-  return (
-    <div className={styles.container}>
-      <div className={styles.looksHead}>
-        <div>
-          <p className={`${styles.eyebrow} ${styles.eyebrowBlue}`}>
-            Make it look like you
-          </p>
-          <h2 id="looks-h" className={styles.h2}>
-            Here’s {possessive} page.
-          </h2>
-        </div>
-        <label className={styles.nameField} htmlFor="looks-name">
-          <span>Your name</span>
-          <input
-            id="looks-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Sam Taylor"
-            maxLength={60}
-          />
-        </label>
-      </div>
-      <ul className={styles.looks}>
-        {lookPresets.map((preset) => {
-          const { palette, accent, onAccent } = resolveColours({
-            ...preset.appearance,
-            showHighlights: true,
-            showTestimonials: true,
-            showFaq: true,
-            poweredBy: true,
-          });
-          const type = typePairings[preset.appearance.font];
-          const corners = cornerStyles[preset.appearance.corners];
-          return (
-            <li
-              key={preset.id}
-              className={styles.look}
-              style={{ background: palette.background, color: palette.ink }}
-            >
-              <div>
-                <div
-                  className={styles.lookChip}
-                  style={{ background: palette.surface }}
-                />
-                <p
-                  className={styles.lookName}
-                  style={{
-                    fontFamily: type.display,
-                    fontWeight: type.nameWeight,
-                    textTransform: type.nameCase,
-                  }}
-                >
-                  {display}
-                </p>
-                <p className={styles.lookMeta} style={{ color: palette.muted }}>
-                  Padel coach · Riverside Club
-                </p>
-              </div>
-              <div>
-                <p
-                  className={styles.lookLabel}
-                  style={{ color: palette.muted }}
-                >
-                  {preset.name}
-                </p>
-                <span
-                  className={styles.lookButton}
-                  style={{
-                    background: accent,
-                    color: onAccent,
-                    borderRadius: corners.button,
-                  }}
-                >
-                  Request a session
-                </span>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-      <p className={styles.looksNote}>
-        Start from a look, then change colours, fonts and layout. Your page
-        lives at <strong>calspot.co.uk/{slug}</strong>.
-      </p>
-    </div>
-  );
 }
 
 /** Mobile-only bar that appears once the hero has scrolled out of view. */

@@ -5,10 +5,11 @@ import {
   ClaimForm,
   ClaimLink,
   ClaimProvider,
-  Looks,
   Slug,
   StickyCta,
 } from "./claim";
+import { InstaProfile } from "./insta";
+import { Showcase } from "./showcase";
 import styles from "./landing.module.css";
 
 const steps = [
@@ -25,7 +26,6 @@ const steps = [
   {
     title: "Share your link",
     text: "Drop it in your Instagram bio, your club group chat, or send it straight to players.",
-    // TODO: photo of a player booking on their phone.
     image: null,
   },
   {
@@ -50,8 +50,8 @@ const benefits = [
     text: "A proper page with your photo, story, lessons and prices. First impressions sorted before they’ve even messaged.",
   },
   {
-    title: "Get your evenings back",
-    text: "No more late-night scheduling threads. Approve with a tap, and ready-made WhatsApp replies do the rest.",
+    title: "Keep every penny",
+    text: "No booking fees and no commission. Players pay you directly, so what you charge is what you keep.",
   },
 ];
 
@@ -69,41 +69,26 @@ const features = [
     text: "Set a price per person and the number of spaces. Players share a session until it’s full, and you see spaces left at a glance.",
   },
   {
-    title: "Book with friends",
-    text: "Players can request several spaces in one go and add their friends’ names, so you know exactly who’s turning up.",
-  },
-  {
-    title: "Every club in one place",
-    text: "Add each club you coach at with its own lessons, prices and notes. Players choose where they want to play.",
-  },
-  {
-    title: "Weekly hours that run themselves",
-    text: "Set your recurring availability, copy it across days and block out dates. Players only ever see times you can really do.",
-  },
-  {
     title: "Approve, decline or suggest",
     text: "Every request lands in your inbox with notes and how long ago it arrived. Overlaps are flagged, and you can offer another time from your real availability.",
-  },
-  {
-    title: "Your whole week at a glance",
-    text: "See bookings in week, month or agenda view, filter by club, and open any session for full details.",
   },
   {
     title: "WhatsApp, ready to send",
     text: "Approve a request and a reply opens in your WhatsApp, ready to send. Edit your message templates, follow up on decisions and see tomorrow’s reminders.",
   },
   {
-    title: "Show off your coaching",
-    text: "Add a highlights strip, real player testimonials and a coach profile, then turn each section on or off whenever you like.",
+    title: "Weekly hours that run themselves",
+    text: "Set your recurring availability, copy it across days and block out dates. Players only ever see times you can really do.",
   },
-  {
-    title: "Know what needs doing",
-    text: "Your dashboard overview shows what needs attention, links to your page and walks you through setup. Copy your link in one tap.",
-  },
-  {
-    title: "Works on your phone",
-    text: "Run everything from your phone with a mobile-friendly dashboard, so you can approve a request between lessons.",
-  },
+];
+
+const moreFeatures = [
+  "Book with friends: Players can request several spaces and add their friends’ names.",
+  "Every club in one place: Each club gets its own lessons, prices and notes.",
+  "Your week at a glance: Week, month and agenda calendar views, filtered by club.",
+  "Show off your coaching: Highlights, testimonials and your coach profile, each switched on or off.",
+  "Know what needs doing: An overview of what needs attention, plus a setup checklist.",
+  "Works on your phone: Approve a request between lessons from a mobile-friendly dashboard.",
 ];
 
 /**
@@ -139,15 +124,19 @@ const faqs = [
     q: "I coach at more than one club. Does that work?",
     a: "Yes. Add each club with its own lessons, prices and availability, and players choose where they want to play.",
   },
-  // TODO: add "What happens after my free trial?" and "How do players pay?"
-  // once the wording is confirmed. They are left out so no placeholder shows.
+  {
+    q: "How do players pay?",
+    a: "Players pay you directly, the way you already take payment. Calspot doesn’t handle the money, so there are no booking fees and no commission.",
+  },
+  // TODO: add "What happens after my free trial?" once the wording is confirmed.
   {
     q: "Can I cancel anytime?",
     a: "Yes. No contract. Cancel from your dashboard whenever you like.",
   },
 ];
 
-const trial = "14-day free trial · No card needed · Cancel anytime";
+const trial =
+  "14-day free trial · No card needed · No booking fees · Cancel anytime";
 
 function Tick() {
   return (
@@ -310,10 +299,7 @@ export function Landing() {
                         className={styles.stepPhoto}
                       />
                     ) : (
-                      <div
-                        className={styles.stepPlaceholder}
-                        aria-hidden="true"
-                      />
+                      <InstaProfile />
                     )}
                   </li>
                 ))}
@@ -326,7 +312,7 @@ export function Landing() {
             aria-labelledby="looks-h"
             className={styles.light}
           >
-            <Looks />
+            <Showcase />
           </section>
 
           <section aria-labelledby="why-h" className={styles.navy}>
@@ -372,6 +358,17 @@ export function Landing() {
                   </li>
                 ))}
               </ul>
+              <div className={styles.featuresMore}>
+                <h3 className={styles.featuresMoreTitle}>Also included</h3>
+                <ul className={styles.featuresMoreList}>
+                  {moreFeatures.map((f) => (
+                    <li key={f}>
+                      <Tick />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </section>
 
@@ -424,6 +421,10 @@ export function Landing() {
                 <p className={`${styles.lead} ${styles.onDark}`}>
                   If Calspot books you one extra session a month, it’s paid for
                   itself. Try it free first.
+                </p>
+                <p className={styles.noFees}>
+                  No booking fees. No commission. Your money goes straight to
+                  you.
                 </p>
               </div>
               <div className={styles.priceCard}>
