@@ -49,6 +49,53 @@
   padding: 120px 24px;
 }
 
+/* Founding offer */
+.offerBar {
+  background: var(--lime);
+  color: var(--navy);
+  text-align: center;
+  padding: 10px 24px;
+  font-size: 15px;
+}
+.offerBar a {
+  margin-left: 6px;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.badge {
+  display: inline-block;
+  margin-bottom: 14px !important;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--lime);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase;
+}
+.was {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--grey-500);
+}
+.lockLine {
+  margin-bottom: 10px !important;
+  font-size: 15px;
+  color: var(--grey-700);
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 /* Header */
 .header {
   background: var(--navy);

@@ -9,6 +9,12 @@ import {
   StickyCta,
 } from "./claim";
 import { InstaProfile } from "./insta";
+import {
+  FOUNDING_OFFER_ACTIVE as founding,
+  FOUNDING_PLACES,
+  FOUNDING_PRICE,
+  STANDARD_PRICE,
+} from "@/lib/offer";
 import { Showcase } from "./showcase";
 import styles from "./landing.module.css";
 
@@ -116,6 +122,14 @@ const included = [
 ];
 
 const faqs = [
+  ...(founding
+    ? [
+        {
+          q: "What’s the founding price?",
+          a: `The first ${FOUNDING_PLACES} coaches pay £${FOUNDING_PRICE} a month instead of £${STANDARD_PRICE}, locked in for as long as they stay subscribed. If you cancel and come back later, you’ll rejoin at the standard £${STANDARD_PRICE}.`,
+        },
+      ]
+    : []),
   {
     q: "Do my players need to download an app?",
     a: "No. They open your link in their browser, pick a time and send a request.",
@@ -137,6 +151,12 @@ const faqs = [
 
 const trial =
   "14-day free trial · No card needed · No booking fees · Cancel anytime";
+const heroMicro = founding
+  ? `14-day free trial · No booking fees · Founding price for the first ${FOUNDING_PLACES} coaches`
+  : trial;
+const finalMicro = founding
+  ? `14-day free trial · No booking fees · Founding price ends after ${FOUNDING_PLACES} coaches`
+  : trial;
 
 function Tick() {
   return (
@@ -173,6 +193,17 @@ export function Landing() {
   return (
     <ClaimProvider>
       <div className={styles.page}>
+        {founding && (
+          <div className={styles.offerBar}>
+            <p>
+              <strong>
+                Founding coaches: £{FOUNDING_PRICE}/month, locked in. Only{" "}
+                {FOUNDING_PLACES} places.
+              </strong>{" "}
+              <a href="#pricing">Claim yours →</a>
+            </p>
+          </div>
+        )}
         <header className={styles.header}>
           <div className={styles.headerInner}>
             <Link href="/" aria-label="Calspot home">
@@ -211,7 +242,7 @@ export function Landing() {
                 back-and-forth.
               </p>
               <ClaimForm />
-              <p className={styles.micro}>{trial}</p>
+              <p className={styles.micro}>{heroMicro}</p>
             </div>
           </section>
 
@@ -428,10 +459,25 @@ export function Landing() {
                 </p>
               </div>
               <div className={styles.priceCard}>
+                {founding && (
+                  <p className={styles.badge}>Founding coach offer</p>
+                )}
                 <p className={styles.price}>
-                  <span>£29</span>
+                  <span>£{founding ? FOUNDING_PRICE : STANDARD_PRICE}</span>
                   <small>a month</small>
+                  {founding && (
+                    <del className={styles.was}>
+                      <span className={styles.srOnly}>Standard price </span>£
+                      {STANDARD_PRICE}
+                    </del>
+                  )}
                 </p>
+                {founding && (
+                  <p className={styles.lockLine}>
+                    Locked in for as long as you stay subscribed. Rises to £
+                    {STANDARD_PRICE} after the first {FOUNDING_PLACES} coaches.
+                  </p>
+                )}
                 <p className={styles.trialLine}>First 14 days free</p>
                 <ul className={styles.included}>
                   {included.map((item) => (
@@ -442,10 +488,12 @@ export function Landing() {
                   ))}
                 </ul>
                 <ClaimLink className={styles.priceCta}>
-                  Start my free trial
+                  {founding ? "Claim founding price" : "Start my free trial"}
                 </ClaimLink>
                 <p className={styles.priceMicro}>
-                  No card needed · Cancel anytime
+                  {founding
+                    ? `14-day free trial · No card needed · Only ${FOUNDING_PLACES} places`
+                    : "No card needed · Cancel anytime"}
                 </p>
               </div>
             </div>
@@ -496,7 +544,7 @@ export function Landing() {
                   Claim it free
                 </ClaimLink>
               </div>
-              <p className={styles.micro}>{trial}</p>
+              <p className={styles.micro}>{finalMicro}</p>
             </div>
           </section>
         </main>
