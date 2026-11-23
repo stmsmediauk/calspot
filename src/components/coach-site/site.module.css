@@ -875,6 +875,21 @@
   cursor: pointer;
   transition: background 0.18s ease;
 }
+.guestNames {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.guestNames legend {
+  padding: 0;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.guestNames small {
+  opacity: 0.75;
+}
 .timeChoices button small {
   display: block;
   margin-top: 2px;

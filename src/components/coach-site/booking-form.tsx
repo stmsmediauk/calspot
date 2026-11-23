@@ -46,6 +46,7 @@ export function BookingForm({
     [dayIndex, setDayIndex] = useState<number | null>(null),
     [time, setTime] = useState(""),
     [spaces, setSpaces] = useState(1),
+    [guests, setGuests] = useState<string[]>([]),
     [submitted, setSubmitted] = useState(false),
     [sending, setSending] = useState(false),
     [sendError, setSendError] = useState(""),
@@ -180,7 +181,7 @@ export function BookingForm({
             <WhatsAppButton
               variant="solid"
               label={`Send to ${shortName} on WhatsApp`}
-              message={`Hi ${shortName}, I’d like to request ${lesson.capacity > 1 && spaces > 1 ? `${spaces} spaces in ` : ""}${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}.${player.message.trim() ? ` ${player.message.trim()}` : ""} Please could you confirm availability? Thanks, ${player.name.trim()}.`}
+              message={`Hi ${shortName}, I’d like to request ${lesson.capacity > 1 && spaces > 1 ? `${spaces} spaces in ` : ""}${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}.${lesson.capacity > 1 && spaces > 1 && guests.slice(0, spaces - 1).some((g) => g.trim()) ? ` Playing: ${player.name.trim()}, ${guests.slice(0, spaces - 1).map((g) => g.trim()).filter(Boolean).join(", ")}.` : ""}${player.message.trim() ? ` ${player.message.trim()}` : ""} Please could you confirm availability? Thanks, ${player.name.trim()}.`}
             />
           )}
           <button
@@ -194,6 +195,8 @@ export function BookingForm({
                 ...emptyPlayer,
                 contact: "",
               });
+              setGuests([]);
+              setSpaces(1);
               advance(0);
             }}
           >
@@ -407,7 +410,8 @@ export function BookingForm({
                   ))}
                 </select>
                 <small>
-                  Book spaces for friends too. Give their names in your message.
+                  Booking for friends too? You can add their names on the next
+                  step.
                 </small>
               </label>
             )}
@@ -443,7 +447,13 @@ export function BookingForm({
               if (live && slug && chosenDay) {
                 setSending(true);
                 const [h, m] = time.split(":").map(Number);
+                const names = guests
+                  .slice(0, spaces - 1)
+                  .map((g) => g.trim())
+                  .filter(Boolean);
                 const notes = [
+                  spaces > 1 &&
+                    `Booking ${spaces} spaces${names.length ? `: ${player.name.trim()}, ${names.join(", ")}` : ""}.`,
                   player.level && `Level: ${player.level}.`,
                   `Prefers ${contact === "whatsapp" ? "WhatsApp" : "email"}.`,
                   player.message.trim(),
@@ -592,6 +602,34 @@ export function BookingForm({
                   ? " Choosing WhatsApp records your preference. This demo sends nothing."
                   : " Your coach will reply on WhatsApp."}
               </p>
+            )}
+            {lesson.capacity > 1 && spaces > 1 && (
+              <fieldset className={styles.guestNames}>
+                <legend>
+                  Who else is playing? ({spaces} spaces, you and{" "}
+                  {spaces - 1} {spaces === 2 ? "other" : "others"})
+                </legend>
+                {Array.from({ length: spaces - 1 }, (_, i) => (
+                  <label className={styles.formLabel} key={i}>
+                    Player {i + 2} name
+                    <input
+                      autoComplete="off"
+                      maxLength={60}
+                      value={guests[i] ?? ""}
+                      onChange={(e) => {
+                        const next = [...guests];
+                        while (next.length < spaces - 1) next.push("");
+                        next[i] = e.target.value;
+                        setGuests(next);
+                      }}
+                    />
+                  </label>
+                ))}
+                <small>
+                  Optional, but it helps {shortName} organise the session. You
+                  can add or change names later by messaging them.
+                </small>
+              </fieldset>
             )}
             <label className={styles.formLabel}>
               What would you like to work on? (optional)
