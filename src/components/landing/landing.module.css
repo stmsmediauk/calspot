@@ -759,6 +759,12 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 48px;
 }
+@media (min-width: 900px) {
+  .benefits {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+}
 .benefitTitle {
   font-size: 26px;
   font-weight: 800;

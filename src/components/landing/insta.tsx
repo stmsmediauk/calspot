@@ -4,7 +4,7 @@ import styles from "./landing.module.css";
 
 /** A small Instagram profile with the coach's Calspot link in the bio. Picks up the typed name. */
 export function InstaProfile() {
-  const { slug } = useClaim();
+  const { slug, display } = useClaim();
   return (
     <div className={styles.instaWrap}>
       <div
@@ -29,7 +29,7 @@ export function InstaProfile() {
             </div>
           </dl>
         </div>
-        <p className={styles.instaName}>{slug.replace(/-/g, "")}</p>
+        <p className={styles.instaName}>{display}</p>
         <p>Padel coach · Riverside &amp; Northside clubs</p>
         <p>Private, duo and group sessions</p>
         <span className={styles.instaLink}>calspot.co.uk/{slug}</span>

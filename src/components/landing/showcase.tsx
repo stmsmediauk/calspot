@@ -73,7 +73,7 @@ export function Showcase() {
             id="looks-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Sam Taylor"
+            placeholder="Type your name"
             maxLength={60}
           />
         </label>
