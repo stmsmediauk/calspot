@@ -10,7 +10,6 @@ import {
 } from "./claim";
 import { InstaProfile } from "./insta";
 import {
-  FOUNDING_OFFER_ACTIVE as founding,
   FOUNDING_PLACES,
   FOUNDING_PRICE,
   STANDARD_PRICE,
@@ -121,7 +120,7 @@ const included = [
   "Tomorrow’s reminders and setup checklist",
 ];
 
-const faqs = [
+const faqList = (founding: boolean) => [
   ...(founding
     ? [
         {
@@ -151,12 +150,14 @@ const faqs = [
 
 const trial =
   "14-day free trial · No card needed · No booking fees · Cancel anytime";
-const heroMicro = founding
-  ? `14-day free trial · No booking fees · Founding price for the first ${FOUNDING_PLACES} coaches`
-  : trial;
-const finalMicro = founding
-  ? `14-day free trial · No booking fees · Founding price ends after ${FOUNDING_PLACES} coaches`
-  : trial;
+const microCopy = (founding: boolean) => ({
+  hero: founding
+    ? `14-day free trial · No booking fees · Founding price for the first ${FOUNDING_PLACES} coaches`
+    : trial,
+  final: founding
+    ? `14-day free trial · No booking fees · Founding price ends after ${FOUNDING_PLACES} coaches`
+    : trial,
+});
 
 function Tick() {
   return (
@@ -178,7 +179,9 @@ function Tick() {
 }
 
 /** Public landing page. The claim field is shared by the hero, the looks and the closing call to action. */
-export function Landing() {
+export function Landing({ founding }: { founding: boolean }) {
+  const micro = microCopy(founding);
+  const faqs = faqList(founding);
   const heroAlt = "Padel coach feeding a ball at the net under floodlights";
   const common = { alt: heroAlt, fill: true, sizes: "100vw", quality: 70 };
   const {
@@ -242,7 +245,7 @@ export function Landing() {
                 back-and-forth.
               </p>
               <ClaimForm />
-              <p className={styles.micro}>{heroMicro}</p>
+              <p className={styles.micro}>{micro.hero}</p>
             </div>
           </section>
 
@@ -544,7 +547,7 @@ export function Landing() {
                   Claim it free
                 </ClaimLink>
               </div>
-              <p className={styles.micro}>{finalMicro}</p>
+              <p className={styles.micro}>{micro.final}</p>
             </div>
           </section>
         </main>

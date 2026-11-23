@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { LogoutButton } from "../auth/logout-button";
 import { Logo } from "../logo";
+import { SiteSettings } from "./site-settings";
 import { SupportView } from "./support-view";
 import styles from "./platform-admin.module.css";
 
@@ -32,6 +33,7 @@ type Filter =
   "all" | "never" | "suspended" | "busy" | "inactive" | "ending" | "expired";
 type View =
   | { type: "overview" }
+  | { type: "site" }
   | { type: "coaches"; filter: Filter }
   | { type: "coach"; id: string; back: Filter };
 const filterLabels: Record<Filter, string> = {
@@ -347,7 +349,9 @@ export function PlatformAdmin() {
           )}
           {navButton(
             "Coaches",
-            activeFilter === "all" && view.type !== "overview",
+            activeFilter === "all" &&
+              view.type !== "overview" &&
+              view.type !== "site",
             () => setView({ type: "coaches", filter: "all" }),
             counts.all,
           )}
@@ -370,13 +374,18 @@ export function PlatformAdmin() {
               ).map((f) =>
                 navButton(
                   filterLabels[f],
-                  view.type !== "overview" && activeFilter === f,
+                  view.type !== "overview" &&
+                    view.type !== "site" &&
+                    activeFilter === f,
                   () => setView({ type: "coaches", filter: f }),
                   counts[f],
                   true,
                 ),
               )}
             </div>
+          )}
+          {navButton("Site settings", view.type === "site", () =>
+            setView({ type: "site" }),
           )}
           <div className={styles.navFoot}>
             <Link href="/dashboard">My dashboard</Link>
@@ -401,6 +410,8 @@ export function PlatformAdmin() {
             {message}
           </p>
         )}
+
+        {view.type === "site" && <SiteSettings />}
 
         {view.type === "overview" && (
           <>
