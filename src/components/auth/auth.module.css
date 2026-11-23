@@ -58,7 +58,7 @@
   border: 0;
   border-radius: var(--radius-sm);
   background: var(--accent);
-  color: #fff;
+  color: var(--cs-lime);
   font: inherit;
   font-weight: 600;
   cursor: pointer;

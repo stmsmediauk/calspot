@@ -2,59 +2,21 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
 
-export const alt = "Calspot. Less admin. More court time.";
+export const alt = "Calspot. Your coaching. All in one spot.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+/** The supplied brand share image (public/og-image.png). */
 export default async function Image() {
-  const logo = await readFile(
-    path.join(process.cwd(), "public/brand/calspot-logo.png"),
-  );
+  const art = await readFile(path.join(process.cwd(), "public/og-image.png"));
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#fdfdfd",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <img
-          src={`data:image/png;base64,${logo.toString("base64")}`}
-          alt=""
-          width={900}
-          height={300}
-        />
-        <div
-          style={{
-            display: "flex",
-            marginTop: -20,
-            fontSize: 44,
-            color: "#33343a",
-          }}
-        >
-          Less admin. More court time.
-        </div>
-        <div
-          style={{
-            display: "flex",
-            marginTop: 28,
-            padding: "14px 30px",
-            borderRadius: 999,
-            background: "#0a3cff",
-            color: "#fff",
-            fontSize: 28,
-            fontWeight: 700,
-          }}
-        >
-          Your own booking page · £29 a month · 14 days free
-        </div>
-      </div>
+      <img
+        src={`data:image/png;base64,${art.toString("base64")}`}
+        alt=""
+        width={1200}
+        height={630}
+      />
     ),
     size,
   );

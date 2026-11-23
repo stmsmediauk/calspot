@@ -4,10 +4,10 @@
   --surface: #f5f5f7;
   --text: #1d1d1f;
   --muted: #6e6e73;
-  --accent: #0038fc;
-  --accent-hover: #0030d9;
-  --accent-soft: #f0f3ff;
-  --accent-border: #dce4ff;
+  --accent: #0b1030;
+  --accent-hover: #1c2552;
+  --accent-soft: #eef1fe;
+  --accent-border: #d3dbfc;
   --border: #e8e8ed;
   --green: #377660;
   --amber: #98701e;
@@ -24,6 +24,21 @@
   --space-5: 24px;
   --space-6: 32px;
   --tap: 44px;
+  /* Brand tokens (see the brand handoff) */
+  --cs-navy: #0b1030;
+  --cs-lime: #d6fd69;
+  --cs-blue: #3a5cf5;
+  --cs-slot-navy: #232e66;
+  --cs-slot-lime: #bfd856;
+  --cs-slot-blue: #2e4fe0;
+  --cs-white: #ffffff;
+  --cs-light: #f5f5f7;
+  --cs-ink: #1d1d1f;
+  --cs-grey-700: #4a4f5a;
+  --cs-grey-500: #6e6e73;
+  --cs-line: #d3d4da;
+  --cs-font-display: var(--font-bricolage), var(--font-geist-sans, system-ui), sans-serif;
+  --cs-font-body: var(--font-geist-sans), -apple-system, system-ui, "Segoe UI", sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -80,6 +95,19 @@ h2,
 h3,
 p {
   margin: 0;
+}
+/* Brand type: Bricolage Grotesque for headings and buttons (ExtraBold 800 is its maximum weight). Coach pages keep their own type. */
+h1:not([data-coach-site] *),
+h2:not([data-coach-site] *),
+.display:not([data-coach-site] *) {
+  font-family: var(--cs-font-display);
+  font-weight: 800;
+}
+h3:not([data-coach-site] *),
+.subhead:not([data-coach-site] *),
+button:not([data-coach-site] *) {
+  font-family: var(--cs-font-display);
+  font-weight: 700;
 }
 h2 {
   font-size: 16px;
@@ -286,7 +314,7 @@ h1 {
   gap: 8px;
   background: var(--accent);
   border: 1px solid var(--accent);
-  color: white;
+  color: var(--cs-lime);
   padding: 11px 16px;
   border-radius: 10px;
   font-size: 13px;
@@ -457,7 +485,7 @@ select {
 }
 .day-heading.highlight strong {
   background: var(--accent);
-  color: white;
+  color: var(--cs-lime);
   width: 30px;
   border-radius: 50%;
 }
@@ -1081,29 +1109,25 @@ select {
 }
 
 .calspot-logo {
-  position: relative;
   display: inline-block;
   flex-shrink: 0;
-  width: 145px;
-  height: 38px;
-  overflow: hidden;
+  height: 30px;
+  line-height: 0;
 }
 .calspot-logo-art {
-  position: absolute;
-  width: 189.86%;
-  max-width: none;
-  height: auto;
-  left: -44.76%;
-  top: -82.15%;
+  display: block;
+  height: 100%;
+  width: auto;
 }
 .calspot-logo.compact {
-  width: 70px;
-  height: 18px;
+  height: 22px;
 }
 @media (max-width: 760px) {
-  .brand .calspot-logo {
-    width: 135px;
-    height: 35px;
+  .calspot-logo {
+    height: 24px;
+  }
+  .calspot-logo.compact {
+    height: 22px;
   }
 }
 
@@ -1117,7 +1141,7 @@ select {
 }
 .sidebar nav a.active .count {
   background: var(--accent);
-  color: #fff;
+  color: var(--cs-lime);
 }
 .segmented .selected {
   color: var(--text);
@@ -1846,7 +1870,7 @@ a.button {
     left: calc(50% + 6px);
     margin: 0;
     background: var(--accent);
-    color: #fff;
+    color: var(--cs-lime);
   }
   .mobile-brand {
     display: inline-flex;

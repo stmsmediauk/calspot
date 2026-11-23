@@ -1,8 +1,7 @@
-import Image from "next/image";
-
 /**
- * Frames the supplied artwork without modifying its proportions.
- * `tone="light"` is the same logo with white letters, for dark backgrounds.
+ * The Calspot wordmark (SVG). `tone="light"` is the lime version for navy
+ * backgrounds; the default navy version is for white and light surfaces.
+ * Never stretch or recolour it. Minimum width is 72px.
  */
 export function Logo({
   compact = false,
@@ -13,17 +12,15 @@ export function Logo({
 }) {
   return (
     <span className={`calspot-logo${compact ? " compact" : ""}`}>
-      <Image
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={
           tone === "light"
-            ? "/brand/calspot-logo-light.png"
-            : "/brand/calspot-logo.png"
+            ? "/logos/calspot-wordmark-lime.svg"
+            : "/logos/calspot-wordmark-navy.svg"
         }
         alt="Calspot"
-        width={2172}
-        height={724}
         className="calspot-logo-art"
-        priority={!compact}
       />
     </span>
   );

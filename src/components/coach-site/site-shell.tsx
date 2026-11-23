@@ -18,6 +18,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     <div
       className={styles.site}
       data-palette={appearance.palette}
+      data-coach-site
       style={coachTheme(appearance)}
     >
       <a href="#coach-main" className={styles.skip}>

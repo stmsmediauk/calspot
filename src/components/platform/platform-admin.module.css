@@ -234,7 +234,7 @@
 }
 .off {
   background: var(--accent);
-  color: #fff;
+  color: var(--cs-lime);
   border: 1px solid var(--accent);
 }
 .error {
@@ -298,7 +298,7 @@
 .filters button[aria-pressed="true"] {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--cs-lime);
 }
 .export {
   margin-left: auto;
