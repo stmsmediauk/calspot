@@ -329,7 +329,7 @@ export function PlatformAdmin() {
     <div className={styles.shell}>
       <div className={styles.sidebar}>
         <div className={styles.brand}>
-          <Logo compact />
+          <Logo compact tone="light" />
           <span className={styles.tag}>Admin</span>
         </div>
         <button
