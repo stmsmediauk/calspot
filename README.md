@@ -5,12 +5,13 @@
 ## Brand and product identity
 
 - **Product name:** Calspot (working brand; final trademark clearance pending).
-- **Wordmark direction:** lowercase `calspot.` with a restrained, typography-first identity.
 - **Tagline:** Your coaching. All in one spot.
 - **Product descriptor:** Profiles · Bookings · Calendar.
-- **Visual language:** bright white, subtle warm-grey surfaces, fine neutral borders, excellent spacing, contemporary sans-serif typography (Geist or Inter), restrained transitions.
-- **White-label rule:** Calspot is the platform brand, not a forced visible brand on coaches’ public booking pages.
-- **Brand decisions pending:** final logo, accent colour, registered domain and trademark clearance. Do not assume any domain is owned or configured.
+- **Logo:** the lowercase `calspot` wordmark with a square "o" (the "spot"). SVG files are in `public/logos/`: lime on navy backgrounds, navy on white or light ones. Steve's original artwork is in `public/logos/SVG/`. Never stretch or recolour it, and never put lime on white.
+- **Palette:** navy `#0B1030` (primary), lime `#D6FD69` (accent, always small: buttons and highlights), blue `#3A5CF5` (secondary), with light `#F5F5F7`, ink `#1D1D1F` and greys. Tokens are the `--cs-*` custom properties in `src/app/globals.css`. Lime is never used on white, and lime and blue never share a large area.
+- **Type:** Bricolage Grotesque (ExtraBold 800 maximum) for headings and buttons, loaded with `next/font/google`; Geist for body text. Landing H1s are Title Case, H2s uppercase. Coach pages keep their own type pairings.
+- **White-label rule:** Calspot is the platform brand, not a forced visible brand on coaches' public booking pages.
+- **Brand decisions pending:** registered domain and trademark clearance. Do not assume any domain is owned or configured.
 
 ## Project status
 
@@ -101,12 +102,12 @@ Statuses: `pending`, `confirmed`, `declined`, `cancelled`; reserve `expired` for
 
 **Premium editorial sports style for public pages; light, minimal, Apple-inspired for the dashboard.** The public page uses oversized tightly tracked coach-name typography, a large photograph, an open grid and an integrated request flow. The dashboard retains its existing quieter design.
 
-- Background: `#FFFFFF`; secondary surface: `#F8F9FA`.
-- Text: `#171717`; borders: `#EAEAEA`.
-- Typeface: Geist or Inter.
+- Background: `#FFFFFF`; secondary surface: `#F5F5F7`.
+- Text: `#1D1D1F`; borders: `#E8E8ED`.
+- Typeface: Bricolage Grotesque for headings and buttons, Geist for body text.
 - Generous whitespace, consistent spacing, precise alignment.
 - Subtle 1px borders; avoid heavy shadows, gradients, glassmorphism and decorative clutter.
-- Restrained black primary buttons and accessible focus states.
+- Navy primary buttons with lime text on light surfaces, lime buttons with navy text on navy, and accessible focus states.
 - Lucide icons, subtle 150–250ms transitions; respect reduced-motion preferences.
 - Public booking pages use a coach-selected look (hero layout, palette, accent, type pairing, corners) and imagery; **dashboard remains consistent** across tenants.
 - Use selected components from [21st.dev](https://21st.dev/) only after reviewing dependencies, accessibility and licensing. Adapt them to a coherent shared design system; do not assemble mismatched components.
@@ -336,27 +337,11 @@ modal with Escape. No browser page errors were reported. Desktop and mobile
 screenshots were visually inspected. This is prototype verification, not a full
 accessibility or production scheduling audit.
 
-### Supplied logo
+### Logo and dashboard palette
 
-The dashboard uses the supplied `Calspot Blue Ring Logo.png` artwork, served from
-`public/brand/calspot-logo.png` through a reusable logo component. The original file
-is preserved. Its surrounding whitespace is framed with CSS without stretching the
-artwork. This asset choice does not imply trademark clearance or domain ownership.
+The dashboard and landing page use the wordmark SVGs from `public/logos/` through `src/components/logo.tsx` (`tone="light"` is the lime version for navy backgrounds). This asset choice does not imply trademark clearance or domain ownership.
 
-### Dashboard palette
-
-The prototype now uses the supplied logo's electric blue (`#0038FC`) for primary
-actions, selection and keyboard focus, with pale blue supporting surfaces, white,
-black and neutral greys. This supersedes the initial black-button direction above.
-Green, amber and red remain semantic booking-status colours. Accent tokens are
-centralised in `src/app/globals.css`; public coach branding remains independently
-configurable in later phases.
-
-The dashboard's visual refinement uses system-first typography (Geist fallback),
-soft off-white canvas, white panels, subtle borders and more rounded controls.
-Logo blue remains an accent for actions and key selections; navigation and
-segmented controls use quieter neutral selection surfaces.
-
+The dashboard's primary colour is navy (`--accent` is `#0B1030`), with lime text on filled buttons and a pale blue tint for selection. Green, amber and red remain semantic booking-status colours. Tokens are centralised in `src/app/globals.css`; public coach branding remains independently configurable.
 
 ### First pilot coach
 
@@ -399,7 +384,7 @@ Image inputs accept JPEG, PNG and WebP files up to 1 MB. Images are decoded befo
 
 Existing club and lesson editors are reused. Active records appear on the profile and in booking choices; deactivated records disappear. If no active clubs or lessons remain, the page displays a helpful empty state.
 
-All appearance values resolve to CSS tokens (`--coach-*`) in `src/lib/coach-theme.ts`. Fonts are bundled locally (`geist` and `@fontsource` packages); no external font requests are made. Public content, highlights, FAQ and the sample week live in `src/components/coach-site/content.ts`. A single `publicCoach.demoMode` flag controls the prototype wording ("sample", "demo request", the preview bar and its dashboard link). Turning it off removes that wording once real availability and email are connected.
+All appearance values resolve to CSS tokens (`--coach-*`) in `src/lib/coach-theme.ts`. Coach-page fonts are bundled locally (`geist` and `@fontsource` packages); no external font requests are made from coach pages. Public content, highlights, FAQ and the sample week live in `src/components/coach-site/content.ts`. A single `publicCoach.demoMode` flag controls the prototype wording ("sample", "demo request", the preview bar and its dashboard link). Turning it off removes that wording once real availability and email are connected.
 
 ### Public page structure
 
@@ -593,13 +578,21 @@ The app tolerates a missing file (the related feature just stays off), so deploy
 - Coaches cannot change their own plan or trial; the database blocks it. Admins set the plan and can extend a trial by 14 days in `/admin`.
 - There is no billing yet. Until Stripe is added, move a paying coach to **Paid** in `/admin`.
 
+### Brand assets and icons
+
+- `public/logos/`: wordmarks, icon tiles and icon grids in navy, lime, blue and white. Use the file that matches the background.
+- `src/app/icon.svg`, `src/app/apple-icon.png`, `public/favicon.ico`, `public/icon-192.png`, `public/icon-512.png` and `public/site.webmanifest`: browser, home-screen and app icons. Theme colour is `#0B1030`.
+- `public/og-image.png`: the share image, served by `src/app/opengraph-image.tsx`. Coach pages keep their own per-coach share images.
+- Headings and buttons use `--cs-font-display` (Bricolage Grotesque). Elements inside `[data-coach-site]` are excluded so coach pages keep their chosen type.
+- An earlier trial copy of the Altair font was dropped because of its non-commercial licence. Keep any trial or unlicensed fonts out of the repo (`/fonts-source/` is git-ignored).
+
 ### Master admin (`/admin`)
 
 Overview with totals and a Needs attention list, a coach list with search, CSV export and filters, and a page per coach with: plan, extend trial, view page, publish or unpublish, suspend, clear waiting requests, delete, and a support view. The admin never sees player names, emails, phone numbers or messages. To make someone an admin, add their user id to `platform_admins` in Supabase.
 
 ### Landing page
 
-`src/components/landing/` holds the page, built from `calspot-handoff/design-reference.html` (kept in the repo for reference). The five looks in "Make it look like you" are drawn from the real presets in `src/lib/coach-theme.ts`. The testimonials section stays hidden until real quotes are added.
+`src/components/landing/` holds the page, built from `calspot-handoff/design-reference.html` (kept in the repo for reference). Colours and type come from the brand tokens above. The five looks in "Make it look like you" are drawn from the real presets in `src/lib/coach-theme.ts`. The testimonials section stays hidden until real quotes are added.
 
 ### Known gaps
 
