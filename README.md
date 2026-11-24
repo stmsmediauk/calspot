@@ -542,7 +542,8 @@ Tables, row-level security and the booking function were applied as migrations. 
 5. `supabase/trial.sql` adds the 14-day free trial.
 6. `supabase/group_sessions.sql` adds lesson capacity and group booking. **Run it before deploying the code that saves `capacity` on lessons**, or saving lessons will fail.
 7. `supabase/playtomic_courts.sql` adds the club Playtomic link and the "Court booked" tick. **Run it before deploying the code that saves them**, or saving clubs and requests will fail.
-8. `supabase/demo_coach.sql` is optional: it adds `seed_demo_coach(email)`, which builds a fictional demo coach at `/demo` (never indexed or listed in the sitemap). Create a separate login for it in Supabase Authentication first, then run `select public.seed_demo_coach('that-email');`. Run the select again to reset it before a demo.
+8. `supabase/calendar_feed.sql` adds the private calendar link. **Run it before deploying the code that shows "Sync to your calendar"**, or that panel will show an error.
+9. `supabase/demo_coach.sql` is optional: it adds `seed_demo_coach(email)`, which builds a fictional demo coach at `/demo` (never indexed or listed in the sitemap). Create a separate login for it in Supabase Authentication first, then run `select public.seed_demo_coach('that-email');`. Run the select again to reset it before a demo.
 
 The app tolerates a missing file (the related feature just stays off), so deploys do not break if one has not been run yet.
 
@@ -573,6 +574,10 @@ The app tolerates a missing file (the related feature just stays off), so deploy
 Many clubs take court bookings through Playtomic. A coach can paste the club's Playtomic page into **Clubs → Playtomic page**. Each request then shows **Check court on Playtomic**, which opens that page in a new tab, and a **Court booked** tick the coach uses as their own reminder. Only links on `playtomic.com` or `playtomic.io` are accepted (`src/lib/playtomic.ts`).
 
 Calspot never reads from or writes to Playtomic, holds no courts and cannot see whether the tick is true. A request is still not a confirmed court reservation, and the coach must verify court availability themselves.
+
+### Calendar sync
+
+**Calendar → Sync to your calendar** gives a coach a private link they subscribe to in Apple Calendar, Google Calendar or Outlook. It is a one-way feed (`/api/calendar/<token>.ics`, built in `src/lib/ics.ts`) of confirmed sessions, showing first name, lesson, club, time and whether the court is ticked as booked. It never includes emails, phone numbers or messages. The token lives in `coach_calendar_tokens`, not on `coaches` (coach rows are readable once a page is published), and a coach can make a new link to cut off old copies. Calendar apps refresh on their own schedule: Apple within about an hour, Google can take several. Two-way Google sync and reading a coach's busy times back in are not built.
 
 ### Group sessions
 

@@ -6,6 +6,7 @@ import { useCoachWorkspace } from "@/lib/coach-workspace";
 import { useMediaQuery } from "@/lib/use-media";
 import * as mock from "@/lib/mock-data";
 import { CalendarPanel } from "../calendar-panel";
+import { CalendarSync } from "./calendar-sync";
 import { useAdmin } from "./context";
 import { PageHeader } from "./page-header";
 
@@ -48,6 +49,7 @@ export function CalendarPage() {
           </Link>
         }
       />
+      <CalendarSync />
       <CalendarPanel
         week={week}
         view={view}
