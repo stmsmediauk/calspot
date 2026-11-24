@@ -12,6 +12,7 @@ import {
 } from "@/lib/coach-workspace";
 import { type CoachAppearance } from "@/lib/coach-theme";
 import { useMediaQuery } from "@/lib/use-media";
+import { playtomicLevel, playtomicUrl } from "@/lib/playtomic";
 import {
   defaultTemplates,
   renderTemplate,
@@ -217,6 +218,18 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
       );
       return;
     }
+    if (draft.playtomicLevel.trim() && !playtomicLevel(draft.playtomicLevel)) {
+      setTab("contact");
+      setError("Enter your Playtomic level as a number from 0 to 7, such as 4.5.");
+      return;
+    }
+    if (draft.playtomicProfile.trim() && !playtomicUrl(draft.playtomicProfile)) {
+      setTab("contact");
+      setError(
+        "Paste the link to your Playtomic profile (playtomic.com or playtomic.io), or leave it blank.",
+      );
+      return;
+    }
     const cleaned = {
       ...draft,
       name: draft.name.trim(),
@@ -244,6 +257,8 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
       location: draft.location.trim(),
       whatsapp: normaliseWhatsApp(draft.whatsapp),
       instagram: draft.instagram.trim().replace(/^@/, ""),
+      playtomicLevel: playtomicLevel(draft.playtomicLevel) ?? "",
+      playtomicProfile: playtomicUrl(draft.playtomicProfile) ?? "",
     };
     updateCoachWorkspace((current) => ({
       ...current,
@@ -422,6 +437,30 @@ export function ProfileEditor({ initialTab }: { initialTab?: string }) {
                     value={draft.instagram}
                     maxLength={31}
                     onChange={(e) => change("instagram", e.target.value)}
+                  />
+                </label>
+                <label>
+                  Playtomic level <span>(optional)</span>
+                  <input
+                    inputMode="decimal"
+                    value={draft.playtomicLevel}
+                    placeholder="4.5"
+                    maxLength={4}
+                    onChange={(e) => change("playtomicLevel", e.target.value)}
+                  />
+                  <small>
+                    Your level from 0 to 7, shown on your page. Leave blank to
+                    hide it.
+                  </small>
+                </label>
+                <label>
+                  Playtomic profile link <span>(optional)</span>
+                  <input
+                    type="url"
+                    value={draft.playtomicProfile}
+                    placeholder="https://playtomic.com/…"
+                    maxLength={300}
+                    onChange={(e) => change("playtomicProfile", e.target.value)}
                   />
                 </label>
               </section>

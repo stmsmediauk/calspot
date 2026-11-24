@@ -1,4 +1,5 @@
 import { defaultTemplates, type WhatsAppTemplates } from "./whatsapp";
+import { playtomicLevel, playtomicUrl } from "./playtomic";
 import {
   defaultAppearance,
   sanitiseAppearance,
@@ -38,6 +39,10 @@ export type CoachProfile = {
   /** Editable WhatsApp message drafts. */
   whatsappTemplates: WhatsAppTemplates;
   instagram: string;
+  /** The coach's own Playtomic level, 0 to 7, shown on their page. Empty to hide. */
+  playtomicLevel: string;
+  /** Optional link to their Playtomic profile, opened from the level. */
+  playtomicProfile: string;
 };
 export type CoachWorkspace = {
   profile: CoachProfile;
@@ -67,6 +72,8 @@ export const defaultProfile: CoachProfile = {
   whatsapp: "",
   whatsappTemplates: defaultTemplates,
   instagram: "",
+  playtomicLevel: "",
+  playtomicProfile: "",
 };
 export const defaultWorkspace: CoachWorkspace = {
   profile: defaultProfile,
@@ -235,6 +242,15 @@ function restore(raw: string): CoachWorkspace | null {
     whatsappTemplates: sanitiseTemplates(legacy.whatsappTemplates),
     photoFocusX: focus(legacy.photoFocusX, defaultProfile.photoFocusX),
     photoFocusY: focus(legacy.photoFocusY, defaultProfile.photoFocusY),
+    // Older saves have neither. Anything invalid is dropped rather than shown.
+    playtomicLevel:
+      typeof legacy.playtomicLevel === "string"
+        ? (playtomicLevel(legacy.playtomicLevel) ?? "")
+        : "",
+    playtomicProfile:
+      typeof legacy.playtomicProfile === "string"
+        ? (playtomicUrl(legacy.playtomicProfile) ?? "")
+        : "",
   };
   delete (migrated as unknown as Record<string, unknown>).palette;
   const record = (value: unknown): value is Record<string, unknown> =>

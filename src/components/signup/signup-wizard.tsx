@@ -15,6 +15,7 @@ import {
 } from "@/lib/coach-workspace";
 import { slugAvailable } from "@/lib/workspace-db";
 import { defaultTemplates, waNumber } from "@/lib/whatsapp";
+import { playtomicLevel, playtomicUrl } from "@/lib/playtomic";
 import { useMediaQuery } from "@/lib/use-media";
 import { LogoutButton } from "../auth/logout-button";
 import { Logo } from "../logo";
@@ -91,6 +92,8 @@ type Draft = {
   end: string;
   whatsapp: string;
   instagram: string;
+  playtomicLevel: string;
+  playtomicProfile: string;
 };
 const blank: Draft = {
   photograph: null,
@@ -112,6 +115,8 @@ const blank: Draft = {
   end: "17:00",
   whatsapp: "",
   instagram: "",
+  playtomicLevel: "",
+  playtomicProfile: "",
 };
 /** The WhatsApp number as +countrycode digits, or null. A leading 0 is read as UK (+44). */
 const whatsappValue = (value: string) => {
@@ -171,6 +176,8 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
     whatsapp: whatsappValue(d.whatsapp) ?? "",
     whatsappTemplates: defaultTemplates,
     instagram: instagramValue(d.instagram) ?? "",
+    playtomicLevel: playtomicLevel(d.playtomicLevel) ?? "",
+    playtomicProfile: playtomicUrl(d.playtomicProfile) ?? "",
   };
   const clubName = d.clubName.trim() || (placeholders ? "Your club" : "");
   const clubId = crypto.randomUUID();
@@ -268,6 +275,10 @@ export function SignupWizard() {
         return "Add the mobile number you use for WhatsApp, for example 07700 900123.";
       if (draft.instagram.trim() && !instagramValue(draft.instagram))
         return "Enter your Instagram handle, such as yourhandle, or leave it blank.";
+      if (draft.playtomicLevel.trim() && !playtomicLevel(draft.playtomicLevel))
+        return "Enter your Playtomic level as a number from 0 to 7, such as 4.5, or leave it blank.";
+      if (draft.playtomicProfile.trim() && !playtomicUrl(draft.playtomicProfile))
+        return "Paste your Playtomic profile link (playtomic.com or playtomic.io), or leave it blank.";
     }
     return "";
   };
@@ -684,6 +695,30 @@ export function SignupWizard() {
                     Adds an Instagram link to your page so players can see your
                     coaching. Skip it if you don’t use Instagram.
                   </small>
+                </label>
+                <label>
+                  Playtomic level <span>(optional)</span>
+                  <input
+                    inputMode="decimal"
+                    value={draft.playtomicLevel}
+                    maxLength={4}
+                    placeholder="4.5"
+                    onChange={(e) => set("playtomicLevel", e.target.value)}
+                  />
+                  <small>
+                    Your level from 0 to 7. It shows on your page so players know
+                    what to expect.
+                  </small>
+                </label>
+                <label>
+                  Playtomic profile link <span>(optional)</span>
+                  <input
+                    type="url"
+                    value={draft.playtomicProfile}
+                    maxLength={300}
+                    placeholder="https://playtomic.com/…"
+                    onChange={(e) => set("playtomicProfile", e.target.value)}
+                  />
                 </label>
               </>
             )}

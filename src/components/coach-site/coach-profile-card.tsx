@@ -33,6 +33,24 @@ export function CoachProfileCard() {
           <p>{profile.experience}</p>
         </div>
       )}
+      {profile.playtomicLevel && (
+        <div className={styles.experience}>
+          <h3>Playtomic level</h3>
+          <p>
+            {profile.playtomicProfile ? (
+              <a
+                href={profile.playtomicProfile}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {profile.playtomicLevel} · View Playtomic profile
+              </a>
+            ) : (
+              profile.playtomicLevel
+            )}
+          </p>
+        </div>
+      )}
       {(profile.location || activeClubs.length > 0) && (
         <div className={styles.locations}>
           <h3>Where I coach</h3>

@@ -15,3 +15,11 @@ export function playtomicUrl(input: string): string | null {
     return null;
   }
 }
+
+/** A Playtomic level (0 to 7, one decimal) from what a coach typed, such as "4.5" or "4,5". */
+export function playtomicLevel(input: string): string | null {
+  const text = input.trim().replace(",", ".");
+  if (!/^\d(\.\d{1,2})?$/.test(text)) return null;
+  const value = Number(text);
+  return value >= 0 && value <= 7 ? value.toFixed(1) : null;
+}
