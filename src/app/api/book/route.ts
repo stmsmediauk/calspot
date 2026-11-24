@@ -61,9 +61,13 @@ export async function POST(request: Request) {
 
   const str = (v: unknown, max: number) =>
     typeof v === "string" ? v.slice(0, max) : "";
+  // With the service key set, the booking functions can be closed to the public
+  // (see supabase/lock_down.sql), so every request has to come through the checks
+  // above. Without it this falls back to the public key, as before.
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     { auth: { persistSession: false } },
   );
   const slug = str(body.slug, 60);

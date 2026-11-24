@@ -50,6 +50,12 @@ let state = initial;
 let saved: Saved = emptySaved();
 let started = false;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
+/** Counts edits, so we know whether everything made so far has reached the database. */
+let revision = 0;
+let savedRevision = 0;
+let signedInAs: string | null = null;
+let retries = 0;
 let saveChain: Promise<void> = Promise.resolve();
 const subscribers = new Set<() => void>();
 
@@ -82,9 +88,11 @@ async function refresh() {
   const user = data.user;
   if (!user) {
     saved = emptySaved();
+    signedInAs = null;
     set({ ...initial, status: "signed-out" });
     return;
   }
+  signedInAs = user.id;
   try {
     const coach = await loadCoach(supabase, user.id);
     if (!coach) {
@@ -119,9 +127,41 @@ export function startCoachSession() {
   if (started || typeof window === "undefined") return;
   started = true;
   void refresh();
-  createClient().auth.onAuthStateChange((event) => {
+  createClient().auth.onAuthStateChange((event, session) => {
+    // The same person being reported as signed in again (for example when the
+    // tab regains focus) must not reload the workspace over unsaved edits.
+    if (
+      event === "SIGNED_IN" &&
+      state.status === "ready" &&
+      session?.user.id === signedInAs
+    )
+      return;
     if (event === "SIGNED_IN" || event === "SIGNED_OUT") void refresh();
   });
+  // Save straight away when the page is hidden or closed, and warn if edits
+  // have not reached the database yet.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden" && hasUnsavedChanges()) {
+      clearTimeout(saveTimer);
+      void flush();
+    }
+  });
+  window.addEventListener("beforeunload", (e) => {
+    if (hasUnsavedChanges()) {
+      clearTimeout(saveTimer);
+      void flush();
+      e.preventDefault();
+    }
+  });
+  // Try again as soon as the connection comes back.
+  window.addEventListener("online", () => {
+    if (hasUnsavedChanges()) void flush();
+  });
+}
+
+/** True while an edit is waiting to be saved, being saved, or failed to save. */
+export function hasUnsavedChanges() {
+  return state.status === "ready" && revision !== savedRevision;
 }
 
 export function useCoachSession() {
@@ -161,6 +201,8 @@ export function useCoachWorkspace() {
 function flush() {
   saveChain = saveChain.then(async () => {
     if (!state.coachId) return;
+    clearTimeout(retryTimer);
+    const startedAt = revision;
     set({ saving: true });
     try {
       const result = await pushChanges(
@@ -185,6 +227,8 @@ function flush() {
           },
         };
       }
+      savedRevision = startedAt;
+      retries = 0;
       set({ saving: false, saveError: null });
     } catch (error) {
       set({
@@ -194,6 +238,8 @@ function flush() {
             ? error.message
             : "Your latest change could not be saved.",
       });
+      // Keep trying without waiting for another edit.
+      if (++retries <= 5) retryTimer = setTimeout(() => void flush(), 8000);
     }
   });
   return saveChain;
@@ -204,6 +250,8 @@ export function updateCoachWorkspace(
   update: (current: CoachWorkspace) => CoachWorkspace,
 ) {
   state = { ...state, workspace: update(state.workspace) };
+  revision += 1;
+  retries = 0;
   subscribers.forEach((callback) => callback());
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => void flush(), 500);
@@ -249,6 +297,7 @@ export async function setCoachPublished(published: boolean) {
 
 export async function signOutCoach() {
   clearTimeout(saveTimer);
+  clearTimeout(retryTimer);
   await createClient().auth.signOut();
   saved = emptySaved();
   set({ ...initial, status: "signed-out" });

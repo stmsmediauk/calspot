@@ -292,9 +292,22 @@ export async function pushChanges(
   const fail = (e: { message: string } | null) => {
     if (e) throw new Error(e.message);
   };
+  // Each part saves on its own, so one row the database refuses cannot stop
+  // the rest (such as a coach's decision on a request). The first problem is
+  // reported once everything else has been tried, and the next save retries.
+  const problems: Error[] = [];
+  const attempt = async (job: () => Promise<void>) => {
+    try {
+      await job();
+    } catch (e) {
+      problems.push(e instanceof Error ? e : new Error(String(e)));
+    }
+  };
   if (next.profile !== saved.profile)
-    fail(
-      (await supabase.from("coaches").update({ profile: ws.profile }).eq("id", coachId)).error,
+    await attempt(async () =>
+      fail(
+        (await supabase.from("coaches").update({ profile: ws.profile }).eq("id", coachId)).error,
+      ),
     );
   const rows = toRows(coachId, ws);
   const order: Table[] = ["clubs", "lessons", "availability_rules", "availability_exceptions"];
@@ -302,43 +315,52 @@ export async function pushChanges(
     const changed = rows[table].filter(
       (r) => next.rows[table].get(r.id as string) !== saved.rows[table].get(r.id as string),
     );
-    if (changed.length) fail((await supabase.from(table).upsert(changed)).error);
+    if (changed.length)
+      await attempt(async () =>
+        fail((await supabase.from(table).upsert(changed)).error),
+      );
   }
   for (const b of rows.bookings) {
     if (next.rows.bookings.get(b.id as string) === saved.rows.bookings.get(b.id as string)) continue;
     const { id, ...fields } = b;
-    if (!saved.rows.bookings.has(id as string)) {
-      // A booking the coach added themselves, such as the later weeks of a repeat.
-      const booking = ws.bookings.find((x) => x.id === id);
-      if (booking) {
-        fail(
-          (
-            await supabase.from("bookings").insert({
-              ...fields,
-              id,
-              coach_id: coachId,
-              club_id: booking.clubId,
-              lesson_id: booking.lessonId,
-              player_name: booking.player,
-              email: booking.email,
-              phone: booking.phone ?? "",
-              date: booking.date,
-              hour: booking.hour,
-              message: booking.message,
-              spaces: booking.spaces ?? 1,
-            })
-          ).error,
-        );
-        continue;
+    await attempt(async () => {
+      if (!saved.rows.bookings.has(id as string)) {
+        // A booking the coach added themselves, such as the later weeks of a repeat.
+        const booking = ws.bookings.find((x) => x.id === id);
+        if (booking) {
+          fail(
+            (
+              await supabase.from("bookings").insert({
+                ...fields,
+                id,
+                coach_id: coachId,
+                club_id: booking.clubId,
+                lesson_id: booking.lessonId,
+                player_name: booking.player,
+                email: booking.email,
+                phone: booking.phone ?? "",
+                date: booking.date,
+                hour: booking.hour,
+                message: booking.message,
+                spaces: booking.spaces ?? 1,
+              })
+            ).error,
+          );
+          return;
+        }
       }
-    }
-    fail((await supabase.from("bookings").update(fields).eq("id", id as string)).error);
+      fail((await supabase.from("bookings").update(fields).eq("id", id as string)).error);
+    });
   }
   // Deletes run children-first so foreign keys stay satisfied.
   for (const table of ["availability_rules", "availability_exceptions", "lessons", "clubs"] as Table[]) {
     const gone = [...saved.rows[table].keys()].filter((id) => !next.rows[table].has(id));
-    if (gone.length) fail((await supabase.from(table).delete().in("id", gone)).error);
+    if (gone.length)
+      await attempt(async () =>
+        fail((await supabase.from(table).delete().in("id", gone)).error),
+      );
   }
+  if (problems.length) throw problems[0];
   return { workspace: ws, saved: next };
 }
 
