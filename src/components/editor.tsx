@@ -36,7 +36,10 @@ export function Editor({
         type={type}
         defaultValue={String(values[name] ?? fallback)}
         required={
-          name !== "notes" && name !== "description" && name !== "playtomicUrl"
+          name !== "notes" &&
+          name !== "description" &&
+          name !== "playtomicUrl" &&
+          name !== "dateEnd"
         }
         min={type === "number" ? (name === "capacity" ? 1 : 0) : undefined}
         max={name === "capacity" ? 40 : undefined}
@@ -85,18 +88,45 @@ export function Editor({
           });
           return;
         }
-        const start =
-            Number(String(data.start).split(":")[0]) +
-            Number(String(data.start).split(":")[1]) / 60,
-          end =
-            Number(String(data.end).split(":")[0]) +
-            Number(String(data.end).split(":")[1]) / 60;
+        const allDay = kind === "exception" && data.allDay === "on";
+        const start = allDay
+            ? 0
+            : Number(String(data.start).split(":")[0]) +
+              Number(String(data.start).split(":")[1]) / 60,
+          end = allDay
+            ? 24
+            : Number(String(data.end).split(":")[0]) +
+              Number(String(data.end).split(":")[1]) / 60;
         if (end <= start) {
           setError("End time must be after the start time.");
           return;
         }
         if (kind === "rule" && data.effectiveEnd < data.effectiveStart) {
           setError("Effective end must be on or after the start date.");
+          return;
+        }
+        if (kind === "exception") {
+          const first = String(data.date);
+          const last = String(data.dateEnd || "") || first;
+          if (last < first) {
+            setError("The last day must be on or after the first day.");
+            return;
+          }
+          const dates: string[] = [];
+          for (
+            let d = mock.parseDate(first);
+            mock.dateKey(d) <= last && dates.length <= 92;
+            d.setDate(d.getDate() + 1)
+          )
+            dates.push(mock.dateKey(d));
+          if (dates.length > 92) {
+            setError("Choose a range of up to 92 days.");
+            return;
+          }
+          const { dateEnd: _dateEnd, allDay: _allDay, ...rest } = data;
+          void _dateEnd;
+          void _allDay;
+          onSave({ ...rest, start, end, dates });
           return;
         }
         onSave({ ...data, start, end, day: Number(data.day) });
@@ -109,8 +139,8 @@ export function Editor({
           {field("notes", "Venue notes")}
           {field("playtomicUrl", "Playtomic page (optional)")}
           <p className="footnote">
-            Paste your club’s page on Playtomic. Each request then gets a
-            “Check court on Playtomic” button that opens it in a new tab. Calspot
+            Paste your club’s page on Playtomic. Each request then gets a “Check
+            court on Playtomic” button that opens it in a new tab. Calspot
             doesn’t connect to Playtomic or hold any courts.
           </p>
         </>
@@ -168,7 +198,14 @@ export function Editor({
             </label>
           ) : (
             <>
-              {field("date", "Date", "date", "2026-11-23")}
+              <div className="form-columns">
+                {field("date", "First day", "date", "2026-11-23")}
+                {field("dateEnd", "Last day (optional)", "date")}
+              </div>
+              <p className="footnote">
+                Leave the last day blank for a single day. For a holiday or a
+                week away, pick the first and last day.
+              </p>
               <label>
                 Exception type
                 <select aria-label="Exception type" name="kind">
@@ -177,6 +214,10 @@ export function Editor({
                   </option>
                   <option value="extra">Extra availability</option>
                 </select>
+              </label>
+              <label className="check-row">
+                <input type="checkbox" name="allDay" /> All day (ignores the
+                times below)
               </label>
             </>
           )}

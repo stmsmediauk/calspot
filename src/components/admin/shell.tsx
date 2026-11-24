@@ -139,9 +139,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      setNotice(
-        `Your page link is ${window.location.origin}/${account.slug}`,
-      );
+      setNotice(`Your page link is ${window.location.origin}/${account.slug}`);
     }
   };
 
@@ -405,7 +403,24 @@ function ModalEditor({
             ? { rules: upsert<Rule>(c.rules, { ...value, id } as Rule) }
             : {}),
           ...(modal.kind === "exception"
-            ? { exceptions: [...c.exceptions, { ...value, id } as Exception] }
+            ? {
+                exceptions: [
+                  ...c.exceptions,
+                  ...(
+                    (value.dates as string[] | undefined) ?? [
+                      value.date as string,
+                    ]
+                  ).map((date) => {
+                    const { dates: _dates, ...rest } = value;
+                    void _dates;
+                    return {
+                      ...rest,
+                      date,
+                      id: crypto.randomUUID(),
+                    } as Exception;
+                  }),
+                ],
+              }
             : {}),
         }));
         close();

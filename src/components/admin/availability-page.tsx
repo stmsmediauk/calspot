@@ -1,301 +1,345 @@
 "use client";
 import { useState } from "react";
-import { CalendarOff, Copy, Plus, X } from "lucide-react";
 import { startTimes } from "@/lib/availability";
 import { updateCoachWorkspace, useCoachWorkspace } from "@/lib/coach-workspace";
 import * as mock from "@/lib/mock-data";
-import { platform } from "@/lib/platform";
-import { Empty } from "../ui";
+import { useMediaQuery } from "@/lib/use-media";
+import { addDays, windowsOn } from "@/lib/week-edit";
+import { Empty, Modal } from "../ui";
 import { useAdmin } from "./context";
+import { DayPanel } from "./day-panel";
+import { MonthGrid, MonthNav, MonthTitle, monthDates } from "./month-grid";
 import { PageHeader } from "./page-header";
 
-/** Monday first. Values match Date.getDay() (0 = Sunday). */
-const week = [
-  { day: 1, name: "Monday" },
-  { day: 2, name: "Tuesday" },
-  { day: 3, name: "Wednesday" },
-  { day: 4, name: "Thursday" },
-  { day: 5, name: "Friday" },
-  { day: 6, name: "Saturday" },
-  { day: 0, name: "Sunday" },
+const dayNames = [
+  { day: 1, name: "Mon" },
+  { day: 2, name: "Tue" },
+  { day: 3, name: "Wed" },
+  { day: 4, name: "Thu" },
+  { day: 5, name: "Fri" },
+  { day: 6, name: "Sat" },
+  { day: 0, name: "Sun" },
 ];
 
-function CopyDay({ from, name }: { from: number; name: string }) {
-  const [open, setOpen] = useState(false);
-  const [targets, setTargets] = useState<number[]>([]);
+/** Fills several weeks at once from one pattern, for coaches who have one. */
+function TypicalWeek() {
+  const { clubs, lessons } = useCoachWorkspace();
   const { notify } = useAdmin();
+  const activeClubs = clubs.filter((c) => c.active);
+  const [days, setDays] = useState<number[]>([1, 3]);
+  const [from, setFrom] = useState(mock.today());
+  const [weeks, setWeeks] = useState(4);
+  const [start, setStart] = useState("17:00");
+  const [end, setEnd] = useState("21:00");
+  const [clubId, setClubId] = useState(activeClubs[0]?.id ?? "");
+  const [error, setError] = useState("");
+  const hour = (v: string) => {
+    const [h, m] = v.split(":").map(Number);
+    return h + (m || 0) / 60;
+  };
   return (
-    <div className="copy-day">
-      <button
-        type="button"
-        className="text-button"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-      >
-        <Copy size={14} aria-hidden="true" /> Copy to…
-      </button>
-      {open && (
-        <fieldset className="copy-menu">
-          <legend>Copy {name}’s times to</legend>
-          {week
-            .filter((d) => d.day !== from)
-            .map((d) => (
-              <label key={d.day}>
-                <input
-                  type="checkbox"
-                  checked={targets.includes(d.day)}
-                  onChange={(e) =>
-                    setTargets((t) =>
-                      e.target.checked
-                        ? [...t, d.day]
-                        : t.filter((x) => x !== d.day),
-                    )
-                  }
-                />
-                {d.name}
-              </label>
-            ))}
-          <p className="footnote">Replaces any times already on those days.</p>
-          <button
-            type="button"
-            className="button small"
-            disabled={targets.length === 0}
-            onClick={() => {
-              updateCoachWorkspace((c) => {
-                const source = c.rules.filter((r) => r.day === from);
-                return {
-                  ...c,
-                  rules: [
-                    ...c.rules.filter((r) => !targets.includes(r.day)),
-                    ...targets.flatMap((day) =>
-                      source.map((r) => ({
-                        ...r,
-                        id: crypto.randomUUID(),
-                        day,
-                      })),
+    <details className="cal-details">
+      <summary>Fill several weeks at once</summary>
+      <form
+        className="week-add"
+        style={{ marginTop: 8 }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!clubId) return setError("Add a club first, under Clubs.");
+          if (!days.length) return setError("Choose at least one day.");
+          if (hour(end) <= hour(start))
+            return setError("The end time must be after the start time.");
+          setError("");
+          const today = mock.today();
+          const dates = Array.from({ length: weeks * 7 }, (_, i) =>
+            addDays(from, i),
+          ).filter(
+            (d) =>
+              d >= today &&
+              days.includes(new Date(`${d}T12:00:00Z`).getUTCDay()),
+          );
+          updateCoachWorkspace((c) => ({
+            ...c,
+            exceptions: [
+              ...c.exceptions,
+              ...dates
+                .filter(
+                  (d) =>
+                    !windowsOn(c.rules, c.exceptions, d).some(
+                      (w) =>
+                        w.source !== "blocked" &&
+                        w.start === hour(start) &&
+                        w.end === hour(end) &&
+                        w.clubId === clubId,
                     ),
-                  ],
-                };
-              });
-              notify(
-                `Copied ${name}’s times to ${targets.length} other day${targets.length > 1 ? "s" : ""}.`,
-              );
-              setTargets([]);
-              setOpen(false);
-            }}
+                )
+                .map((date) => ({
+                  id: crypto.randomUUID(),
+                  date,
+                  kind: "extra" as const,
+                  clubId,
+                  lessonId: "all",
+                  start: hour(start),
+                  end: hour(end),
+                })),
+            ],
+          }));
+          notify(
+            `Added times on ${dates.length} ${dates.length === 1 ? "date" : "dates"}. You can still change any date.`,
+          );
+        }}
+      >
+        <p className="footnote">
+          Pick the days and times, and we add them to each date. Every date
+          stays editable.
+        </p>
+        <div className="cal-days">
+          {dayNames.map(({ day, name }) => (
+            <label key={day}>
+              <input
+                type="checkbox"
+                checked={days.includes(day)}
+                onChange={(e) =>
+                  setDays((d) =>
+                    e.target.checked ? [...d, day] : d.filter((x) => x !== day),
+                  )
+                }
+              />
+              {name}
+            </label>
+          ))}
+        </div>
+        <div className="form-columns">
+          <label>
+            From
+            <input
+              type="time"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              required
+            />
+          </label>
+          <label>
+            Until
+            <input
+              type="time"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              required
+            />
+          </label>
+        </div>
+        <div className="form-columns">
+          <label>
+            Starting
+            <input
+              type="date"
+              value={from}
+              min={mock.today()}
+              onChange={(e) => setFrom(e.target.value)}
+              required
+            />
+          </label>
+          <label>
+            For
+            <select
+              value={weeks}
+              onChange={(e) => setWeeks(Number(e.target.value))}
+            >
+              {[1, 2, 3, 4, 6, 8, 12].map((n) => (
+                <option key={n} value={n}>
+                  {n} {n === 1 ? "week" : "weeks"}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {activeClubs.length > 1 && (
+          <label>
+            Club
+            <select value={clubId} onChange={(e) => setClubId(e.target.value)}>
+              {activeClubs.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {error && (
+          <p role="alert" className="form-error">
+            {error}
+          </p>
+        )}
+        <button className="button" type="submit">
+          Add to calendar
+        </button>
+      </form>
+    </details>
+  );
+}
+
+function PlayerPreview({ date }: { date: string }) {
+  const { rules, exceptions, lessons, bookings } = useCoachWorkspace();
+  const [lessonId, setLessonId] = useState("");
+  const active = lessons.filter((l) => l.active);
+  const lesson = active.find((l) => l.id === lessonId) ?? active[0];
+  const monday = addDays(
+    date,
+    -((new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7),
+  );
+  if (!lesson) return <Empty>Turn on a lesson to preview your times.</Empty>;
+  return (
+    <div style={{ padding: "8px 22px 20px" }}>
+      {active.length > 1 && (
+        <label className="preview-select">
+          Lesson
+          <select
+            value={lesson.id}
+            onChange={(e) => setLessonId(e.target.value)}
           >
-            Copy times
-          </button>
-        </fieldset>
+            {active.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name} · {l.duration} min
+              </option>
+            ))}
+          </select>
+        </label>
       )}
+      {Array.from({ length: 7 }, (_, i) => addDays(monday, i)).map((d) => {
+        const times = startTimes({
+          date: d,
+          rules,
+          exceptions,
+          bookings,
+          lessons,
+          lesson,
+          clubId: "any",
+        });
+        return (
+          <div className="player-day" key={d}>
+            <strong>{mock.formatDate(d)}</strong>
+            {times.length ? (
+              <span>
+                {times.map((t) => (
+                  <i key={t}>{mock.time(t)}</i>
+                ))}
+              </span>
+            ) : (
+              <em>No times</em>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 export function AvailabilityPage() {
-  const { rules, exceptions, clubs, lessons, bookings } = useCoachWorkspace();
-  const { openModal } = useAdmin();
-  const activeLessons = lessons.filter((l) => l.active);
-  const [previewLesson, setPreviewLesson] = useState("");
-  const lesson =
-    activeLessons.find((l) => l.id === previewLesson) ?? activeLessons[0];
-  const club = (id: string) =>
-    clubs.find((c) => c.id === id)?.name ?? "Unknown club";
-  const previewDays = Array.from({ length: 7 }, (_, i) => {
-    const d = mock.parseDate(mock.thisWeekStart());
-    d.setDate(d.getDate() + i);
-    return d;
-  });
+  const { rules, exceptions } = useCoachWorkspace();
+  const narrow = useMediaQuery("(max-width: 760px)");
+  const today = mock.today();
+  const [month, setMonth] = useState(`${today.slice(0, 7)}-01`);
+  const [selected, setSelected] = useState(today);
+  const [sheet, setSheet] = useState(false);
+  const [preview, setPreview] = useState(false);
+
+  const cell = (date: string, inMonth: boolean) => {
+    const windows = windowsOn(rules, exceptions, date);
+    const open = windows.filter((w) => w.source !== "blocked");
+    const past = date < today;
+    const summary = open.length
+      ? `${mock.time(open[0].start)}–${mock.time(open[0].end)}${open.length > 1 ? ` +${open.length - 1}` : ""}`
+      : "";
+    return (
+      <button
+        type="button"
+        className={`cal-cell ${inMonth ? "" : "is-out"} ${open.length ? "has-times" : ""} ${date === today ? "is-today" : ""} ${date === selected ? "is-selected" : ""} ${past ? "is-past" : ""}`}
+        disabled={past}
+        aria-pressed={date === selected}
+        aria-label={`${mock.formatDate(date)}${summary ? `, ${summary}` : ", no times"}`}
+        onClick={() => {
+          setSelected(date);
+          if (narrow) setSheet(true);
+        }}
+      >
+        {narrow ? (
+          <>
+            <strong>{mock.formatDate(date)}</strong>
+            <small>{summary || "No times"}</small>
+          </>
+        ) : (
+          <>
+            <strong>{Number(date.slice(8))}</strong>
+            <small>{summary}</small>
+          </>
+        )}
+      </button>
+    );
+  };
+
   return (
     <>
       <PageHeader
         title="Availability"
-        description="Set the times you coach each week. Players only see times you have open."
+        description="Pick a date and add the times you can coach. Players only see times you have added."
         action={
           <button
             className="button secondary"
-            onClick={() => openModal({ kind: "exception" })}
+            onClick={() => setPreview((v) => !v)}
+            aria-expanded={preview}
           >
-            <CalendarOff size={16} aria-hidden="true" /> Block a date
+            {preview ? "Hide" : "See"} what players see
           </button>
         }
       />
       <div className="availability-layout">
-        <section className="panel week-editor" aria-label="Your regular week">
-          <div className="section-heading">
-            <div>
-              <h2>Your regular week</h2>
-              <p>Local times · {platform.timeZone} · 60 or 90 minute lessons</p>
-            </div>
+        <section className="panel" aria-label="Calendar">
+          <div className="cal-head">
+            <h2>
+              <MonthTitle month={month} />
+            </h2>
+            <MonthNav month={month} setMonth={setMonth} />
           </div>
-          {week.map(({ day, name }) => {
-            const dayRules = rules
-              .filter((r) => r.day === day)
-              .sort((a, b) => a.start - b.start);
-            return (
-              <div className="day-row" key={day}>
-                <h3>{name}</h3>
-                <div className="day-slots">
-                  {dayRules.length === 0 && (
-                    <span className="muted">Day off</span>
-                  )}
-                  {dayRules.map((r) => (
-                    <span className="slot-chip" key={r.id}>
-                      <button
-                        type="button"
-                        onClick={() => openModal({ kind: "rule", id: r.id })}
-                        aria-label={`Edit ${name} ${mock.time(r.start)} to ${mock.time(r.end)}`}
-                      >
-                        <strong>
-                          {mock.time(r.start)}–{mock.time(r.end)}
-                        </strong>
-                        <small>
-                          {club(r.clubId)} ·{" "}
-                          {mock.lessonName(lessons, r.lessonId)}
-                        </small>
-                      </button>
-                      <button
-                        type="button"
-                        className="chip-remove"
-                        aria-label={`Remove ${name} ${mock.time(r.start)} to ${mock.time(r.end)}`}
-                        onClick={() =>
-                          updateCoachWorkspace((c) => ({
-                            ...c,
-                            rules: c.rules.filter((x) => x.id !== r.id),
-                          }))
-                        }
-                      >
-                        <X size={14} aria-hidden="true" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <div className="day-actions">
-                  <button
-                    type="button"
-                    className="text-button"
-                    onClick={() =>
-                      openModal({ kind: "rule", defaults: { day } })
-                    }
-                  >
-                    <Plus size={14} aria-hidden="true" /> Add time
-                  </button>
-                  {dayRules.length > 0 && <CopyDay from={day} name={name} />}
-                </div>
-              </div>
-            );
-          })}
+          {narrow ? (
+            <div className="cal-list">
+              {monthDates(month)
+                .filter((d) => d.slice(0, 7) === month.slice(0, 7))
+                .filter((d) => d >= today)
+                .map((d) => (
+                  <div key={d}>{cell(d, true)}</div>
+                ))}
+            </div>
+          ) : (
+            <MonthGrid month={month} cell={cell} />
+          )}
+          <TypicalWeek />
         </section>
-        <aside className="panel player-view" aria-label="What players see">
+        {!narrow && (
+          <aside className="panel" aria-label="Times for the selected date">
+            <DayPanel key={selected} date={selected} />
+          </aside>
+        )}
+      </div>
+      {preview && (
+        <section className="panel player-view" aria-label="What players see">
           <div className="section-heading">
             <div>
               <h2>What players see</h2>
-              <p>Start times on your page for the week shown.</p>
+              <p>
+                Start times on your page for the week of{" "}
+                {mock.formatDate(selected)}.
+              </p>
             </div>
           </div>
-          {lesson ? (
-            <>
-              <label className="preview-select">
-                Lesson
-                <select
-                  value={lesson.id}
-                  onChange={(e) => setPreviewLesson(e.target.value)}
-                >
-                  {activeLessons.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.name} · {l.duration} min
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {previewDays.map((d) => {
-                const key = mock.dateKey(d);
-                const times = startTimes({
-                  date: key,
-                  rules,
-                  exceptions,
-                  bookings,
-                  lessons,
-                  lesson,
-                  clubId: "any",
-                });
-                return (
-                  <div className="player-day" key={key}>
-                    <strong>
-                      {d.toLocaleDateString("en-GB", {
-                        weekday: "short",
-                        day: "numeric",
-                      })}
-                    </strong>
-                    {times.length ? (
-                      <span>
-                        {times.map((t) => (
-                          <i key={t}>{mock.time(t)}</i>
-                        ))}
-                      </span>
-                    ) : (
-                      <em>No times</em>
-                    )}
-                  </div>
-                );
-              })}
-            </>
-          ) : (
-            <Empty>Turn on a lesson to preview your times.</Empty>
-          )}
-        </aside>
-      </div>
-      <section className="panel exceptions">
-        <div className="section-heading">
-          <div>
-            <h2>Days off and extra time</h2>
-            <p>A holiday, a day off or a little extra time on court.</p>
-          </div>
-          <button
-            className="button secondary"
-            onClick={() => openModal({ kind: "exception" })}
-          >
-            <Plus size={16} aria-hidden="true" /> Add exception
-          </button>
-        </div>
-        {exceptions.length ? (
-          exceptions.map((e) => (
-            <div className="availability-row" key={e.id}>
-              <div className="grow">
-                <h3>
-                  {mock.formatDate(e.date)} · {mock.time(e.start)}–
-                  {mock.time(e.end)}
-                </h3>
-                <p>
-                  {e.kind === "blocked"
-                    ? "Blocked across all clubs"
-                    : `Extra availability · ${club(e.clubId)}`}
-                </p>
-              </div>
-              <button
-                className="icon-button"
-                aria-label="Remove exception"
-                onClick={() =>
-                  updateCoachWorkspace((c) => ({
-                    ...c,
-                    exceptions: c.exceptions.filter((x) => x.id !== e.id),
-                  }))
-                }
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
-            </div>
-          ))
-        ) : (
-          <Empty>No exceptions. Your regular week applies every week.</Empty>
-        )}
-      </section>
-      <p className="footnote">
-        Changing availability keeps existing bookings intact. Times already
-        booked or requested are hidden from players.
-        {platform.demoMode &&
-          " Booking window and minimum notice can’t be changed yet."}
-      </p>
+          <PlayerPreview date={selected} />
+        </section>
+      )}
+      {narrow && sheet && (
+        <Modal title="Times for this date" onClose={() => setSheet(false)}>
+          <DayPanel key={selected} date={selected} />
+        </Modal>
+      )}
     </>
   );
 }
