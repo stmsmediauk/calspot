@@ -10,6 +10,7 @@ import { PageHeader } from "./page-header";
 import { RequestCard } from "./request-card";
 import { RequestDetail } from "./request-detail";
 import { useClash } from "./reply-actions";
+import { seriesLabel } from "./series";
 
 function Row({
   b,
@@ -20,7 +21,7 @@ function Row({
   selected: boolean;
   onSelect: () => void;
 }) {
-  const { lessons } = useCoachWorkspace();
+  const { lessons, bookings } = useCoachWorkspace();
   const clash = useClash(b);
   return (
     <button
@@ -41,6 +42,7 @@ function Row({
         <small>
           {lessons.find((l) => l.id === b.lessonId)?.name} ·{" "}
           {mock.formatDate(b.date)} · {mock.time(b.hour)}
+          {seriesLabel(bookings, b) && ` · ${seriesLabel(bookings, b)}`}
         </small>
       </span>
       <span className="inbox-meta">
@@ -114,6 +116,7 @@ export function RequestsPage() {
                 <p>
                   {mock.formatDate(b.date)} · {mock.time(b.hour)} ·{" "}
                   {clubs.find((c) => c.id === b.clubId)?.name}
+                  {seriesLabel(bookings, b) && ` · ${seriesLabel(bookings, b)}`}
                   {b.suggested &&
                     ` · Offered ${mock.formatDate(b.suggested.date)} ${mock.time(b.suggested.hour)}`}
                 </p>

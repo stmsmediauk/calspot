@@ -4,7 +4,7 @@ import { Check, TriangleAlert } from "lucide-react";
 import { startTimes } from "@/lib/availability";
 import { useCoachWorkspace } from "@/lib/coach-workspace";
 import * as mock from "@/lib/mock-data";
-import type { Booking } from "@/lib/mock-data";
+import type { Booking, Lesson } from "@/lib/mock-data";
 import { MessageCircle } from "lucide-react";
 import { useAdmin } from "./context";
 import { playerNumber, whatsappLink } from "./whatsapp-drafts";
@@ -58,6 +58,14 @@ export function sessionSpaces(
 /** Overlap with a confirmed session, if approving would double-book the coach. */
 export function useClash(b: Booking) {
   const { lessons, bookings } = useCoachWorkspace();
+  return findClash(lessons, bookings, b);
+}
+
+export function findClash(
+  lessons: Lesson[],
+  bookings: Booking[],
+  b: Booking,
+) {
   const length = (id: string) =>
     (lessons.find((l) => l.id === id)?.duration ?? 60) / 60;
   const capacity = lessons.find((l) => l.id === b.lessonId)?.capacity ?? 1;

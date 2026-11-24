@@ -9,6 +9,7 @@ import type { Booking } from "@/lib/mock-data";
 import { platform } from "@/lib/platform";
 import { Badge } from "../ui";
 import { ReplyActions, sessionSpaces, WhatsAppFollowUps } from "./reply-actions";
+import { seriesLabel, SeriesPanel } from "./series";
 
 export function RequestDetail({ b }: { b: Booking }) {
   const { clubs, lessons, bookings } = useCoachWorkspace();
@@ -25,7 +26,8 @@ export function RequestDetail({ b }: { b: Booking }) {
     }));
   return (
     <div className="booking-detail">
-      <Badge tone={b.status}>{b.status}</Badge>
+      <Badge tone={b.status}>{b.status}</Badge>{" "}
+      {seriesLabel(bookings, b) && <Badge>{seriesLabel(bookings, b)}</Badge>}
       <h2>{b.player}</h2>
       <p>
         {b.email}
@@ -78,6 +80,7 @@ export function RequestDetail({ b }: { b: Booking }) {
           </>
         )}
       </dl>
+      <SeriesPanel b={b} />
       {open && (
         <div className="court-check">
           {courtLink ? (

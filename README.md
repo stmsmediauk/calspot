@@ -543,7 +543,8 @@ Tables, row-level security and the booking function were applied as migrations. 
 6. `supabase/group_sessions.sql` adds lesson capacity and group booking. **Run it before deploying the code that saves `capacity` on lessons**, or saving lessons will fail.
 7. `supabase/playtomic_courts.sql` adds the club Playtomic link and the "Court booked" tick. **Run it before deploying the code that saves them**, or saving clubs and requests will fail.
 8. `supabase/calendar_feed.sql` adds the private calendar link. **Run it before deploying the code that shows "Sync to your calendar"**, or that panel will show an error.
-9. `supabase/demo_coach.sql` is optional: it adds `seed_demo_coach(email)`, which builds a fictional demo coach at `/demo` (never indexed or listed in the sitemap). Create a separate login for it in Supabase Authentication first, then run `select public.seed_demo_coach('that-email');`. Run the select again to reset it before a demo.
+9. `supabase/repeat_lessons.sql` adds weekly repeat bookings. **Run it before deploying the code that offers "Repeat weekly"**. It replaces `request_booking` with a version that has one extra optional argument (a transaction drops the old one, so it is never missing), and adds `request_booking_series`. After running it, you can run `supabase/repeat_lessons_test.sql`: it ends in an error on purpose so nothing is saved, and the message tells you whether each check passed.
+10. `supabase/demo_coach.sql` is optional: it adds `seed_demo_coach(email)`, which builds a fictional demo coach at `/demo` (never indexed or listed in the sitemap). Create a separate login for it in Supabase Authentication first, then run `select public.seed_demo_coach('that-email');`. Run the select again to reset it before a demo.
 
 The app tolerates a missing file (the related feature just stays off), so deploys do not break if one has not been run yet.
 
@@ -574,6 +575,12 @@ The app tolerates a missing file (the related feature just stays off), so deploy
 Many clubs take court bookings through Playtomic. A coach can paste the club's Playtomic page into **Clubs → Playtomic page**. Each request then shows **Check court on Playtomic**, which opens that page in a new tab, and a **Court booked** tick the coach uses as their own reminder. Only links on `playtomic.com` or `playtomic.io` are accepted (`src/lib/playtomic.ts`).
 
 Calspot never reads from or writes to Playtomic, holds no courts and cannot see whether the tick is true. A request is still not a confirmed court reservation, and the coach must verify court availability themselves.
+
+### Repeat lessons
+
+On the request form a player can choose **Repeat weekly**: the same day, time, club and lesson for up to 4 weeks. Only weeks that are actually free are offered, and the database checks every week again. **All or nothing:** if any week is unavailable, nothing is requested and the player is told which week failed (`request_booking_series`).
+
+Each week is its own booking row, linked by `series_id`. A series counts as one waiting request towards the limit of 3 per player, but each week still counts towards the 5-an-hour/day limits, so a player cannot send a second 4-week series on the same day. In the dashboard the weeks show together ("Week 2 of 4"). The coach can **approve all or decline all** waiting weeks in one go (one WhatsApp draft covers them, and it is blocked if any week overlaps a confirmed session), or approve, decline and tick off each week on its own. A coach can also **repeat a confirmed booking** for up to 3 more weeks from its details; every week must be inside their availability and free, or none are added, and they are confirmed straight away.
 
 ### Calendar sync
 

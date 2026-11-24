@@ -46,6 +46,7 @@ export function BookingForm({
     [dayIndex, setDayIndex] = useState<number | null>(null),
     [time, setTime] = useState(""),
     [spaces, setSpaces] = useState(1),
+    [repeatWeeks, setRepeatWeeks] = useState(1),
     [guests, setGuests] = useState<string[]>([]),
     [submitted, setSubmitted] = useState(false),
     [sending, setSending] = useState(false),
@@ -124,11 +125,49 @@ export function BookingForm({
     chosenDay && time
       ? `${formatDay(chosenDay, { weekday: "short", day: "numeric", month: "long" })}, ${time} ${zoneName(chosenDay)}`
       : "";
+  /** The same day and time each week, for up to 4 weeks. The database checks every week. */
+  const startHour = (() => {
+    if (!time) return null;
+    const [h, m] = time.split(":").map(Number);
+    return h + m / 60;
+  })();
+  const repeatDates = chosenDay
+    ? [0, 1, 2, 3].map((k) => new Date(chosenDay.getTime() + k * 7 * 86_400_000))
+    : [];
+  const weekIsFree = (k: number) => {
+    if (!chosenDay || startHour === null) return false;
+    const key = repeatDates[k].toISOString().slice(0, 10);
+    const open = startTimes({
+      date: key,
+      rules: workspace.rules,
+      exceptions: workspace.exceptions,
+      bookings: workspace.bookings,
+      lessons: workspace.lessons,
+      lesson,
+      clubId: venue.id,
+    }).includes(startHour);
+    const wanted = lesson.capacity > 1 ? spaces : 1;
+    return (
+      open &&
+      lesson.capacity -
+        spacesTaken(workspace.bookings, lesson.id, venue.id, key, startHour) >=
+        wanted
+    );
+  };
+  // The longest run of free weeks from the chosen day.
+  let repeatMax = 1;
+  for (let k = 1; k < 4 && weekIsFree(k); k++) repeatMax = k + 1;
+  const weeks = Math.min(repeatWeeks, repeatMax);
+  const shortDay = (d: Date) =>
+    formatDay(d, { weekday: "short", day: "numeric", month: "short" });
+  const repeatList = repeatDates.slice(0, weeks).map(shortDay).join(", ");
+  const repeatText = weeks > 1 ? `, and every week for ${weeks} weeks (${repeatList})` : "";
   const summary = (
     <div className={styles.summary} aria-live="polite">
       <div className={styles.summaryWhat}>
         <b>{lesson.name}</b>
         <span>{lesson.duration} min</span>
+        {weeks > 1 && <span>Weekly for {weeks} weeks</span>}
         {lesson.capacity > 1 && (
           <span>
             {spaces} {spaces === 1 ? "space" : "spaces"}
@@ -175,13 +214,16 @@ export function BookingForm({
           {demo
             ? `Nothing has been sent to ${shortName}. No lesson or court has been reserved, and no email will be sent. Your details stay in this page’s memory and disappear when you leave or refresh.`
             : `${shortName} will reply to confirm. A request does not reserve a court.`}
+          {weeks > 1 &&
+            !demo &&
+            ` Each week is its own request, so ${shortName} can approve or decline weeks separately.`}
         </p>
         <div className={styles.confirmationActions}>
           {hasWhatsApp(profile.whatsapp) && (
             <WhatsAppButton
               variant="solid"
               label={`Send to ${shortName} on WhatsApp`}
-              message={`Hi ${shortName}, I’d like to request ${lesson.capacity > 1 && spaces > 1 ? `${spaces} spaces in ` : ""}${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}.${lesson.capacity > 1 && spaces > 1 && guests.slice(0, spaces - 1).some((g) => g.trim()) ? ` Playing: ${player.name.trim()}, ${guests.slice(0, spaces - 1).map((g) => g.trim()).filter(Boolean).join(", ")}.` : ""}${player.message.trim() ? ` ${player.message.trim()}` : ""} Please could you confirm availability? Thanks, ${player.name.trim()}.`}
+              message={`Hi ${shortName}, I’d like to request ${lesson.capacity > 1 && spaces > 1 ? `${spaces} spaces in ` : ""}${lesson.name.toLowerCase()} at ${venue.name} on ${whenText}${repeatText}.${lesson.capacity > 1 && spaces > 1 && guests.slice(0, spaces - 1).some((g) => g.trim()) ? ` Playing: ${player.name.trim()}, ${guests.slice(0, spaces - 1).map((g) => g.trim()).filter(Boolean).join(", ")}.` : ""}${player.message.trim() ? ` ${player.message.trim()}` : ""} Please could you confirm availability? Thanks, ${player.name.trim()}.`}
             />
           )}
           <button
@@ -197,6 +239,7 @@ export function BookingForm({
               });
               setGuests([]);
               setSpaces(1);
+              setRepeatWeeks(1);
               advance(0);
             }}
           >
@@ -415,6 +458,29 @@ export function BookingForm({
                 </small>
               </label>
             )}
+            {time && chosenDay && (
+              <label className={styles.formLabel}>
+                Repeat weekly?
+                <select
+                  value={weeks}
+                  onChange={(e) => setRepeatWeeks(Number(e.target.value))}
+                >
+                  <option value={1}>Just this once</option>
+                  {[2, 3, 4].map((n) => (
+                    <option key={n} value={n} disabled={n > repeatMax}>
+                      Every week for {n} weeks
+                    </option>
+                  ))}
+                </select>
+                <small>
+                  {weeks > 1
+                    ? `Same day and time: ${repeatList}. Each week is its own request.`
+                    : "Book the same day and time each week, up to 4 weeks."}
+                  {repeatMax < 4 &&
+                    ` ${shortDay(repeatDates[repeatMax])} isn’t free at this time, so longer repeats aren’t offered.`}
+                </small>
+              </label>
+            )}
             <p className={styles.formNote}>
               Times are in {zoneName(weekStart)}. Greyed days have no
               availability.
@@ -452,6 +518,7 @@ export function BookingForm({
                   .map((g) => g.trim())
                   .filter(Boolean);
                 const notes = [
+                  weeks > 1 && `Weekly for ${weeks} weeks: ${repeatList}.`,
                   spaces > 1 &&
                     `Booking ${spaces} spaces${names.length ? `: ${player.name.trim()}, ${names.join(", ")}` : ""}.`,
                   player.level && `Level: ${player.level}.`,
@@ -473,6 +540,7 @@ export function BookingForm({
                       date: chosenDay.toISOString().slice(0, 10),
                       hour: h + m / 60,
                       spaces: lesson.capacity > 1 ? spaces : 1,
+                      weeks,
                       name: player.name.trim(),
                       email: player.email.trim(),
                       phone: player.phone.trim(),

@@ -73,7 +73,9 @@ export async function POST(request: Request) {
   if (!liveError && live === false)
     return bad("This coach isn’t taking requests right now.", 403);
   const spaces = Math.min(40, Math.max(1, Math.floor(Number(body.spaces)) || 1));
-  const { error } = await supabase.rpc("request_booking", {
+  // 1 for a single session, up to 4 for a weekly repeat.
+  const weeks = Math.min(4, Math.max(1, Math.floor(Number(body.weeks)) || 1));
+  const details = {
     p_slug: slug,
     p_club: str(body.club, 60),
     p_lesson: str(body.lesson, 60),
@@ -83,12 +85,29 @@ export async function POST(request: Request) {
     p_email: str(body.email, 200),
     p_phone: str(body.phone, 40),
     p_message: str(body.message, 1000),
-    // Only sent for group bookings, so one-to-one requests keep working even
-    // before supabase/group_sessions.sql has been run.
-    ...(spaces > 1 ? { p_spaces: spaces } : {}),
-  });
+  };
+  // Single requests use the original function with only the arguments they need,
+  // so they keep working even before the SQL files for group sessions and repeat
+  // lessons have been run. A repeat books every week or none (all or nothing).
+  const { error } =
+    weeks > 1
+      ? await supabase.rpc("request_booking_series", {
+          ...details,
+          p_spaces: spaces,
+          p_weeks: weeks,
+        })
+      : await supabase.rpc("request_booking", {
+          ...details,
+          ...(spaces > 1 ? { p_spaces: spaces } : {}),
+        });
   if (error) {
     const m = error.message;
+    const failedWeek = m.match(/\(week (\d), ([^)]+)\)/);
+    if (weeks > 1 && failedWeek && /taken|not available/i.test(m))
+      return bad(
+        `Sorry, week ${failedWeek[1]} (${failedWeek[2]}) is no longer available, so nothing has been requested. Please choose another time or fewer weeks.`,
+        409,
+      );
     return bad(
       /taken|not available/i.test(m)
         ? "Sorry, that time is no longer available. Please go back and choose another."

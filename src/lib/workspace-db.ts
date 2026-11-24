@@ -80,6 +80,9 @@ const toRows = (coachId: string, ws: CoachWorkspace) => ({
       suggested_date: b.suggested?.date ?? null,
       suggested_hour: b.suggested?.hour ?? null,
       court_booked: b.courtBooked === true,
+      // Only sent for repeat bookings, so ordinary saves work before the
+      // repeat-lessons SQL has been run.
+      ...(b.seriesId ? { series_id: b.seriesId } : {}),
     }),
   ),
 });
@@ -232,6 +235,7 @@ async function readWorkspace(
           ? { date: b.suggested_date, hour: num(b.suggested_hour) }
           : undefined,
         courtBooked: b.court_booked === true,
+        seriesId: b.series_id ?? undefined,
       })),
     }),
   );
@@ -303,6 +307,31 @@ export async function pushChanges(
   for (const b of rows.bookings) {
     if (next.rows.bookings.get(b.id as string) === saved.rows.bookings.get(b.id as string)) continue;
     const { id, ...fields } = b;
+    if (!saved.rows.bookings.has(id as string)) {
+      // A booking the coach added themselves, such as the later weeks of a repeat.
+      const booking = ws.bookings.find((x) => x.id === id);
+      if (booking) {
+        fail(
+          (
+            await supabase.from("bookings").insert({
+              ...fields,
+              id,
+              coach_id: coachId,
+              club_id: booking.clubId,
+              lesson_id: booking.lessonId,
+              player_name: booking.player,
+              email: booking.email,
+              phone: booking.phone ?? "",
+              date: booking.date,
+              hour: booking.hour,
+              message: booking.message,
+              spaces: booking.spaces ?? 1,
+            })
+          ).error,
+        );
+        continue;
+      }
+    }
     fail((await supabase.from("bookings").update(fields).eq("id", id as string)).error);
   }
   // Deletes run children-first so foreign keys stay satisfied.

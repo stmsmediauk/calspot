@@ -42,6 +42,8 @@ export type Booking = {
   suggested?: { date: string; hour: number };
   /** The coach's own tick that they have booked the court. Calspot does not check it. */
   courtBooked?: boolean;
+  /** Shared by the weeks of a repeat booking (up to 4). Each week is its own booking. */
+  seriesId?: string;
 };
 export type Rule = {
   id: string;

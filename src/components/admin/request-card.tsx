@@ -7,9 +7,10 @@ import type { Booking } from "@/lib/mock-data";
 import { Badge } from "../ui";
 import { useAdmin } from "./context";
 import { useClash } from "./reply-actions";
+import { seriesLabel } from "./series";
 
 export function RequestCard({ b }: { b: Booking }) {
-  const { clubs, lessons } = useCoachWorkspace();
+  const { clubs, lessons, bookings } = useCoachWorkspace();
   const { decide, openModal } = useAdmin();
   const clash = useClash(b);
   const courtLink = playtomicUrl(
@@ -33,6 +34,7 @@ export function RequestCard({ b }: { b: Booking }) {
           {lessons.find((l) => l.id === b.lessonId)?.name} ·{" "}
           {mock.formatDate(b.date)} at {mock.time(b.hour)}
           {(b.spaces ?? 1) > 1 && ` · ${b.spaces} spaces`}
+          {seriesLabel(bookings, b) && ` · ${seriesLabel(bookings, b)}`}
         </p>
         <p>
           {clubs.find((c) => c.id === b.clubId)?.name ?? "Unknown club"}
