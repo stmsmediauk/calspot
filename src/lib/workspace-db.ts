@@ -163,6 +163,43 @@ export async function loadPublicCoach(
   return { ...loaded, workspace: { ...loaded.workspace, bookings: busy } };
 }
 
+/** One bookings row from the database, as the app's booking. */
+const bookingFromRow = (b: Row) => ({
+  id: b.id,
+  player: b.player_name,
+  email: b.email,
+  phone: b.phone,
+  lessonId: b.lesson_id,
+  clubId: b.club_id,
+  date: b.date,
+  hour: num(b.hour),
+  status: b.status,
+  spaces: b.spaces ?? 1,
+  message: b.message,
+  requestedAt: String(b.requested_at).slice(0, 10),
+  reply: b.reply || undefined,
+  suggested: b.suggested_date
+    ? { date: b.suggested_date, hour: num(b.suggested_hour) }
+    : undefined,
+  courtBooked: b.court_booked === true,
+  seriesId: b.series_id ?? undefined,
+});
+
+/** The coach's current requests, for checking in on new ones without a reload. */
+export async function loadBookings(
+  supabase: SupabaseClient,
+  coachId: string,
+): Promise<Booking[]> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("coach_id", coachId)
+    .order("date")
+    .order("hour");
+  if (error) throw error;
+  return (data ?? []).map(bookingFromRow) as Booking[];
+}
+
 async function readWorkspace(
   supabase: SupabaseClient,
   coach: CoachRecord,
@@ -217,26 +254,7 @@ async function readWorkspace(
         start: num(e.start_hour),
         end: num(e.end_hour),
       })),
-      bookings: (bookings.data ?? []).map((b) => ({
-        id: b.id,
-        player: b.player_name,
-        email: b.email,
-        phone: b.phone,
-        lessonId: b.lesson_id,
-        clubId: b.club_id,
-        date: b.date,
-        hour: num(b.hour),
-        status: b.status,
-        spaces: b.spaces ?? 1,
-        message: b.message,
-        requestedAt: String(b.requested_at).slice(0, 10),
-        reply: b.reply || undefined,
-        suggested: b.suggested_date
-          ? { date: b.suggested_date, hour: num(b.suggested_hour) }
-          : undefined,
-        courtBooked: b.court_booked === true,
-        seriesId: b.series_id ?? undefined,
-      })),
+      bookings: (bookings.data ?? []).map(bookingFromRow),
     }),
   );
   if (!workspace) throw new Error("Saved coach data could not be read.");

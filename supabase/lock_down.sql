@@ -33,3 +33,11 @@ as $$
       'examples','coach','brand','logos','landing','platform','blog','docs','status')
     and not exists (select 1 from public.coaches where slug = p_slug)
 $$;
+
+-- 4. The same reserved names, enforced by the table itself as a backstop.
+alter table public.coaches drop constraint if exists coaches_slug_not_reserved;
+alter table public.coaches add constraint coaches_slug_not_reserved check (slug <> all (array[
+  'dashboard','signup','login','logout','onboarding','auth','api','preview','privacy','terms',
+  'admin','app','www','calspot','support','help','about','pricing','contact','settings','static','assets',
+  'forgot-password','reset-password','favicon','robots','sitemap',
+  'examples','coach','brand','logos','landing','platform','blog','docs','status']));

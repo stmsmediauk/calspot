@@ -43,7 +43,9 @@ create table if not exists public.coaches (
   constraint coaches_slug_check check (slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'),
   constraint coaches_slug_not_reserved check (slug <> all (array[
     'dashboard','signup','login','logout','onboarding','auth','api','preview','privacy','terms',
-    'admin','app','www','calspot','support','help','about','pricing','contact','settings','static','assets']))
+    'admin','app','www','calspot','support','help','about','pricing','contact','settings','static','assets',
+    'forgot-password','reset-password','favicon','robots','sitemap',
+    'examples','coach','brand','logos','landing','platform','blog','docs','status']))
 );
 
 create table if not exists public.clubs (

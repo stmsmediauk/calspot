@@ -5,6 +5,7 @@ import { createClient } from "./supabase/client";
 import {
   createCoach,
   emptySaved,
+  loadBookings,
   loadCoach,
   pushChanges,
   snapshotOf,
@@ -145,7 +146,12 @@ export function startCoachSession() {
       clearTimeout(saveTimer);
       void flush();
     }
+    if (document.visibilityState === "visible") void syncBookings();
   });
+  // New requests appear on their own while the dashboard is open.
+  setInterval(() => {
+    if (document.visibilityState === "visible") void syncBookings();
+  }, 60_000);
   window.addEventListener("beforeunload", (e) => {
     if (hasUnsavedChanges()) {
       clearTimeout(saveTimer);
@@ -156,7 +162,45 @@ export function startCoachSession() {
   // Try again as soon as the connection comes back.
   window.addEventListener("online", () => {
     if (hasUnsavedChanges()) void flush();
+    else void syncBookings();
   });
+}
+
+/**
+ * Brings in requests made since the page loaded, and decisions made elsewhere,
+ * without touching anything the coach has edited here and not yet saved.
+ */
+async function syncBookings() {
+  const busy = () => state.saving || revision !== savedRevision;
+  if (state.status !== "ready" || !state.coachId || busy()) return;
+  const coachId = state.coachId;
+  let fetched;
+  try {
+    fetched = await loadBookings(createClient(), coachId);
+  } catch {
+    return; // Try again at the next check.
+  }
+  // An edit or a save may have started while we were asking; check in again later.
+  if (state.coachId !== coachId || busy()) return;
+  const theirs = snapshotOf(coachId, {
+    ...state.workspace,
+    bookings: fetched,
+  }).rows.bookings;
+  const mine = snapshotOf(coachId, state.workspace).rows.bookings;
+  const known = saved.rows.bookings;
+  const edited = (id: string) => mine.get(id) !== known.get(id);
+  const local = new Map(state.workspace.bookings.map((b) => [b.id, b]));
+  const merged = fetched.map((b) =>
+    edited(b.id) ? (local.get(b.id) ?? b) : b,
+  );
+  // A booking the coach added here that is not saved yet stays.
+  for (const b of state.workspace.bookings)
+    if (!known.has(b.id) && !theirs.has(b.id)) merged.push(b);
+  for (const [id, row] of theirs) if (!edited(id)) known.set(id, row);
+  for (const id of [...known.keys()])
+    if (!theirs.has(id) && !edited(id)) known.delete(id);
+  if (JSON.stringify(merged) !== JSON.stringify(state.workspace.bookings))
+    set({ workspace: { ...state.workspace, bookings: merged } });
 }
 
 /** True while an edit is waiting to be saved, being saved, or failed to save. */
