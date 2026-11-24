@@ -14,7 +14,7 @@ import {
   type CoachWorkspace,
 } from "@/lib/coach-workspace";
 import { slugAvailable } from "@/lib/workspace-db";
-import { defaultTemplates } from "@/lib/whatsapp";
+import { defaultTemplates, waNumber } from "@/lib/whatsapp";
 import { useMediaQuery } from "@/lib/use-media";
 import { LogoutButton } from "../auth/logout-button";
 import { Logo } from "../logo";
@@ -41,6 +41,7 @@ const steps = [
   "Your look",
   "Clubs & lessons",
   "Your week",
+  "Contact",
   "Review",
 ];
 const starterLessons = [
@@ -88,6 +89,8 @@ type Draft = {
   days: number[];
   start: string;
   end: string;
+  whatsapp: string;
+  instagram: string;
 };
 const blank: Draft = {
   photograph: null,
@@ -107,6 +110,22 @@ const blank: Draft = {
   days: [1, 2, 3, 4, 5],
   start: "09:00",
   end: "17:00",
+  whatsapp: "",
+  instagram: "",
+};
+/** The WhatsApp number as +countrycode digits, or null. A leading 0 is read as UK (+44). */
+const whatsappValue = (value: string) => {
+  const digits = waNumber(value);
+  return digits ? `+${digits}` : null;
+};
+/** An Instagram handle from a handle, @handle or profile link, or null if it is not valid. */
+const instagramValue = (value: string) => {
+  const handle = value
+    .trim()
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, "")
+    .replace(/[/?#].*$/, "")
+    .replace(/^@/, "");
+  return /^[a-zA-Z0-9._]{1,30}$/.test(handle) ? handle : null;
 };
 const hours = (value: string) => {
   const [h, m] = value.split(":").map(Number);
@@ -149,9 +168,9 @@ function toWorkspace(d: Draft, placeholders: boolean): CoachWorkspace {
     photoFocusY: d.focusY,
     logo: null,
     logoDark: null,
-    whatsapp: "",
+    whatsapp: whatsappValue(d.whatsapp) ?? "",
     whatsappTemplates: defaultTemplates,
-    instagram: "",
+    instagram: instagramValue(d.instagram) ?? "",
   };
   const clubName = d.clubName.trim() || (placeholders ? "Your club" : "");
   const clubId = crypto.randomUUID();
@@ -244,6 +263,12 @@ export function SignupWizard() {
       if (hours(draft.end) - hours(draft.start) < 1)
         return "Your coaching window needs to be at least one hour.";
     }
+    if (step === 5) {
+      if (!whatsappValue(draft.whatsapp))
+        return "Add the mobile number you use for WhatsApp, for example 07700 900123.";
+      if (draft.instagram.trim() && !instagramValue(draft.instagram))
+        return "Enter your Instagram handle, such as yourhandle, or leave it blank.";
+    }
     return "";
   };
   const next = async () => {
@@ -316,6 +341,7 @@ export function SignupWizard() {
                 "Choose a look.",
                 "Where and what you coach.",
                 "When you coach.",
+                "How players reach you.",
                 "Ready to go.",
               ][step]
             }
@@ -328,6 +354,7 @@ export function SignupWizard() {
                 "Pick a style for your whole page. You can fine-tune it later.",
                 "Add your club and the lessons players can request.",
                 "Set your regular week. Players only see times you have open.",
+                "Your WhatsApp number is how players message you and how you reply to every request, so it matters.",
                 "Check everything looks right. You can change any of it later. Your 14-day free trial starts when you finish, with no card needed.",
               ][step]
             }
@@ -625,6 +652,42 @@ export function SignupWizard() {
               </>
             )}
             {step === 5 && (
+              <>
+                <label>
+                  Your WhatsApp mobile number
+                  <input
+                    type="tel"
+                    autoComplete="tel"
+                    value={draft.whatsapp}
+                    placeholder="07700 900123"
+                    maxLength={30}
+                    onChange={(e) => set("whatsapp", e.target.value)}
+                  />
+                  <small>
+                    Players tap a button on your page to message you on
+                    WhatsApp, and you reply to each request there. UK numbers
+                    starting 0 are fine; for other countries include the code,
+                    such as +34.
+                  </small>
+                </label>
+                <label>
+                  Instagram handle <span>(optional)</span>
+                  <input
+                    value={draft.instagram}
+                    maxLength={60}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    placeholder="yourhandle"
+                    onChange={(e) => set("instagram", e.target.value)}
+                  />
+                  <small>
+                    Adds an Instagram link to your page so players can see your
+                    coaching. Skip it if you don’t use Instagram.
+                  </small>
+                </label>
+              </>
+            )}
+            {step === 6 && (
               <dl className={styles.review}>
                 <dt>Name</dt>
                 <dd>
@@ -657,6 +720,13 @@ export function SignupWizard() {
                     {draft.start}–{draft.end}
                   </small>
                 </dd>
+                <dt>Contact</dt>
+                <dd>
+                  WhatsApp {whatsappValue(draft.whatsapp) ?? "not set"}
+                  {instagramValue(draft.instagram) && (
+                    <small>Instagram @{instagramValue(draft.instagram)}</small>
+                  )}
+                </dd>
               </dl>
             )}
           </div>
@@ -666,7 +736,7 @@ export function SignupWizard() {
               {error}
             </p>
           )}
-          {step === 5 && (
+          {step === 6 && (
             <p className={styles.demoNote}>
               Your page stays private until you publish it from your dashboard.
             </p>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CoachBookingPage } from "@/components/coach-site/coach-booking-page";
-import { siteUrl } from "@/lib/site";
+import { isIndexable, siteUrl } from "@/lib/site";
+import { DEMO_SLUG } from "@/lib/slug";
 import { getTenantWorkspace } from "@/lib/tenant";
 
 const firstSentence = (text: string) =>
@@ -20,7 +21,10 @@ export async function generateMetadata({
     profile.tagline.trim() ||
     firstSentence(profile.introduction) ||
     `Request a lesson with ${profile.name}.`;
-  const url = `/${(await params).slug}`;
+  const slug = (await params).slug;
+  const url = `/${slug}`;
+  // The demo coach is never indexed, whatever the site-wide switch says.
+  const open = isIndexable() && slug !== DEMO_SLUG;
   return {
     title,
     description,
@@ -34,7 +38,7 @@ export async function generateMetadata({
       locale: "en_GB",
     },
     twitter: { card: "summary_large_image", title, description },
-    robots: { index: true, follow: true },
+    robots: { index: open, follow: open },
   };
 }
 

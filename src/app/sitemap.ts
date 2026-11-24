@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { siteUrl } from "@/lib/site";
+import { DEMO_SLUG } from "@/lib/slug";
 
 export const revalidate = 3600;
 
@@ -29,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .eq("published", true);
       slugs = (data ?? []).map((c) => c.slug);
     }
-    for (const slug of slugs)
+    for (const slug of slugs.filter((s) => s !== DEMO_SLUG))
       entries.push({
         url: `${base}/${slug}`,
         changeFrequency: "weekly",

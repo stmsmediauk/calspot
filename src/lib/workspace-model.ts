@@ -97,7 +97,9 @@ const mediaPrefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""}/storage/v1/ob
 export function isProfileImage(value: unknown): value is string {
   return (
     typeof value === "string" &&
-    ((process.env.NEXT_PUBLIC_SUPABASE_URL
+    // The bundled sample photographs, used by the demo coach.
+    (/^\/examples\/[a-z0-9-]{1,30}\.jpg$/.test(value) ||
+      (process.env.NEXT_PUBLIC_SUPABASE_URL
       ? value.startsWith(mediaPrefix) && value.length <= 300
       : false) ||
       (value.length <= 1_450_000 &&

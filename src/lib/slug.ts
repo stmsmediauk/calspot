@@ -12,3 +12,6 @@ export const slugPattern = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 
 /** Where the landing page leaves a claimed name for sign-up to pick up. */
 export const claimKey = "calspot:claim";
+
+/** The address of the seeded demo coach (supabase/demo_coach.sql). Never indexed or listed. */
+export const DEMO_SLUG = "demo";

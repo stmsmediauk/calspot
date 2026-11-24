@@ -13,6 +13,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import {
+  hasWhatsApp,
   setCoachPublished,
   useAccount,
   useCoachWorkspace,
@@ -51,6 +52,11 @@ export function OverviewPage() {
   const tomorrowKey = mock.dateKey(tomorrowDate);
   const tomorrow = confirmed.filter((b) => b.date === tomorrowKey);
   const checklist = [
+    {
+      done: hasWhatsApp(profile.whatsapp),
+      label: "Add your WhatsApp number (and Instagram)",
+      href: "/dashboard/profile?tab=contact",
+    },
     {
       done: !!profile.photograph,
       label: "Add your photograph",
