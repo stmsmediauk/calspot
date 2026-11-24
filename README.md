@@ -425,7 +425,7 @@ The dashboard follows the same principles as the public template: fewer decision
 - **Overview:** one "needs attention" card, confirmed sessions this week, a booking-page card (link, look, copy) and a "Finish setting up" checklist that disappears when complete.
 - **Requests:** requested-ago text and a warning when approving would overlap a confirmed session.
 - **Calendar:** phones default to a day-by-day **Agenda** view; Week and Month remain. The zone label comes from the date (GMT or BST).
-- **Availability:** a weekly editor (one row per day with time chips, **Add time**, **Copy to…** other days), **Block a date**, and a **What players see** panel that shows the start times the public form will offer, for a chosen lesson. Availability rules can apply to **All lessons**.
+- **Availability:** a month calendar of real dates (see **Availability calendar** under Current state). The earlier weekly editor and **Block a date** button were replaced.
 - **Clubs and Lessons:** compact lists with an "On my page" switch and, for lessons, up/down ordering. Lesson descriptions and club notes now appear on the public page.
 - **My profile:** **Profile**, **Appearance** and **Contact** tabs, a live preview of the unsaved draft (an iframe of the real page at `/preview`, with Desktop and Phone widths; on narrow screens a full-screen Preview sheet), and a sticky save bar with Discard and an unsaved-changes browser warning.
 
@@ -527,13 +527,16 @@ Set these in `.env.local` and in Vercel (Project Settings, Environment Variables
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase project. Required. |
 | `NEXT_PUBLIC_SITE_URL` | The public address (for example `https://calspot.co.uk`). Used for canonical links, the sitemap and share images. Falls back to the Vercel production URL. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server only, never `NEXT_PUBLIC_`. Lets `/api/book` call the booking functions once they are closed to the public (`supabase/lock_down.sql`). Set it in Vercel and redeploy **before** running that file. Without it the route falls back to the public key. |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Optional. Turns on a Cloudflare Turnstile CAPTCHA on the booking form. |
 
 Supabase Auth, URL Configuration: the Site URL and redirect URLs must include the live address and `http://localhost:3000/**`.
 
 ### SQL to run in the Supabase SQL editor
 
-Tables, row-level security and the booking function were applied as migrations. The admin, spam and trial functions are plain SQL files you run once, in this order (each is safe to run again):
+`supabase/schema.sql` is a snapshot (24 Nov 2026) of the base setup: the core tables, indexes, row-level security, the image bucket and a few core functions. It was written down after the live database was built by hand, and **has not been tested on a fresh database**, so try it on a scratch Supabase project before relying on it for recovery. When you change the database, add a new `.sql` file in `supabase/` instead of editing it by hand, so this folder stays the source of truth.
+
+The other files are plain SQL you run once, after `schema.sql`, in this order (each is safe to run again):
 
 1. `supabase/admin_delete_coach.sql` lets an admin delete a coach.
 2. `supabase/admin_tools.sql` adds suspend, plans, activity and spam clean-up.
@@ -544,7 +547,8 @@ Tables, row-level security and the booking function were applied as migrations. 
 7. `supabase/playtomic_courts.sql` adds the club Playtomic link and the "Court booked" tick. **Run it before deploying the code that saves them**, or saving clubs and requests will fail.
 8. `supabase/calendar_feed.sql` adds the private calendar link. **Run it before deploying the code that shows "Sync to your calendar"**, or that panel will show an error.
 9. `supabase/repeat_lessons.sql` adds weekly repeat bookings. **Run it before deploying the code that offers "Repeat weekly"**. It replaces `request_booking` with a version that has one extra optional argument (a transaction drops the old one, so it is never missing), and adds `request_booking_series`. After running it, you can run `supabase/repeat_lessons_test.sql`: it ends in an error on purpose so nothing is saved, and the message tells you whether each check passed.
-10. `supabase/demo_coach.sql` is optional: it adds `seed_demo_coach(email)`, which builds a fictional demo coach at `/demo` (never indexed or listed in the sitemap). Create a separate login for it in Supabase Authentication first, then run `select public.seed_demo_coach('that-email');`. Run the select again to reset it before a demo.
+10. `supabase/lock_down.sql` closes the booking functions to the public so every request must come through `/api/book` and its spam checks, drops the policies that exposed unpublished clubs and lessons, and widens the reserved page addresses. **Set `SUPABASE_SERVICE_ROLE_KEY` in Vercel and deploy first, then make a test booking, then run it.** Running it earlier stops every booking request. To undo only the booking part, grant `execute` on `request_booking` and `request_booking_series` back to `anon, authenticated`.
+11. `supabase/demo_coach.sql` is optional: it adds `seed_demo_coach(email)`, which builds a fictional demo coach at `/demo` (never indexed or listed in the sitemap). Create a separate login for it in Supabase Authentication first, then run `select public.seed_demo_coach('that-email');`. Run the select again to reset it before a demo.
 
 The app tolerates a missing file (the related feature just stays off), so deploys do not break if one has not been run yet.
 
@@ -565,10 +569,32 @@ The app tolerates a missing file (the related feature just stays off), so deploy
 ### Public pages and booking requests
 
 - A coach's page lives at `/<their-address>` and is served from Supabase using the public key, so row-level security decides what is visible (`src/lib/tenant.ts`). It stays hidden until the coach presses **Publish my page**. An admin can unpublish or suspend it.
-- Players send requests through `/api/book`, which calls the `request_booking` database function. That function checks the time against the coach's real availability, blocked days and existing requests (including lesson length) and limits one email to three waiting requests. The public page only ever receives busy times from `booked_times`, never player details.
+- Players send requests through `/api/book`, which calls the `request_booking` database function with the server key. After `lock_down.sql` that function cannot be called any other way. That function checks the time against the coach's real availability, blocked days and existing requests (including lesson length) and limits one email to three waiting requests. The public page only ever receives busy times from `booked_times`, never player details.
 - Requests appear in the coach's Requests screen. **No emails are sent yet**; coaches reply by WhatsApp or their own email.
 - Spam protection, in layers: a hidden field, a minimum fill-in time, a per-IP limit, an optional Turnstile CAPTCHA, and database limits (30 an hour per coach, 5 a day per email and per phone number).
-- Reserved page addresses (such as `admin`, `login`, `privacy`) are blocked at sign-up by `slug_available`.
+- Reserved page addresses (such as `admin`, `login`, `privacy`, `examples`) are blocked at sign-up by `slug_available`, and by a check on the `coaches` table as a backstop. Add new route names to both.
+
+### Availability calendar
+
+**Dashboard → Availability** is a calendar of real dates, laid out like the Calendar page. There is no regular week: coaches choose a date and add the times they can coach.
+
+- Click a date to open its panel: its times (each removable), and **Add a time** with Morning, Afternoon and Evening shortcuts. The club and lesson pickers appear only when the coach has more than one of each. On phones the grid becomes a list of dates and the panel opens as a pop-up.
+- **Copy these times to other dates** picks dates on a small calendar and adds the same times there.
+- **Fill several weeks at once** adds chosen weekdays and times for 1 to 12 weeks from a start date. Every date stays editable.
+- **See what players see** previews the start times the public form offers for the week of the selected date.
+- A day off is a date with no times. Past dates cannot be edited.
+
+New times are stored as one-off (`extra`) exceptions, one per date, so the database and the booking function are unchanged. Older recurring rules, such as those the sign-up wizard creates, still apply and appear on their dates. Removing one from a single date splits the rule around it (`src/lib/week-edit.ts`). Existing blocked dates still show and can be removed. All-day blocks use 00:00 to 24:00.
+
+### Saving and refreshing
+
+The dashboard keeps the whole workspace in the browser and saves only the rows that changed (`src/lib/workspace-db.ts`).
+
+- Edits save half a second after the last change, immediately when the tab is hidden or closed, and the browser warns before closing with unsaved edits. A failed save retries every 8 seconds (up to 5 times) and when the connection returns.
+- Each part of a save succeeds or fails on its own, so one row the database refuses cannot stop a decision on a request from saving.
+- New and changed requests are fetched when the tab regains focus and every minute. The check skips while there are unsaved edits, so it cannot overwrite them.
+- A repeated sign-in event for the same person no longer reloads the workspace.
+- Two devices are not kept in step beyond that: if two tabs edit the same thing, the last save wins.
 
 ### Checking courts on Playtomic
 
@@ -627,8 +653,10 @@ Overview with totals and a Needs attention list, a coach list with search, CSV e
 
 ### Known gaps
 
-- No email, no billing, no CAPTCHA unless Turnstile keys are set.
+- No email (deliberately low priority, as most coaches take bookings through WhatsApp and Instagram), no billing, no CAPTCHA unless Turnstile keys are set.
+- Supabase leaked-password protection needs the Pro plan and is off. Set a minimum password length instead (Authentication, Sign In / Providers, Email).
+- The project folder should not live in iCloud Drive: syncing `node_modules` and `.next` slows builds and can corrupt files.
 - Calspot's legal pages contain placeholders and are drafts.
 - Coach pages live at `calspot.../<address>`; per-coach subdomains and custom domains are not built.
-- The old `taken_slots` database function is unused and can be dropped.
+- The old `taken_slots` database function is unused and can be dropped (it is still in `schema.sql`).
 - Group sessions use the coach's availability windows. Fixed-date events, attendee lists and a waiting list are not built.
