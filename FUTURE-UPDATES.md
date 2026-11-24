@@ -98,4 +98,20 @@ Added 24 Nov 2026. Ideas from testing, none started.
 - **Academy-style lessons (beginner / intermediate / advanced).** A session could be filled by up to 4 independent people, so there may be no single person who makes or manages the booking. Open questions: each player books and is approved separately into a shared session (builds on group sessions and `spaces`); a minimum number of players before it runs; a level label on the lesson and a check that players pick the right one; what happens if it doesn't fill; who gets messages (a "message everyone" action is already listed as not built). Probably needs fixed-date sessions first.
 - **Playtomic or rating in setup.** Ask for a coach's Playtomic level or rating (or Playtomic profile link) in the sign-up wizard and show it on their page.
 - **iCal / Google Calendar sync in the dashboard.** Confirmed sessions out to the coach's own calendar (an ICS feed they subscribe to is the simplest first step; two-way Google sync is bigger). Could also read busy times in so availability reflects the coach's other commitments.
-- **Playtomic integration (worth investigating, could be a game changer).** Today the coach gets a request, checks Playtomic by hand to see if a court is free, then goes back to the player to confirm. Research whether Playtomic offers a partner or API route, or any way to check court availability or hold a court from Calspot, so the coach can confirm in one step. First job is finding out what is possible and what Playtomic's terms allow, before designing anything. Note the README currently says Calspot makes no promise about court reservations, so any integration would change that wording.
+- **Playtomic integration (worth investigating, could be a game changer).** A first step has shipped: a club can have a Playtomic link, so each request has a "Check court on Playtomic" button and a "Court booked" tick (no Playtomic data involved). The research below is still open. Today the coach gets a request, checks Playtomic by hand to see if a court is free, then goes back to the player to confirm. Research whether Playtomic offers a partner or API route, or any way to check court availability or hold a court from Calspot, so the coach can confirm in one step. First job is finding out what is possible and what Playtomic's terms allow, before designing anything. Note the README currently says Calspot makes no promise about court reservations, so any integration would change that wording.
+
+## Club and address autocomplete
+
+Added 24 Nov 2026. When a coach adds a club (in Clubs and in the sign-up wizard's "Clubs & lessons" step), suggest matching venues and addresses as they type. Picking one fills in the club name and address; typing by hand still works.
+
+**Provider options (decision still open)**
+- **Google Places (New) autocomplete.** Best at finding clubs by name. Free monthly allowance (about 10,000 autocomplete requests a month, and sessions that end in a place lookup may be free; check the live pricing page), but a Google Cloud project with billing and a card is required. Key restricted to calspot.co.uk and the Places API.
+- **Geoapify.** Free plan of 3,000 requests a day, no card, but built on OpenStreetMap so smaller padel clubs may be missing. Needs attribution; check its terms on commercial use.
+- **Photon (komoot's public service).** Free, same OpenStreetMap data, but meant for demos with no availability guarantee. Not recommended for a product.
+- A UK postcode lookup would fill the address only, not the club name.
+
+**How to build it**
+- Key in an environment variable (for example `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`), and fall back to plain typing when it is missing, so it is safe to deploy before the key exists.
+- Wait for a pause in typing and a few characters before searching, to keep requests down.
+- Keep the provider as one swappable piece.
+- The text a coach types is sent to the provider while they search. Mention it in the privacy page (still a draft awaiting legal review).

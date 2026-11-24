@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import * as mock from "@/lib/mock-data";
+import { playtomicUrl } from "@/lib/playtomic";
 import type { Club, Lesson, Rule } from "@/lib/mock-data";
 export function Editor({
   kind,
@@ -34,7 +35,9 @@ export function Editor({
         name={name}
         type={type}
         defaultValue={String(values[name] ?? fallback)}
-        required={name !== "notes" && name !== "description"}
+        required={
+          name !== "notes" && name !== "description" && name !== "playtomicUrl"
+        }
         min={type === "number" ? (name === "capacity" ? 1 : 0) : undefined}
         max={name === "capacity" ? 40 : undefined}
         step={
@@ -54,8 +57,20 @@ export function Editor({
             setError("Please enter a name.");
             return;
           }
+          let link = "";
+          if (kind === "club" && String(data.playtomicUrl ?? "").trim()) {
+            const clean = playtomicUrl(String(data.playtomicUrl));
+            if (!clean) {
+              setError(
+                "Paste the link to your club’s page on Playtomic, such as https://playtomic.com/clubs/your-club, or leave it blank.",
+              );
+              return;
+            }
+            link = clean;
+          }
           onSave({
             ...data,
+            ...(kind === "club" ? { playtomicUrl: link } : {}),
             active: values.active ?? true,
             ...(kind === "lesson"
               ? {
@@ -92,6 +107,12 @@ export function Editor({
           {field("name", "Club name")}
           {field("address", "Address")}
           {field("notes", "Venue notes")}
+          {field("playtomicUrl", "Playtomic page (optional)")}
+          <p className="footnote">
+            Paste your club’s page on Playtomic. Each request then gets a
+            “Check court on Playtomic” button that opens it in a new tab. Calspot
+            doesn’t connect to Playtomic or hold any courts.
+          </p>
         </>
       ) : kind === "lesson" ? (
         <>

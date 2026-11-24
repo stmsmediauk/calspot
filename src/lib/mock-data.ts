@@ -4,6 +4,8 @@ export type Club = {
   address: string;
   notes: string;
   active: boolean;
+  /** The club's Playtomic page. Opened by a button so the coach can check courts. */
+  playtomicUrl?: string;
 };
 export type Lesson = {
   id: string;
@@ -38,6 +40,8 @@ export type Booking = {
   minutes?: number;
   /** Another time the coach offered when declining. */
   suggested?: { date: string; hour: number };
+  /** The coach's own tick that they have booked the court. Calspot does not check it. */
+  courtBooked?: boolean;
 };
 export type Rule = {
   id: string;

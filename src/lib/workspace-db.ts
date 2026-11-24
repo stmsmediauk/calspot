@@ -29,6 +29,7 @@ const toRows = (coachId: string, ws: CoachWorkspace) => ({
       address: c.address,
       notes: c.notes,
       active: c.active,
+      playtomic_url: c.playtomicUrl || null,
       position,
     }),
   ),
@@ -78,6 +79,7 @@ const toRows = (coachId: string, ws: CoachWorkspace) => ({
       reply: b.reply ?? "",
       suggested_date: b.suggested?.date ?? null,
       suggested_hour: b.suggested?.hour ?? null,
+      court_booked: b.courtBooked === true,
     }),
   ),
 });
@@ -182,6 +184,7 @@ async function readWorkspace(
         address: c.address,
         notes: c.notes,
         active: c.active,
+        playtomicUrl: c.playtomic_url ?? "",
       })),
       lessons: (lessons.data ?? []).map((l) => ({
         id: l.id,
@@ -228,6 +231,7 @@ async function readWorkspace(
         suggested: b.suggested_date
           ? { date: b.suggested_date, hour: num(b.suggested_hour) }
           : undefined,
+        courtBooked: b.court_booked === true,
       })),
     }),
   );

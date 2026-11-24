@@ -2234,3 +2234,15 @@ a.button {
     scroll-behavior: smooth;
   }
 }
+
+/* "Check court on Playtomic" and the coach's own "Court booked" tick on a request. */
+.court-check {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin: 14px 0 4px;
+}
+.court-check .footnote {
+  margin: 0;
+}

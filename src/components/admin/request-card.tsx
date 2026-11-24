@@ -1,6 +1,7 @@
 "use client";
-import { Check, TriangleAlert } from "lucide-react";
+import { Check, ExternalLink, TriangleAlert } from "lucide-react";
 import { useCoachWorkspace } from "@/lib/coach-workspace";
+import { playtomicUrl } from "@/lib/playtomic";
 import * as mock from "@/lib/mock-data";
 import type { Booking } from "@/lib/mock-data";
 import { Badge } from "../ui";
@@ -11,6 +12,9 @@ export function RequestCard({ b }: { b: Booking }) {
   const { clubs, lessons } = useCoachWorkspace();
   const { decide, openModal } = useAdmin();
   const clash = useClash(b);
+  const courtLink = playtomicUrl(
+    clubs.find((c) => c.id === b.clubId)?.playtomicUrl ?? "",
+  );
   return (
     <article className="request-card">
       <div className="person-avatar">
@@ -61,6 +65,17 @@ export function RequestCard({ b }: { b: Booking }) {
             >
               Decline
             </button>
+            {courtLink && (
+              <a
+                className="text-button"
+                href={courtLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Check court on Playtomic{" "}
+                <ExternalLink size={13} aria-hidden="true" />
+              </a>
+            )}
             <button
               className="text-button"
               onClick={() => openModal({ kind: "booking", id: b.id })}

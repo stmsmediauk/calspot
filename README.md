@@ -541,6 +541,8 @@ Tables, row-level security and the booking function were applied as migrations. 
 4. `supabase/spam_limits.sql` adds database-level limits on booking requests.
 5. `supabase/trial.sql` adds the 14-day free trial.
 6. `supabase/group_sessions.sql` adds lesson capacity and group booking. **Run it before deploying the code that saves `capacity` on lessons**, or saving lessons will fail.
+7. `supabase/playtomic_courts.sql` adds the club Playtomic link and the "Court booked" tick. **Run it before deploying the code that saves them**, or saving clubs and requests will fail.
+8. `supabase/demo_coach.sql` is optional: it adds `seed_demo_coach(email)`, which builds a fictional demo coach at `/demo` (never indexed or listed in the sitemap). Create a separate login for it in Supabase Authentication first, then run `select public.seed_demo_coach('that-email');`. Run the select again to reset it before a demo.
 
 The app tolerates a missing file (the related feature just stays off), so deploys do not break if one has not been run yet.
 
@@ -565,6 +567,12 @@ The app tolerates a missing file (the related feature just stays off), so deploy
 - Requests appear in the coach's Requests screen. **No emails are sent yet**; coaches reply by WhatsApp or their own email.
 - Spam protection, in layers: a hidden field, a minimum fill-in time, a per-IP limit, an optional Turnstile CAPTCHA, and database limits (30 an hour per coach, 5 a day per email and per phone number).
 - Reserved page addresses (such as `admin`, `login`, `privacy`) are blocked at sign-up by `slug_available`.
+
+### Checking courts on Playtomic
+
+Many clubs take court bookings through Playtomic. A coach can paste the club's Playtomic page into **Clubs → Playtomic page**. Each request then shows **Check court on Playtomic**, which opens that page in a new tab, and a **Court booked** tick the coach uses as their own reminder. Only links on `playtomic.com` or `playtomic.io` are accepted (`src/lib/playtomic.ts`).
+
+Calspot never reads from or writes to Playtomic, holds no courts and cannot see whether the tick is true. A request is still not a confirmed court reservation, and the coach must verify court availability themselves.
 
 ### Group sessions
 
