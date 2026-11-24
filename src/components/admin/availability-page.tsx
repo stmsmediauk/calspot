@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { startTimes } from "@/lib/availability";
 import { updateCoachWorkspace, useCoachWorkspace } from "@/lib/coach-workspace";
 import * as mock from "@/lib/mock-data";
+import { platform } from "@/lib/platform";
 import { useMediaQuery } from "@/lib/use-media";
 import { addDays, windowsOn } from "@/lib/week-edit";
 import { Empty, Modal } from "../ui";
@@ -247,33 +248,37 @@ export function AvailabilityPage() {
   const cell = (date: string, inMonth: boolean) => {
     const windows = windowsOn(rules, exceptions, date);
     const open = windows.filter((w) => w.source !== "blocked");
+    const blocked = windows.some((w) => w.source === "blocked");
     const past = date < today;
-    const summary = open.length
-      ? `${mock.time(open[0].start)}–${mock.time(open[0].end)}${open.length > 1 ? ` +${open.length - 1}` : ""}`
-      : "";
+    const label = open
+      .map((w) => `${mock.time(w.start)} to ${mock.time(w.end)}`)
+      .join(", ");
     return (
       <button
         type="button"
-        className={`cal-cell ${inMonth ? "" : "is-out"} ${open.length ? "has-times" : ""} ${date === today ? "is-today" : ""} ${date === selected ? "is-selected" : ""} ${past ? "is-past" : ""}`}
+        className={`month-day ${inMonth ? "" : "muted"} ${date === selected ? "selected" : ""} ${date === today ? "today" : ""}`}
         disabled={past}
         aria-pressed={date === selected}
-        aria-label={`${mock.formatDate(date)}${summary ? `, ${summary}` : ", no times"}`}
+        aria-label={`${mock.formatDate(date)}${label ? `, ${label}` : ", no times"}${blocked ? ", blocked" : ""}`}
         onClick={() => {
           setSelected(date);
           if (narrow) setSheet(true);
         }}
       >
-        {narrow ? (
-          <>
-            <strong>{mock.formatDate(date)}</strong>
-            <small>{summary || "No times"}</small>
-          </>
-        ) : (
-          <>
-            <strong>{Number(date.slice(8))}</strong>
-            <small>{summary}</small>
-          </>
+        <span className="day-num">
+          {narrow ? mock.formatDate(date) : Number(date.slice(8))}
+        </span>
+        {open.slice(0, narrow ? 3 : 2).map((w) => (
+          <span className="month-event open" key={`${w.source}-${w.id}`}>
+            {mock.time(w.start)}–{mock.time(w.end)}
+          </span>
+        ))}
+        {open.length > (narrow ? 3 : 2) && (
+          <span className="more-times">
+            +{open.length - (narrow ? 3 : 2)} more
+          </span>
         )}
+        {blocked && <span className="month-event blocked">Blocked</span>}
       </button>
     );
   };
@@ -294,25 +299,49 @@ export function AvailabilityPage() {
         }
       />
       <div className="availability-layout">
-        <section className="panel" aria-label="Calendar">
-          <div className="cal-head">
-            <h2>
-              <MonthTitle month={month} />
-            </h2>
-            <MonthNav month={month} setMonth={setMonth} />
+        <section className="calendar panel" aria-label="Calendar">
+          <div className="calendar-toolbar">
+            <div className="row">
+              <h2>
+                <MonthTitle month={month} />
+              </h2>
+              <div className="row gap-0">
+                <MonthNav month={month} setMonth={setMonth} />
+              </div>
+              <button
+                type="button"
+                className="button secondary small"
+                onClick={() => {
+                  setMonth(`${today.slice(0, 7)}-01`);
+                  setSelected(today);
+                }}
+              >
+                Today
+              </button>
+            </div>
           </div>
           {narrow ? (
-            <div className="cal-list">
+            <div className="month-list">
               {monthDates(month)
-                .filter((d) => d.slice(0, 7) === month.slice(0, 7))
-                .filter((d) => d >= today)
+                .filter(
+                  (d) => d.slice(0, 7) === month.slice(0, 7) && d >= today,
+                )
                 .map((d) => (
-                  <div key={d}>{cell(d, true)}</div>
+                  <Fragment key={d}>{cell(d, true)}</Fragment>
                 ))}
             </div>
           ) : (
             <MonthGrid month={month} cell={cell} />
           )}
+          <footer className="calendar-footer">
+            <div className="row legend">
+              <span>
+                <i className="grey" />
+                Times you’re available
+              </span>
+            </div>
+            <span>{platform.timeZone}</span>
+          </footer>
           <TypicalWeek />
         </section>
         {!narrow && (

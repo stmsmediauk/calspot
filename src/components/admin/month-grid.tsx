@@ -1,5 +1,5 @@
 "use client";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as mock from "@/lib/mock-data";
 import { addDays } from "@/lib/week-edit";
@@ -78,17 +78,20 @@ export function MonthGrid({
   cell: (date: string, inMonth: boolean) => ReactNode;
 }) {
   return (
-    <div className={`cal-grid${mini ? " mini" : ""}`}>
+    <div className={mini ? "cal-grid mini" : "month-grid"}>
       {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-        <span className="cal-dow" key={d}>
+        <span className={mini ? "cal-dow" : "month-heading"} key={d}>
           {d}
         </span>
       ))}
-      {monthDates(month).map((date) => (
-        <div key={date}>
-          {cell(date, date.slice(0, 7) === month.slice(0, 7))}
-        </div>
-      ))}
+      {monthDates(month).map((date) => {
+        const inMonth = date.slice(0, 7) === month.slice(0, 7);
+        return mini ? (
+          <div key={date}>{cell(date, inMonth)}</div>
+        ) : (
+          <Fragment key={date}>{cell(date, inMonth)}</Fragment>
+        );
+      })}
     </div>
   );
 }
